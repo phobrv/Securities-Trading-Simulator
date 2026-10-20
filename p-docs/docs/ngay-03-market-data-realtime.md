@@ -1,8 +1,8 @@
 # Ngày 3 — Đọc bảng giá chứng khoán và xây Market Data realtime
 
-Hôm nay bạn dùng danh mục chứng khoán của ngày 2 để xây **bảng giá tự cập nhật trên React**, với luồng:
+Hôm nay bạn dùng danh mục chứng khoán của ngày 2 để xây **bảng giá tự cập nhật trên Vue 3 + TypeScript + Tailwind CSS**, với luồng:
 
-**Bộ sinh giá mô phỏng → Redis → WebSocket → React.**
+**Bộ sinh giá mô phỏng → Redis → WebSocket → Vue.**
 
 MySQL tiếp tục quản lý Security Master. OpenCode là công cụ triển khai, dùng model bạn đã cấu hình.
 
@@ -10,11 +10,11 @@ MySQL tiếp tục quản lý Security Master. OpenCode là công cụ triển k
 
 ## 1. Mục tiêu và phân bổ thời gian
 
-| Thời gian | Nội dung | Kết quả |
-|---|---|---|
-| 30 phút nghiệp vụ | Đọc một dòng bảng giá | Hiểu giá, khối lượng và dư mua/bán |
-| 30 phút kỹ thuật | Thiết kế snapshot, REST, Redis và WebSocket | Có hợp đồng dữ liệu thống nhất |
-| 30–60 phút thực hành | Sinh giá, truyền dữ liệu và hiển thị React | Bảng giá cập nhật không cần reload |
+| Thời gian            | Nội dung                                    | Kết quả                            |
+| -------------------- | ------------------------------------------- | ---------------------------------- |
+| 30 phút nghiệp vụ    | Đọc một dòng bảng giá                       | Hiểu giá, khối lượng và dư mua/bán |
+| 30 phút kỹ thuật     | Thiết kế snapshot, REST, Redis và WebSocket | Có hợp đồng dữ liệu thống nhất     |
+| 30–60 phút thực hành | Sinh giá, truyền dữ liệu và hiển thị Vue    | Bảng giá cập nhật không cần reload |
 
 **Phạm vi bắt buộc:** chạy realtime cho `sec-001 / SIMAAA / SIM_EQ_A`.
 
@@ -30,9 +30,9 @@ Bảng giá trực tuyến của HOSE có các nhóm thông tin như mã chứng
 
 Ví dụ **hoàn toàn giả lập**, giá hiển thị theo đồng:
 
-| Mã | Tham chiếu | Trần | Sàn | Mua tốt nhất | KL mua | Giá khớp | KL khớp gần nhất | Bán tốt nhất | KL bán |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| SIMAAA | 25.000 | 27.000 | 23.000 | 25.000 | 500 | 25.100 | 100 | 25.200 | 300 |
+| Mã     | Tham chiếu |   Trần |    Sàn | Mua tốt nhất | KL mua | Giá khớp | KL khớp gần nhất | Bán tốt nhất | KL bán |
+| ------ | ---------: | -----: | -----: | -----------: | -----: | -------: | ---------------: | -----------: | -----: |
+| SIMAAA |     25.000 | 27.000 | 23.000 |       25.000 |    500 |   25.100 |              100 |       25.200 |    300 |
 
 Cách đọc:
 
@@ -45,15 +45,15 @@ Cách đọc:
 
 ### 2.2. Hiểu từng nhóm giá
 
-| Trường | Ý nghĩa |
-|---|---|
-| `referencePrice` | Giá tham chiếu dùng để so sánh trong phiên |
-| `ceilingPrice` | Giá cao nhất được phép trong cấu hình phiên |
-| `floorPrice` | Giá thấp nhất được phép trong cấu hình phiên |
-| `lastPrice` | Giá của lần khớp gần nhất |
-| `openPrice` | Giá của lần khớp đầu tiên trong phiên |
-| `highPrice` | Giá khớp cao nhất từ đầu phiên |
-| `lowPrice` | Giá khớp thấp nhất từ đầu phiên |
+| Trường           | Ý nghĩa                                      |
+| ---------------- | -------------------------------------------- |
+| `referencePrice` | Giá tham chiếu dùng để so sánh trong phiên   |
+| `ceilingPrice`   | Giá cao nhất được phép trong cấu hình phiên  |
+| `floorPrice`     | Giá thấp nhất được phép trong cấu hình phiên |
+| `lastPrice`      | Giá của lần khớp gần nhất                    |
+| `openPrice`      | Giá của lần khớp đầu tiên trong phiên        |
+| `highPrice`      | Giá khớp cao nhất từ đầu phiên               |
+| `lowPrice`       | Giá khớp thấp nhất từ đầu phiên              |
 
 Trong simulator hôm nay, **tham chiếu, trần và sàn được nhập sẵn**. Chưa tính theo quy định thực tế của từng thị trường, loại chứng khoán hoặc ngày đặc biệt.
 
@@ -64,28 +64,28 @@ Trong simulator hôm nay, **tham chiếu, trần và sàn được nhập sẵn*
 
 Ví dụ:
 
-| Phía | Mức 1 — tốt nhất | Mức 2 | Mức 3 |
-|---|---:|---:|---:|
-| Mua | 25.000 | 24.900 | 24.800 |
-| Bán | 25.200 | 25.300 | 25.400 |
+| Phía | Mức 1 — tốt nhất |  Mức 2 |  Mức 3 |
+| ---- | ---------------: | -----: | -----: |
+| Mua  |           25.000 | 24.900 | 24.800 |
+| Bán  |           25.200 | 25.300 | 25.400 |
 
 Ngày 3 chỉ cần hiển thị **một mức mua và một mức bán**. Ngày 5 sẽ xây sổ lệnh và cơ chế khớp.
 
 ### 2.4. Phân biệt ba loại khối lượng
 
-| Trường | Ý nghĩa |
-|---|---|
-| `lastQuantity` | Khối lượng của lần khớp gần nhất |
-| `totalVolume` | Tổng khối lượng đã khớp từ đầu phiên |
+| Trường                       | Ý nghĩa                                           |
+| ---------------------------- | ------------------------------------------------- |
+| `lastQuantity`               | Khối lượng của lần khớp gần nhất                  |
+| `totalVolume`                | Tổng khối lượng đã khớp từ đầu phiên              |
 | `bidQuantity`, `askQuantity` | Khối lượng đang chờ tại mức giá mua/bán tương ứng |
 
 Giả sử có ba lần khớp:
 
-| Lần | Giá | Khối lượng |
-|---|---:|---:|
-| 1 | 25.000 | 100 |
-| 2 | 25.100 | 200 |
-| 3 | 25.200 | 100 |
+| Lần |    Giá | Khối lượng |
+| --- | -----: | ---------: |
+| 1   | 25.000 |        100 |
+| 2   | 25.100 |        200 |
+| 3   | 25.200 |        100 |
 
 Kết quả:
 
@@ -111,14 +111,14 @@ vì các lần khớp có thể có giá khác nhau.
 
 Dùng quy ước hiển thị quen thuộc:
 
-| Điều kiện | Màu |
-|---|---|
-| Bằng giá trần | Tím |
-| Bằng giá sàn | Xanh lam |
-| Cao hơn tham chiếu | Xanh lá |
-| Thấp hơn tham chiếu | Đỏ |
-| Bằng tham chiếu | Vàng |
-| Chưa có dữ liệu | Trung tính, hiển thị `—` |
+| Điều kiện           | Màu                      |
+| ------------------- | ------------------------ |
+| Bằng giá trần       | Tím                      |
+| Bằng giá sàn        | Xanh lam                 |
+| Cao hơn tham chiếu  | Xanh lá                  |
+| Thấp hơn tham chiếu | Đỏ                       |
+| Bằng tham chiếu     | Vàng                     |
+| Chưa có dữ liệu     | Trung tính, hiển thị `—` |
 
 Khi viết hàm chọn màu, kiểm tra **trần và sàn trước**, rồi mới so sánh tăng/giảm.
 
@@ -130,14 +130,14 @@ Màu trên cho biết quan hệ với giá tham chiếu. Hiệu ứng nháy khi 
 
 ### 3.1. Tách trách nhiệm dữ liệu
 
-| Thành phần | Dữ liệu hoặc trách nhiệm |
-|---|---|
-| MySQL / Security Master | ID, mã, tên, loại, thị trường, trạng thái |
-| Price Simulator | Sinh dữ liệu thị trường giả lập |
-| Redis | Lưu snapshot giá mới nhất và phân phối thông báo |
-| Market Data API | Cung cấp snapshot qua REST |
-| WebSocket Gateway | Gửi cập nhật đến trình duyệt |
-| React | Ghép danh mục với giá theo `securityId` |
+| Thành phần              | Dữ liệu hoặc trách nhiệm                         |
+| ----------------------- | ------------------------------------------------ |
+| MySQL / Security Master | ID, mã, tên, loại, thị trường, trạng thái        |
+| Price Simulator         | Sinh dữ liệu thị trường giả lập                  |
+| Redis                   | Lưu snapshot giá mới nhất và phân phối thông báo |
+| Market Data API         | Cung cấp snapshot qua REST                       |
+| WebSocket Gateway       | Gửi cập nhật đến trình duyệt                     |
+| Vue 3                   | Ghép danh mục với giá theo `securityId`          |
 
 **Không ghi từng lần thay đổi giá vào bảng `securities`.**
 
@@ -152,7 +152,7 @@ flowchart TD
     SIM --> REDIS["Redis: snapshot và Pub/Sub"]
     REDIS --> REST
     REDIS --> WS["WebSocket Gateway"]
-    REST --> UI["React QuoteBoard"]
+    REST --> UI["Vue QuoteBoard"]
     WS --> UI
 ```
 
@@ -244,14 +244,14 @@ Dùng connection riêng cho subscriber; không tạo subscriber mới cho mỗi 
 
 ### 4.1. Cấu hình cho `sec-001`
 
-| Thuộc tính | Giá trị |
-|---|---:|
-| `securityId` | `sec-001` |
-| Giá tham chiếu | 25.000 đồng |
-| Giá trần giả lập | 27.000 đồng |
-| Giá sàn giả lập | 23.000 đồng |
-| Bước giá giả lập | 100 đồng |
-| Chu kỳ sinh bản tin | 2 giây |
+| Thuộc tính          |     Giá trị |
+| ------------------- | ----------: |
+| `securityId`        |   `sec-001` |
+| Giá tham chiếu      | 25.000 đồng |
+| Giá trần giả lập    | 27.000 đồng |
+| Giá sàn giả lập     | 23.000 đồng |
+| Bước giá giả lập    |    100 đồng |
+| Chu kỳ sinh bản tin |      2 giây |
 
 Các con số này là cấu hình học tập, **không đại diện cho quy tắc giao dịch của HOSE hoặc HNX**.
 
@@ -351,13 +351,13 @@ Ví dụ response:
 
 Quy tắc:
 
-| Tình huống | Kết quả |
-|---|---|
-| Chứng khoán tồn tại, có snapshot | Trả snapshot |
-| Chứng khoán tồn tại, chưa có giá | Đưa vào `missingQuoteSecurityIds` |
-| Có ID chứng khoán không tồn tại | HTTP 400, `INVALID_SECURITY_IDS` |
-| Redis không truy cập được | HTTP 503, `MARKET_DATA_UNAVAILABLE` |
-| Thiếu hoặc sai định dạng tham số | HTTP 400 |
+| Tình huống                       | Kết quả                             |
+| -------------------------------- | ----------------------------------- |
+| Chứng khoán tồn tại, có snapshot | Trả snapshot                        |
+| Chứng khoán tồn tại, chưa có giá | Đưa vào `missingQuoteSecurityIds`   |
+| Có ID chứng khoán không tồn tại  | HTTP 400, `INVALID_SECURITY_IDS`    |
+| Redis không truy cập được        | HTTP 503, `MARKET_DATA_UNAVAILABLE` |
+| Thiếu hoặc sai định dạng tham số | HTTP 400                            |
 
 Chưa có giá khác với giá bằng 0.
 
@@ -407,17 +407,17 @@ Gateway cần xếp snapshot ban đầu và cập nhật tiếp theo theo thứ 
 
 ---
 
-## 6. React: dựng bảng giá tối giản
+## 6. Vue 3 + TypeScript + Tailwind CSS: dựng bảng giá tối giản
 
 Cấu trúc đề xuất:
 
 ```text
 src/
   components/
-    QuoteBoard.tsx
-    QuoteRow.tsx
-    ConnectionStatus.tsx
-  hooks/
+    QuoteBoard.vue
+    QuoteRow.vue
+    ConnectionStatus.vue
+  composables/
     useMarketData.ts
   types/
     market-data.ts
@@ -432,26 +432,30 @@ type QuotesById = Record<string, QuoteSnapshot>;
 Khi nhận bản tin:
 
 ```ts
-setQuotesById((previous) => ({
-  ...previous,
-  [quote.securityId]: quote
-}));
+import { ref } from "vue";
+
+const quotesById = ref<QuotesById>({});
+
+quotesById.value = {
+  ...quotesById.value,
+  [quote.securityId]: quote,
+};
 ```
 
 Không ghép dữ liệu chỉ bằng `symbol`: ngày 2 đã có hai bản ghi `SIMAAA` trên hai thị trường.
 
 ### Các cột bắt buộc
 
-| Cột | Nguồn |
-|---|---|
-| Mã và thị trường | Security Master |
-| Trạng thái chứng khoán | Security Master |
-| Tham chiếu, trần, sàn | Quote |
-| Mua tốt nhất, KL mua | Quote |
-| Giá khớp, KL khớp gần nhất | Quote |
-| Bán tốt nhất, KL bán | Quote |
-| Tổng khối lượng | Quote |
-| Cập nhật lúc | Quote |
+| Cột                        | Nguồn           |
+| -------------------------- | --------------- |
+| Mã và thị trường           | Security Master |
+| Trạng thái chứng khoán     | Security Master |
+| Tham chiếu, trần, sàn      | Quote           |
+| Mua tốt nhất, KL mua       | Quote           |
+| Giá khớp, KL khớp gần nhất | Quote           |
+| Bán tốt nhất, KL bán       | Quote           |
+| Tổng khối lượng            | Quote           |
+| Cập nhật lúc               | Quote           |
 
 ### Hàm màu giá
 
@@ -460,7 +464,7 @@ function getPriceColor(
   price: number | null,
   reference: number,
   ceiling: number,
-  floor: number
+  floor: number,
 ): string {
   if (price === null) return "neutral";
   if (price === ceiling) return "ceiling";
@@ -479,18 +483,20 @@ const formatNumber = new Intl.NumberFormat("vi-VN");
 formatNumber.format(25200); // "25.200"
 ```
 
-Trong `useEffect`, cần đóng WebSocket và dọn listener khi cleanup. React có thể chạy lại chu kỳ setup/cleanup trong quá trình phát triển; cleanup đúng giúp tránh kết nối và listener bị nhân đôi. [React](https://react.dev/learn/synchronizing-with-effects?utm_source=chatgpt.com)
+Tạo WebSocket trong `onMounted` và đóng WebSocket, dọn listener trong `onUnmounted`. Cleanup đúng giúp tránh kết nối và listener bị nhân đôi khi component được mount lại. [Vue](https://vuejs.org/guide/essentials/lifecycle.html)
+
+Dùng Tailwind CSS cho bố cục bảng, trạng thái kết nối và các màu giá. Lớp CSS chỉ phục vụ hiển thị; quy tắc chọn màu vẫn nằm trong hàm TypeScript để có thể kiểm thử độc lập.
 
 ---
 
 ## 7. Thực hành — 30–60 phút
 
-| Thời gian | Công việc |
-|---|---|
-| 10 phút | Kết nối Redis, tạo snapshot ban đầu và bộ sinh giá |
-| 10–15 phút | Xây REST API và WebSocket subscription |
-| 10–20 phút | Dựng bảng React và màu giá |
-| 10–15 phút mở rộng | Kiểm tra nhiều tab, ngắt kết nối và debug |
+| Thời gian          | Công việc                                          |
+| ------------------ | -------------------------------------------------- |
+| 10 phút            | Kết nối Redis, tạo snapshot ban đầu và bộ sinh giá |
+| 10–15 phút         | Xây REST API và WebSocket subscription             |
+| 10–20 phút         | Dựng bảng Vue và màu giá                           |
+| 10–15 phút mở rộng | Kiểm tra nhiều tab, ngắt kết nối và debug          |
 
 Nếu thời gian hạn chế, chỉ làm một dòng realtime cho `sec-001`.
 
@@ -498,7 +504,7 @@ Nếu thời gian hạn chế, chỉ làm một dòng realtime cho `sec-001`.
 
 1. Chạy ba tick xác định và đối chiếu tổng khối lượng, tổng giá trị.
 2. Gọi REST và kiểm tra snapshot mới nhất.
-3. Mở React, xác nhận giá đổi mà không reload.
+3. Mở giao diện Vue, xác nhận giá đổi mà không reload.
 4. Mở thêm tab, xác nhận tốc độ sinh tick không tăng.
 5. Đóng WebSocket, xác nhận UI báo mất kết nối.
 6. Xác nhận `sec-005` không nhận nhầm giá của `sec-001`.
@@ -567,7 +573,7 @@ Tôi đang học ngày 3 của Securities Trading Simulator:
 Market Data và bảng giá realtime.
 
 Môi trường:
-- Node.js + TypeScript, MySQL, React + TypeScript.
+- Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS.
 - Redis.
 - OpenCode; model tôi cấu hình GPT 5.6 Terra, High.
 - Modular monolith.
@@ -580,7 +586,7 @@ Trước khi code:
 4. Chọn phạm vi tối thiểu cho 30–60 phút thực hành.
 
 Mục tiêu:
-Hiển thị giá realtime cho sec-001 trên React.
+Hiển thị giá realtime cho sec-001 trên Vue.
 Các chứng khoán khác vẫn xuất hiện từ Security Master,
 chưa có giá thì hiển thị dấu —.
 
@@ -621,14 +627,14 @@ Triển khai:
    - Chỉ gửi các ID client đã đăng ký.
    - Giữ thứ tự snapshot ban đầu và cập nhật cho từng subscription.
    - Dọn subscription khi client ngắt kết nối.
-8. React:
+8. Vue 3 + TypeScript + Tailwind CSS:
    - Đọc danh mục từ API ngày 2.
    - Nhận snapshot ban đầu và cập nhật qua WebSocket.
    - Lưu quote theo securityId.
    - Thay thế snapshot, không cộng dồn totalVolume.
    - Hiển thị trạng thái kết nối.
    - Reconnect thì đăng ký lại và lấy snapshot hiện tại.
-   - Cleanup WebSocket/listener trong useEffect.
+   - Tạo WebSocket trong onMounted và cleanup trong onUnmounted.
    - Format giá theo vi-VN, đơn vị đồng.
    - Tô màu trần/sàn/tham chiếu/tăng/giảm.
 
@@ -645,7 +651,7 @@ Giới hạn:
 Xác minh:
 - Ba tick cho kết quả nghiệp vụ chính xác.
 - REST đọc được snapshot từ Redis.
-- React cập nhật không reload.
+- Vue cập nhật không reload.
 - Hai tab không làm tăng tốc độ sinh tick.
 - Mất kết nối được phản ánh trên UI.
 - sec-005 không nhận nhầm giá của sec-001 dù cùng symbol.
@@ -664,7 +670,7 @@ Sau khi làm:
 - [ ] Tổng khối lượng và tổng giá trị được tính đúng.
 - [ ] Redis lưu được snapshot mới nhất.
 - [ ] REST và WebSocket dùng cùng quy ước dữ liệu.
-- [ ] React cập nhật giá mà không reload.
+- [ ] Vue cập nhật giá mà không reload.
 - [ ] Nhiều tab không làm bộ sinh giá chạy nhiều lần.
 - [ ] Giá gắn đúng `securityId` và không sai đơn vị.
 
