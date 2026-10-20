@@ -6,46 +6,71 @@ Nền móng của ứng dụng mô phỏng giao dịch chứng khoán. Dự án 
 
 - `backend/`: Node.js, TypeScript, Express và MySQL.
 - `frontend/`: Vue 3, TypeScript, Vite và Tailwind CSS.
-- `docker-compose.yml`: MySQL 8.4 cho môi trường local.
 
 ## Yêu cầu
 
 - Node.js 20 trở lên.
 - npm.
-- Docker Desktop hoặc Docker Engine có Docker Compose.
+- MySQL 8.0 trở lên, cài trực tiếp trên máy.
 
 ## Khởi động MySQL
 
+Khởi động MySQL nếu dịch vụ chưa chạy. Với bản cài từ Homebrew trên macOS:
+
 ```bash
-cd projects
-cp .env.example .env
-docker compose up -d mysql
-docker compose ps
+brew services start mysql
 ```
 
-Chờ đến khi service `mysql` ở trạng thái healthy trước khi chạy backend.
+Tạo database và user riêng cho ứng dụng. Thay mật khẩu mẫu trước khi dùng ngoài môi trường học tập local:
 
-## Khởi động backend
+```sql
+CREATE DATABASE IF NOT EXISTS securities_simulator
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'simulator'@'localhost'
+  IDENTIFIED BY 'simulator_local_password';
+
+GRANT ALL PRIVILEGES ON securities_simulator.* TO 'simulator'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+Nếu đã có user MySQL local riêng, dùng user đó trong `projects/backend/.env` thay vì tạo user `simulator`.
+
+## Cài dependencies
+
+```bash
+cd projects
+npm install
+
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+## Khởi động ứng dụng
+
+```bash
+cd projects
+npm run dev
+```
+
+Lệnh này khởi động đồng thời backend tại `http://localhost:3000` và frontend tại `http://localhost:5173`.
+
+## Chạy riêng từng ứng dụng
 
 ```bash
 cd projects/backend
-cp .env.example .env
 npm install
 npm run dev
 ```
-
-API mặc định chạy tại `http://localhost:3000`.
-
-## Khởi động frontend
 
 ```bash
 cd projects/frontend
-cp .env.example .env
 npm install
 npm run dev
 ```
 
-Giao diện mặc định chạy tại `http://localhost:5173`.
+Mẫu backend `.env` mặc định trỏ đến MySQL local tại `localhost:3306`, database `securities_simulator` và user `simulator`.
 
 ## API ngày 1
 
@@ -62,11 +87,8 @@ curl -i http://localhost:3000/api/system/overview
 ## Kiểm thử và build
 
 ```bash
-cd projects/backend
+cd projects
 npm test
-npm run build
-
-cd ../frontend
 npm run build
 ```
 

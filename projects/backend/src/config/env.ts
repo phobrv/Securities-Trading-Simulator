@@ -27,7 +27,7 @@ export const env = {
   port: readPort(process.env.PORT, 3000),
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   database: {
-    host: process.env.DB_HOST ?? "127.0.0.1",
+    host: process.env.DB_HOST ?? "localhost",
     port: readPort(process.env.DB_PORT, 3306),
     name: process.env.DB_NAME ?? "securities_simulator",
     user: process.env.DB_USER ?? "simulator",
