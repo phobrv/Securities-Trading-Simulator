@@ -1,0 +1,668 @@
+# Ngày 2 — Cổ phiếu, trái phiếu, ETF và xây dựng Security Master
+
+Hôm nay bạn xây **danh mục chứng khoán gốc** cho dự án Securities Trading Simulator. Module này sẽ giúp bảng giá và OMS trả lời: “Đây là chứng khoán nào, thuộc loại gì và đang ở trạng thái nào?”.
+
+Môi trường tiếp tục dùng **Node.js + TypeScript + MySQL**, thực hành với **OpenCode và model bạn đã cấu hình: GPT 5.6 Terra, High**.
+
+---
+
+## 1. Mục tiêu và thời gian học
+
+| Thời gian | Nội dung | Kết quả |
+|---|---|---|
+| 30 phút nghiệp vụ | Phân biệt cổ phiếu, trái phiếu và ETF | Hiểu đặc tính cần lưu |
+| 30 phút kỹ thuật | Thiết kế Security Master, database và API | Có schema và API contract |
+| 30–60 phút thực hành | Tạo bảng, seed, viết API và debug | Tra cứu được chứng khoán từ MySQL |
+
+**Sản phẩm cuối buổi:** API danh mục có dữ liệu mô phỏng, hỗ trợ lọc và tra cứu chi tiết; nhận diện được mã không tồn tại và chứng khoán tạm ngừng giao dịch.
+
+## 2. Nghiệp vụ — 30 phút
+
+### 2.1. Cổ phiếu: quyền sở hữu trong doanh nghiệp
+
+Người nắm giữ cổ phiếu trở thành cổ đông, sở hữu một phần doanh nghiệp phát hành. [vndirect.com.vn](https://www.vndirect.com.vn/kien-thuc-co-ban/co-phieu/?utm_source=chatgpt.com)
+
+Ví dụ mô phỏng:
+
+- Công ty có 1.000.000 cổ phần phổ thông.
+- Bạn sở hữu 1.000 cổ phần.
+- Tỷ lệ sở hữu là `1.000 / 1.000.000 = 0,1%`.
+
+Cổ tức không phải khoản lãi cố định được bảo đảm. Giá mua cổ phiếu cũng không phải mệnh giá của cổ phiếu.
+
+**Liên hệ với code:** hệ thống cần biết đây là `STOCK`, nhưng giá mua và số lượng bạn sở hữu thuộc dữ liệu giao dịch, danh mục tài khoản.
+
+### 2.2. Trái phiếu: quan hệ nghĩa vụ nợ
+
+Trái phiếu thể hiện nghĩa vụ nợ của tổ chức phát hành đối với người sở hữu, theo điều khoản phát hành.
+
+Một trái phiếu thường cần theo dõi:
+
+| Thuộc tính | Ý nghĩa |
+|---|---|
+| Mệnh giá — `faceValue` | Giá trị danh nghĩa dùng trong các điều khoản |
+| Ngày phát hành — `issueDate` | Ngày bắt đầu của đợt phát hành |
+| Ngày đáo hạn — `maturityDate` | Ngày đến hạn theo điều khoản |
+| Lãi suất coupon | Cơ sở tính tiền lãi theo điều khoản |
+| Tần suất trả lãi | Ví dụ hằng năm hoặc nửa năm |
+
+Ví dụ **trái phiếu giả lập, lãi suất cố định**:
+
+```text
+Mệnh giá:             1.000.000 đồng
+Coupon:               8%/năm
+Trả lãi:              mỗi năm một lần
+Tiền lãi một năm:      80.000 đồng/trái phiếu
+```
+
+Phép tính trên giả định đủ một năm, không có sự kiện đặc biệt và chưa xét thuế. **Coupon khác lợi suất đầu tư:** nếu mua với giá khác mệnh giá, không thể lấy 8% làm lợi suất thực tế của bạn.
+
+**Liên hệ với code:** không nên bắt mọi chứng khoán đều có ngày đáo hạn hoặc coupon. Đây là thuộc tính riêng của trái phiếu.
+
+### 2.3. ETF: sở hữu chứng chỉ quỹ
+
+ETF là quỹ hoán đổi danh mục; các ETF chỉ số hướng tới mô phỏng diễn biến của chỉ số tham chiếu, và chứng chỉ quỹ được giao dịch trên sàn. Ví dụ, quỹ ETF DCVFMVN30 công bố mục tiêu mô phỏng gần nhất có thể biến động của VN30. [Giao dịch trên DragonX](https://dautu.dragoncapital.com.vn/product/etf?utm_source=chatgpt.com)
+
+Trong bài học, hãy phân biệt:
+
+- **Chỉ số:** thước đo diễn biến của một nhóm chứng khoán.
+- **ETF:** quỹ đầu tư có danh mục tài sản.
+- **Chứng chỉ quỹ ETF:** đơn vị nhà đầu tư mua/bán.
+
+**Liên hệ với code:** ETF có thể xuất hiện cùng cổ phiếu trên bảng giá, nhưng `securityType` cần là `ETF`.
+
+### 2.4. Bảng so sánh cần nhớ
+
+| Đặc điểm | Cổ phiếu | Trái phiếu | ETF |
+|---|---|---|---|
+| Bản chất | Sở hữu cổ phần doanh nghiệp | Quyền chủ nợ theo điều khoản | Sở hữu phần vốn trong quỹ |
+| Thu nhập có thể có | Cổ tức, chênh lệch giá | Lãi theo điều khoản, chênh lệch giá | Phân phối thu nhập nếu có, chênh lệch giá |
+| Ngày đáo hạn | Thông thường không có | Thường có | Phụ thuộc cấu trúc quỹ |
+| Thuộc tính riêng cần học | Loại cổ phần | Mệnh giá, coupon, đáo hạn | Chỉ số tham chiếu, quỹ |
+| Giá có thể biến động | Có | Có | Có |
+
+### Bài tự giải thích
+
+> Vì sao không thể tạo một bảng danh mục chỉ gồm `symbol`, `name`, `price` rồi dùng cho mọi nghiệp vụ?
+
+Bạn cần nhận ra hai vấn đề: thiếu loại chứng khoán và trộn dữ liệu định danh với giá thị trường.
+
+---
+
+## 3. Kỹ thuật — 30 phút
+
+### 3.1. Security Master lưu gì?
+
+Security Master là nơi quản lý thông tin định danh và thuộc tính tham chiếu của chứng khoán.
+
+| Dữ liệu | Module sở hữu |
+|---|---|
+| ID, mã, tên, loại, thị trường, trạng thái | Security Master |
+| Giá khớp gần nhất, dư mua, dư bán | Market Data |
+| Lệnh mua/bán của khách hàng | OMS |
+| Khối lượng tài khoản đang sở hữu | Accounts / Portfolio |
+| Giá vốn của tài khoản | Portfolio |
+
+**Không thêm `lastPrice`, `myQuantity` hoặc `averageCost` vào bảng `securities`.**
+
+Những dữ liệu đó có phạm vi và vòng đời khác với thông tin danh mục.
+
+### 3.2. Module trong backend
+
+Tiếp nối cấu trúc ngày 1:
+
+```text
+src/modules/security-master/
+  security.routes.ts
+  security.service.ts
+  security.repository.ts
+  security.types.ts
+```
+
+| Thành phần | Trách nhiệm |
+|---|---|
+| Route | Đọc tham số, trả HTTP response |
+| Service | Xử lý quy tắc tra cứu và lỗi nghiệp vụ |
+| Repository | Truy vấn MySQL bằng tham số |
+| Types | Định nghĩa dữ liệu trao đổi |
+
+Luồng đọc:
+
+```text
+HTTP request → Route → Service → Repository → MySQL
+```
+
+Ở quy mô bài học, Security Master là **module trong cùng backend**, chưa cần tách thành service triển khai độc lập.
+
+### 3.3. Phân biệt ID với mã hiển thị
+
+```json
+{
+  "id": "sec-001",
+  "symbol": "SIMAAA",
+  "marketCode": "SIM_EQ_A"
+}
+```
+
+- `id`: định danh nội bộ, dùng để liên kết lệnh, lần khớp và vị thế.
+- `symbol`: mã giao dịch hiển thị.
+- `marketCode`: phạm vi thị trường trong simulator.
+
+Trong mô hình hôm nay, một bản ghi đại diện cho **một công cụ được giao dịch trên một thị trường**. Vì vậy, đặt ràng buộc duy nhất:
+
+```sql
+UNIQUE (market_code, symbol)
+```
+
+Không mặc định `symbol` là định danh duy nhất cho mọi thị trường. Hệ thống nhiều thị trường hoàn chỉnh có thể tách thêm định danh công cụ và thông tin niêm yết; chưa cần làm trong ngày 2.
+
+### 3.4. Quy tắc mô phỏng
+
+Toàn bộ mã và thị trường dưới đây là **giả lập**.
+
+| Quy tắc | Cách áp dụng |
+|---|---|
+| Loại chứng khoán | `STOCK`, `BOND`, `ETF` |
+| Trạng thái đơn giản hóa | `TRADABLE`, `SUSPENDED`, `DELISTED` |
+| Chuẩn hóa mã đầu vào | Bỏ khoảng trắng hai đầu, chuyển chữ hoa |
+| Tra cứu chi tiết | Dùng `securityId` |
+| Chứng khoán tạm ngừng | Vẫn tra cứu được; khi đặt lệnh phải bị kiểm tra |
+| Điều khoản trái phiếu | Lưu riêng trong `bond_terms` |
+| Giá realtime | Chưa triển khai hôm nay |
+
+`TRADABLE` chỉ là một điều kiện tham chiếu. Nó chưa chứng minh tài khoản được đặt lệnh: OMS còn phải kiểm tra phiên, quyền, giá, khối lượng và tài sản.
+
+---
+
+## 4. Database MySQL và dữ liệu mẫu
+
+Schema dưới đây dùng cú pháp MySQL hiện đại, với InnoDB, khóa ngoại và `CHECK`. Hãy để OpenCode kiểm tra phiên bản MySQL thực tế trước khi chạy migration; tài liệu MySQL mô tả riêng cơ chế ràng buộc khóa ngoại và `CHECK`. [dev.mysql.com](https://dev.mysql.com/doc/refman/8.4/en/create-table-foreign-keys.html?utm_source=chatgpt.com)
+
+### 4.1. Bảng danh mục
+
+Chạy migration này trong database `securities_simulator` đã tạo ở ngày 1:
+
+```sql
+CREATE TABLE securities (
+    id VARCHAR(36) NOT NULL,
+    symbol VARCHAR(32) NOT NULL,
+    display_name VARCHAR(255) NOT NULL,
+
+    security_type ENUM('STOCK', 'BOND', 'ETF') NOT NULL,
+    market_code VARCHAR(32) NOT NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'VND',
+
+    trading_status ENUM(
+        'TRADABLE',
+        'SUSPENDED',
+        'DELISTED'
+    ) NOT NULL,
+
+    created_at TIMESTAMP(3) NOT NULL
+        DEFAULT CURRENT_TIMESTAMP(3),
+
+    updated_at TIMESTAMP(3) NOT NULL
+        DEFAULT CURRENT_TIMESTAMP(3)
+        ON UPDATE CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (id),
+
+    CONSTRAINT uq_securities_market_symbol
+        UNIQUE (market_code, symbol),
+
+    INDEX idx_securities_type_status (
+        security_type,
+        trading_status
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### 4.2. Điều khoản trái phiếu
+
+```sql
+CREATE TABLE bond_terms (
+    security_id VARCHAR(36) NOT NULL,
+    face_value DECIMAL(20, 2) NOT NULL,
+    coupon_rate_bps INT UNSIGNED NOT NULL,
+
+    issue_date DATE NOT NULL,
+    maturity_date DATE NOT NULL,
+
+    PRIMARY KEY (security_id),
+
+    CONSTRAINT fk_bond_terms_security
+        FOREIGN KEY (security_id)
+        REFERENCES securities(id),
+
+    CONSTRAINT chk_bond_face_value
+        CHECK (face_value > 0),
+
+    CONSTRAINT chk_bond_dates
+        CHECK (maturity_date > issue_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+Giải thích:
+
+- `DECIMAL`: lưu giá trị thập phân chính xác cho mệnh giá.
+- `coupon_rate_bps`: lưu lãi suất theo basis point.
+- `100 bps = 1 điểm phần trăm`; `800 bps = 8%`.
+- Khóa chính `security_id` tạo quan hệ một chứng khoán với tối đa một bản điều khoản trái phiếu.
+
+**Giới hạn cần hiểu:** khóa ngoại chỉ bảo đảm chứng khoán tồn tại. Nó chưa bảo đảm chứng khoán đó có loại `BOND`. Service hoặc quy trình import phải kiểm tra điều này.
+
+### 4.3. Seed năm chứng khoán giả lập
+
+Chạy sau migration, trên database demo chưa có các ID này:
+
+```sql
+START TRANSACTION;
+
+INSERT INTO securities (
+    id,
+    symbol,
+    display_name,
+    security_type,
+    market_code,
+    currency,
+    trading_status
+)
+VALUES
+(
+    'sec-001',
+    'SIMAAA',
+    'Cổ phiếu Công ty Alpha mô phỏng',
+    'STOCK',
+    'SIM_EQ_A',
+    'VND',
+    'TRADABLE'
+),
+(
+    'sec-002',
+    'SIMBBB',
+    'Cổ phiếu Công ty Beta mô phỏng',
+    'STOCK',
+    'SIM_EQ_A',
+    'VND',
+    'SUSPENDED'
+),
+(
+    'sec-003',
+    'SIMETF',
+    'Chứng chỉ quỹ ETF mô phỏng',
+    'ETF',
+    'SIM_FUND',
+    'VND',
+    'TRADABLE'
+),
+(
+    'sec-004',
+    'SIMBOND01',
+    'Trái phiếu cố định Alpha 2026–2029 mô phỏng',
+    'BOND',
+    'SIM_BOND',
+    'VND',
+    'TRADABLE'
+),
+(
+    'sec-005',
+    'SIMAAA',
+    'Cổ phiếu Gamma trên thị trường B mô phỏng',
+    'STOCK',
+    'SIM_EQ_B',
+    'VND',
+    'TRADABLE'
+);
+
+INSERT INTO bond_terms (
+    security_id,
+    face_value,
+    coupon_rate_bps,
+    issue_date,
+    maturity_date
+)
+VALUES (
+    'sec-004',
+    1000000.00,
+    800,
+    '2026-01-15',
+    '2029-01-15'
+);
+
+COMMIT;
+```
+
+Hai bản ghi `SIMAAA` được tạo có chủ đích trên hai thị trường khác nhau để thực hành lỗi định danh.
+
+Kiểm tra dữ liệu:
+
+```sql
+SELECT
+    security_type,
+    COUNT(*) AS total
+FROM securities
+GROUP BY security_type;
+```
+
+Kết quả mong đợi:
+
+| Loại | Số bản ghi |
+|---|---:|
+| STOCK | 3 |
+| BOND | 1 |
+| ETF | 1 |
+
+---
+
+## 5. API cần xây
+
+### 5.1. Danh sách chứng khoán
+
+```http
+GET /api/securities
+```
+
+Bộ lọc bắt buộc hỗ trợ:
+
+```http
+GET /api/securities?type=STOCK
+GET /api/securities?status=TRADABLE
+GET /api/securities?marketCode=SIM_EQ_A&symbol=SIMAAA
+```
+
+Các bộ lọc được kết hợp bằng điều kiện `AND`.
+
+Ví dụ response:
+
+```json
+{
+  "data": [
+    {
+      "id": "sec-001",
+      "symbol": "SIMAAA",
+      "displayName": "Cổ phiếu Công ty Alpha mô phỏng",
+      "securityType": "STOCK",
+      "marketCode": "SIM_EQ_A",
+      "currency": "VND",
+      "tradingStatus": "TRADABLE"
+    }
+  ],
+  "meta": {
+    "count": 1,
+    "simulation": true
+  }
+}
+```
+
+Quy tắc:
+
+- Bộ lọc hợp lệ nhưng không có kết quả: HTTP 200, `data: []`.
+- `type=CRYPTO` không thuộc phạm vi bài học: HTTP 400.
+- Sắp xếp ổn định bằng `ORDER BY id`.
+- `count` là số bản ghi trả về trong bài này; phân trang có thể bổ sung sau.
+
+### 5.2. Chi tiết chứng khoán
+
+```http
+GET /api/securities/sec-004
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "sec-004",
+    "symbol": "SIMBOND01",
+    "displayName": "Trái phiếu cố định Alpha 2026–2029 mô phỏng",
+    "securityType": "BOND",
+    "marketCode": "SIM_BOND",
+    "currency": "VND",
+    "tradingStatus": "TRADABLE",
+    "bondTerms": {
+      "faceValue": "1000000.00",
+      "couponRateBps": 800,
+      "issueDate": "2026-01-15",
+      "maturityDate": "2029-01-15"
+    }
+  }
+}
+```
+
+Trong API này, `faceValue` được quy ước trả bằng **chuỗi thập phân**. Ngày tháng thuần túy trả dạng `YYYY-MM-DD`, không chuyển thành thời điểm UTC.
+
+Đối với cổ phiếu và ETF:
+
+```json
+{
+  "bondTerms": null
+}
+```
+
+### 5.3. Mã không tồn tại
+
+```http
+GET /api/securities/sec-not-found
+```
+
+HTTP 404:
+
+```json
+{
+  "error": {
+    "code": "SECURITY_NOT_FOUND",
+    "message": "Không tìm thấy chứng khoán."
+  }
+}
+```
+
+Chưa cần xây API tạo, sửa hoặc xóa danh mục công khai trong ngày 2. Migration và seed là đủ để thực hành.
+
+---
+
+## 6. Thực hành — 30–60 phút
+
+| Thời lượng | Việc cần làm |
+|---|---|
+| 10 phút | Tạo migration và seed |
+| 15–20 phút | Viết repository, service, hai API đọc |
+| 5–10 phút | Kiểm tra bộ lọc và lỗi |
+| 15–20 phút mở rộng | Thực hành debug, bổ sung kiểm thử |
+
+### Bài 1 — Tra cứu danh mục
+
+```bash
+curl "http://localhost:3000/api/securities?type=STOCK"
+```
+
+Kỳ vọng: ba cổ phiếu.
+
+```bash
+curl "http://localhost:3000/api/securities?status=TRADABLE"
+```
+
+Kỳ vọng: bốn chứng khoán.
+
+```bash
+curl "http://localhost:3000/api/securities/sec-004"
+```
+
+Kỳ vọng: trái phiếu có đủ điều khoản.
+
+### Bài 2 — Chuẩn hóa mã
+
+```bash
+curl "http://localhost:3000/api/securities?marketCode=SIM_EQ_A&symbol=%20simaaa%20"
+```
+
+Kỳ vọng: tìm thấy `sec-001` sau khi service chuẩn hóa thành `SIMAAA`.
+
+### Bài 3 — Viết hàm chuẩn bị cho OMS
+
+```ts
+async function assertSecurityTradable(
+  securityId: string
+): Promise<Security>
+```
+
+Hành vi:
+
+| Đầu vào | Kết quả |
+|---|---|
+| `sec-001` | Trả chứng khoán |
+| `sec-002` | Báo `SECURITY_NOT_TRADABLE` |
+| ID không tồn tại | Báo `SECURITY_NOT_FOUND` |
+
+Hàm này chưa cần mở thành endpoint. Sau này OMS gọi nó trước các kiểm tra phiên và tài sản.
+
+---
+
+## 7. Tình huống debug
+
+### Tình huống A — Tìm đúng mã nhưng sai chứng khoán
+
+Repository đang viết:
+
+```sql
+SELECT *
+FROM securities
+WHERE symbol = ?
+LIMIT 1;
+```
+
+Khi tìm `SIMAAA`, có hai bản ghi phù hợp. `LIMIT 1` che mất sự mơ hồ và có thể trả bản ghi sai thị trường.
+
+Cách sửa:
+
+- Tra cứu theo `securityId`; hoặc
+- Tra cứu chính xác bằng `marketCode + symbol`.
+- Nếu chỉ tìm theo symbol, trả danh sách các kết quả phù hợp.
+
+Kiểm tra trực tiếp:
+
+```sql
+SELECT id, market_code, symbol
+FROM securities
+WHERE symbol = 'SIMAAA';
+```
+
+### Tình huống B — Chứng khoán tạm ngừng biến mất khỏi mọi API
+
+Developer thêm điều kiện mặc định:
+
+```sql
+WHERE trading_status = 'TRADABLE'
+```
+
+vào mọi truy vấn.
+
+Hậu quả: `sec-002` không còn tra cứu được, dù hệ thống có thể vẫn cần hiển thị thông tin cho lịch sử giao dịch hoặc danh mục đang nắm giữ.
+
+Cách sửa:
+
+- API chi tiết vẫn trả chứng khoán tạm ngừng.
+- API danh sách chỉ lọc trạng thái khi được yêu cầu.
+- Kiểm tra quyền giao dịch nằm trong hàm nghiệp vụ riêng.
+
+**Điểm cần hiểu:** tìm thấy chứng khoán và được phép giao dịch chứng khoán là hai quyết định riêng.
+
+---
+
+## 8. Prompt dành cho OpenCode
+
+```text
+Tôi đang học ngày 2 của Securities Trading Simulator:
+Cổ phiếu, trái phiếu, ETF và Security Master.
+
+Môi trường:
+- OpenCode; model tôi cấu hình GPT 5.6 Terra, High.
+- Node.js + TypeScript.
+- MySQL với InnoDB.
+- Modular monolith.
+- Giữ cấu trúc và thư viện hiện có từ ngày 1.
+
+Trước khi code:
+1. Đọc project và tóm tắt cách kết nối MySQL, khai báo route,
+   xử lý lỗi và quản lý migration.
+2. Kiểm tra phiên bản MySQL thực tế.
+3. Giải thích Security Master khác Market Data và Portfolio.
+4. Đề xuất phạm vi hoàn thành trong 30–60 phút.
+
+Triển khai:
+1. Tạo module security-master gồm route, service,
+   repository và types.
+2. Tạo bảng securities:
+   - id, symbol, display_name
+   - security_type: STOCK, BOND, ETF
+   - market_code, currency
+   - trading_status: TRADABLE, SUSPENDED, DELISTED
+   - created_at, updated_at
+   - unique(market_code, symbol).
+3. Tạo bảng bond_terms:
+   - security_id làm PK và FK
+   - face_value DECIMAL(20,2), phải dương
+   - coupon_rate_bps
+   - issue_date, maturity_date
+   - maturity_date phải sau issue_date.
+4. Dùng dữ liệu seed trong bài:
+   - sec-001: SIMAAA / SIM_EQ_A / STOCK / TRADABLE
+   - sec-002: SIMBBB / SIM_EQ_A / STOCK / SUSPENDED
+   - sec-003: SIMETF / SIM_FUND / ETF / TRADABLE
+   - sec-004: SIMBOND01 / SIM_BOND / BOND / TRADABLE
+   - sec-005: SIMAAA / SIM_EQ_B / STOCK / TRADABLE.
+   Trái phiếu có mệnh giá 1.000.000 VND, coupon 800 bps,
+   phát hành 2026-01-15, đáo hạn 2029-01-15.
+5. Xây GET /api/securities:
+   - Bộ lọc type, status, marketCode, symbol.
+   - Kết hợp các bộ lọc bằng AND.
+   - Chuẩn hóa symbol bằng trim và uppercase.
+   - Bộ lọc sai trả 400.
+   - Không có kết quả trả 200 và mảng rỗng.
+   - Sắp xếp ổn định theo id.
+6. Xây GET /api/securities/:id:
+   - Không tồn tại trả 404, code SECURITY_NOT_FOUND.
+   - Vẫn tra cứu được chứng khoán SUSPENDED.
+   - Trái phiếu trả bondTerms; loại khác trả bondTerms:null.
+7. Viết assertSecurityTradable(securityId):
+   - Chỉ chấp nhận TRADABLE.
+   - Phân biệt không tồn tại và không được giao dịch.
+
+Quy tắc:
+- Mọi dữ liệu thị trường đều là mô phỏng.
+- Truy vấn dùng tham số, không nối trực tiếp input vào SQL.
+- DECIMAL faceValue trả qua JSON bằng chuỗi.
+- DATE trả YYYY-MM-DD, không đổi múi giờ.
+- Không thêm giá realtime, số dư, vị thế hoặc giá vốn
+  vào securities.
+- Chưa xây CRUD công khai hay tích hợp đặt lệnh.
+- Không xóa dữ liệu hiện có để chạy lại seed.
+- Nếu có luồng ghi bond_terms, kiểm tra security_type=BOND;
+  khóa ngoại không tự bảo đảm điều kiện này.
+
+Xác minh:
+- Có 5 chứng khoán: 3 STOCK, 1 BOND, 1 ETF.
+- Có 4 chứng khoán TRADABLE.
+- SIMAAA trả 2 kết quả nếu không chọn thị trường.
+- SIM_EQ_A + SIMAAA trả đúng sec-001.
+- Trùng market_code + symbol bị từ chối.
+- sec-002 đọc được nhưng assertSecurityTradable từ chối.
+- Chi tiết sec-004 trả đúng điều khoản trái phiếu.
+- Các API health ngày 1 vẫn hoạt động.
+
+Sau khi làm:
+- Chạy kiểm tra phù hợp và nêu kết quả thực tế.
+- Giải thích request đi qua route, service, repository thế nào.
+- Cập nhật README với migration, seed và lệnh curl.
+- Chỉ rõ phần chưa kiểm chứng.
+```
+
+## Ngày 2 hoàn thành khi
+
+- [ ] Bạn giải thích được khác biệt giữa cổ phiếu, trái phiếu và ETF.
+- [ ] MySQL có năm chứng khoán giả lập và một bản điều khoản trái phiếu.
+- [ ] Hai API đọc hoạt động và có lỗi rõ ràng.
+- [ ] Không nhầm chứng khoán cùng symbol trên hai thị trường.
+- [ ] Chứng khoán tạm ngừng vẫn đọc được nhưng bị chặn ở kiểm tra giao dịch.
+- [ ] Danh mục không chứa giá realtime hoặc tài sản của tài khoản.
+
+Ngày 3 sẽ dùng `securityId` từ module này để xây **Market Data và bảng giá realtime**, giúp dữ liệu giá luôn gắn đúng chứng khoán.
