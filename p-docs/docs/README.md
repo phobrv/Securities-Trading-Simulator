@@ -22,6 +22,7 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Kiến trúc và quy ước](./kien-truc-va-quy-uoc.md) | Phạm vi mô phỏng, module, luồng dữ liệu, quy ước kỹ thuật và bất biến nghiệp vụ. |
 | [Ngày 1 — Nền móng](./ngay-01-nen-mong.md) | Bài học chi tiết đầu tiên: nghiệp vụ, API health check và kết nối MySQL. |
 | [Ngày 2 — Security Master](./ngay-02-security-master.md) | Phân biệt cổ phiếu, trái phiếu, ETF; thiết kế danh mục chứng khoán, migration, seed và API tra cứu. |
+| [Ngày 3 — Market Data realtime](./ngay-03-market-data-realtime.md) | Đọc bảng giá, thiết kế snapshot, Redis, REST, WebSocket và bảng giá React cập nhật realtime. |
 
 ## Stack thực hành
 
