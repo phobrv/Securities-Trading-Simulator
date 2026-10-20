@@ -10,13 +10,33 @@ export type AppDependencies = {
   systemService: SystemService;
 };
 
+function isLocalDevelopmentOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+
+    return (
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function createApp({ systemService }: AppDependencies): Express {
   const app = express();
 
   app.disable("x-powered-by");
   app.use(
     cors({
-      origin: env.corsOrigin,
+      origin(origin, callback) {
+        const isAllowedOrigin =
+          origin === undefined ||
+          env.corsOrigins.includes(origin) ||
+          (env.nodeEnv !== "production" && isLocalDevelopmentOrigin(origin));
+
+        callback(null, isAllowedOrigin);
+      },
     }),
   );
   app.use(express.json());

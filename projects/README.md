@@ -55,6 +55,7 @@ npm run dev
 ```
 
 Lệnh này khởi động đồng thời backend tại `http://localhost:3000` và frontend tại `http://localhost:5173`.
+Nếu một cổng đã được sử dụng, Vite có thể chọn cổng local khác; backend cho phép `localhost` và `127.0.0.1` ở mọi cổng khi chạy development.
 
 ## Chạy riêng từng ứng dụng
 

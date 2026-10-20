@@ -24,8 +24,12 @@ function readPositiveInteger(
 }
 
 export const env = {
+  nodeEnv: process.env.NODE_ENV ?? "development",
   port: readPort(process.env.PORT, 3000),
-  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  corsOrigins: (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   database: {
     host: process.env.DB_HOST ?? "localhost",
     port: readPort(process.env.DB_PORT, 3306),

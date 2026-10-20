@@ -28,4 +28,19 @@ describe("system overview", () => {
       },
     });
   });
+
+  it("allows a frontend running on another local development port", async () => {
+    const app = createApp({
+      systemService: new SystemService({ ping: async () => undefined }),
+    });
+
+    const response = await request(app)
+      .get("/api/system/overview")
+      .set("Origin", "http://localhost:5174");
+
+    expect(response.status).toBe(200);
+    expect(response.headers["access-control-allow-origin"]).toBe(
+      "http://localhost:5174",
+    );
+  });
 });
