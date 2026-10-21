@@ -23,6 +23,10 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Ngày 1 — Nền móng](./ngay-01-nen-mong.md) | Bài học chi tiết đầu tiên: nghiệp vụ, API health check và kết nối MySQL. |
 | [Ngày 2 — Security Master](./ngay-02-security-master.md) | Phân biệt cổ phiếu, trái phiếu, ETF; thiết kế danh mục chứng khoán, migration, seed và API tra cứu. |
 | [Ngày 3 — Market Data realtime](./ngay-03-market-data-realtime.md) | Đọc bảng giá, thiết kế snapshot, Redis, REST, WebSocket và bảng giá Vue cập nhật realtime. |
+| [Ngày 4 — Phiên giao dịch](./ngay-04-phien-giao-dich.md) | Lịch phiên, Clock giả lập và kiểm tra loại lệnh theo thời điểm. |
+| [Ngày 5 — Sổ lệnh và khớp lệnh](./ngay-05-so-lenh-va-khop-lenh.md) | Order book, ưu tiên giá-thời gian, khớp một phần và execution. |
+| [Ngày 6 — Tài khoản và tài sản khả dụng](./ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Số dư tiền, vị thế, khoản giữ và kiểm tra khả năng mua/bán. |
+| [Ngày 7 — Demo tuần 1](./ngay-07-demo-tuan-1.md) | Ghép bảng giá, phiên, sổ lệnh, execution và tài sản thành kịch bản demo. |
 
 ## Stack thực hành
 

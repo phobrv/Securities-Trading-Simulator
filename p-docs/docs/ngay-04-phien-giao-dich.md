@@ -1,0 +1,745 @@
+# Ngày 4 — Phiên giao dịch và quy tắc nhận lệnh
+
+Hôm nay bạn bổ sung khả năng trả lời:
+
+> “Với chứng khoán này, tại thời điểm hiện tại, hệ thống có cho phép nhận loại lệnh này không?”
+
+Bạn sẽ xây module **Market Session**, sử dụng đồng hồ giả lập để kiểm tra ranh giới phiên mà không phải chờ đến đúng giờ giao dịch.
+
+Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS**, triển khai bằng **OpenCode**.
+
+---
+
+## 1. Mục tiêu và thời gian học
+
+| Thời gian | Nội dung | Kết quả |
+|---|---|---|
+| 30 phút nghiệp vụ | Phiên liên tục, phiên định kỳ, LO, ATO, ATC | Hiểu loại lệnh phụ thuộc phiên |
+| 30 phút kỹ thuật | Lịch giao dịch, timezone, Clock và validation | Có quy tắc kiểm tra rõ ràng |
+| 30–60 phút thực hành | API trạng thái phiên, API kiểm tra thử và kiểm thử ranh giới | Chuyển giờ giả lập và nhận kết quả đúng |
+
+**Sản phẩm cuối buổi:** xem được trạng thái phiên trên giao diện và kiểm tra thử một yêu cầu đặt lệnh, chưa tạo lệnh hoặc giữ tiền.
+
+---
+
+## 2. Nghiệp vụ — 30 phút
+
+### 2.1. Vì sao cần phiên giao dịch?
+
+Một chứng khoán có trạng thái `TRADABLE` trong Security Master chưa đồng nghĩa có thể đặt mọi loại lệnh vào mọi thời điểm.
+
+Hệ thống cần xem xét đồng thời:
+
+| Điều kiện | Ví dụ |
+|---|---|
+| Trạng thái chứng khoán | Đang giao dịch hay tạm ngừng |
+| Ngày giao dịch | Ngày làm việc hay ngày nghỉ |
+| Phiên hiện tại | Định kỳ mở cửa, liên tục, nghỉ trưa… |
+| Loại lệnh | LO, ATO, ATC |
+| Chính sách của hệ thống | Nhận ngay hay cho phép đặt chờ |
+
+Ngày 2 đã kiểm tra **chứng khoán**. Ngày 4 bổ sung kiểm tra **thời điểm và loại lệnh**.
+
+### 2.2. Phân biệt khớp lệnh liên tục và định kỳ
+
+| Nội dung | Liên tục | Định kỳ |
+|---|---|---|
+| Nguyên lý | Lệnh được xét khớp với lệnh đối ứng khi được xử lý | Tập hợp lệnh để xác định giá khớp tại thời điểm của đợt |
+| Có lệnh phù hợp thì chắc khớp ngay? | Có thể khớp khi đáp ứng điều kiện và được xử lý | Không kết luận khớp ngay khi vừa nhập |
+| Cách hiểu đơn giản | Xử lý các cơ hội khớp liên tiếp | Tập hợp rồi xác định kết quả của đợt |
+
+Ví dụ trong phiên định kỳ:
+
+```text
+09:05:00 — Người dùng gửi ATO.
+09:05:01 — Hệ thống chấp nhận yêu cầu hợp lệ.
+
+Chưa thể kết luận:
+“Lệnh đã khớp tại 09:05:01”.
+```
+
+**Nhận yêu cầu hợp lệ và thực hiện giao dịch là hai bước khác nhau.**
+
+### 2.3. Ôn lại LO và tìm hiểu ATO, ATC
+
+Tài liệu hướng dẫn giao dịch của VCBS mô tả các loại lệnh LO, ATO và ATC, trong đó ATO/ATC gắn với việc xác định giá mở cửa/đóng cửa. [api.vcbs.com.vn](https://api.vcbs.com.vn/storage/upload/media/250609-tai-lieu-huong-dan-ndt-tham-gia-giao-dich-3.pdf?utm_source=chatgpt.com)
+
+| Loại lệnh | Cách hiểu | Giá người dùng nhập |
+|---|---|---|
+| `LO` — Limit Order | Mua không cao hơn giá giới hạn; bán không thấp hơn giá giới hạn | Có |
+| `ATO` — At The Opening | Giao dịch tại giá khớp xác định mở cửa | Không nhập giá giới hạn |
+| `ATC` — At The Closing | Giao dịch tại giá khớp xác định đóng cửa | Không nhập giá giới hạn |
+
+Ví dụ LO:
+
+```text
+Mua 100 cổ phiếu, LO giá 25.000 đồng.
+
+Có thể khớp tại 24.900 đồng nếu điều kiện cho phép.
+Không chấp nhận khớp mua tại 25.100 đồng.
+```
+
+Trong API demo:
+
+```json
+{
+  "orderType": "LO",
+  "price": 25000
+}
+```
+
+Với ATO:
+
+```json
+{
+  "orderType": "ATO"
+}
+```
+
+Không dùng `price: 0` để đại diện cho ATO hoặc ATC. Giá bằng 0 và không có giá giới hạn là hai ý nghĩa khác nhau.
+
+Bài này chỉ kiểm tra **loại lệnh có phù hợp với phiên**. Chưa triển khai thuật toán đấu giá hay ưu tiên ATO/ATC; các quy tắc thực tế có chi tiết riêng và đã có thay đổi khi triển khai hệ thống mới. [Ủy ban Chứng khoán Nhà nước](https://ssc.gov.vn/webcenter/portal/ubck/pages_r/l/chitit?dDocName=APPSSCGOVVN1620153649\&utm_source=chatgpt.com)
+
+### 2.4. Phân biệt ba mức “được chấp nhận”
+
+| Mức | Ý nghĩa |
+|---|---|
+| HTTP server nhận request | Request đến được ứng dụng |
+| Kiểm tra nghiệp vụ đạt | Những điều kiện đang kiểm tra được đáp ứng |
+| Lệnh được tiếp nhận vào thị trường | Đã qua bước chuyển lệnh và nhận phản hồi tương ứng |
+
+Một request trả HTTP 200 không có nghĩa lệnh đã khớp.
+
+Hôm nay API chỉ báo:
+
+> “Yêu cầu vượt qua hoặc không vượt qua kiểm tra chứng khoán, phiên và cấu trúc loại lệnh.”
+
+Chưa kiểm tra tài khoản, sức mua hoặc chứng khoán khả dụng.
+
+---
+
+## 3. Lịch giao dịch giả lập của bài học
+
+Áp dụng cho thị trường **`SIM_EQ_A`**, nơi có `sec-001` và `sec-002`.
+
+Lịch sau có cấu trúc gần với một ngày giao dịch cổ phiếu có phiên mở cửa và đóng cửa; đây là **quy tắc riêng của simulator**, không phải cấu hình dùng chung cho mọi sàn và loại chứng khoán.
+
+Múi giờ: **`Asia/Ho_Chi_Minh`**.
+
+| Khoảng giờ địa phương | Trạng thái | Loại lệnh được nhận trong demo |
+|---|---|---|
+| Trước 09:00 | `PRE_OPEN` | Không nhận |
+| 09:00–09:15 | `OPENING_AUCTION` | LO, ATO |
+| 09:15–11:30 | `CONTINUOUS` | LO |
+| 11:30–13:00 | `BREAK` | Không nhận |
+| 13:00–14:30 | `CONTINUOUS` | LO |
+| 14:30–14:45 | `CLOSING_AUCTION` | LO, ATC |
+| Từ 14:45 | `CLOSED` | Không nhận |
+| Thứ Bảy, Chủ nhật hoặc ngày nghỉ cấu hình | `CLOSED` | Không nhận |
+
+**Chính sách demo:** không nhận lệnh chờ trước phiên hoặc trong giờ nghỉ.
+
+Các thị trường `SIM_EQ_B`, `SIM_FUND`, `SIM_BOND` chưa có lịch hôm nay. Nếu được hỏi, trả lỗi cấu hình chưa được hỗ trợ; không tự lấy lịch của `SIM_EQ_A`.
+
+**Quy tắc ranh giới: đầu gồm, cuối không gồm**
+
+Mỗi khoảng dùng:
+
+```text
+start <= thời điểm < end
+```
+
+Ví dụ:
+
+| Thời điểm | Phiên |
+|---|---|
+| 09:14:59.999 | `OPENING_AUCTION` |
+| 09:15:00.000 | `CONTINUOUS` |
+| 11:30:00.000 | `BREAK` |
+| 13:00:00.000 | `CONTINUOUS` |
+| 14:30:00.000 | `CLOSING_AUCTION` |
+| 14:45:00.000 | `CLOSED` |
+
+Nhờ vậy, một thời điểm không đồng thời thuộc hai phiên.
+
+---
+
+## 4. Kỹ thuật — 30 phút
+
+### 4.1. Cấu trúc module
+
+```text
+src/
+  shared/
+    clock/
+      clock.ts
+      system-clock.ts
+      fixed-clock.ts
+  modules/
+    market-session/
+      market-session.config.ts
+      market-session.types.ts
+      market-session.service.ts
+      market-session.routes.ts
+      order-session-validator.ts
+```
+
+| Thành phần | Trách nhiệm |
+|---|---|
+| Config | Múi giờ, ngày làm việc, các khoảng phiên |
+| Session service | Tính trạng thái phiên tại một thời điểm |
+| Validator | Kiểm tra yêu cầu theo phiên |
+| Clock | Cung cấp thời gian thật hoặc giả lập |
+| Routes | Cung cấp API đọc và kiểm tra thử |
+
+### 4.2. Dùng Clock thay vì gọi thời gian ở mọi nơi
+
+```ts
+export interface Clock {
+  now(): Date;
+}
+
+export class SystemClock implements Clock {
+  now(): Date {
+    return new Date();
+  }
+}
+
+export class FixedClock implements Clock {
+  constructor(private instant: Date) {}
+
+  now(): Date {
+    return new Date(this.instant.getTime());
+  }
+
+  set(instant: Date): void {
+    this.instant = new Date(instant.getTime());
+  }
+}
+```
+
+Service nhận Clock qua constructor hoặc cơ chế dependency injection hiện có:
+
+```ts
+const sessionService = new MarketSessionService(
+  config,
+  clock
+);
+```
+
+Trong kiểm thử:
+
+```ts
+const clock = new FixedClock(
+  new Date("2026-10-20T09:15:00+07:00")
+);
+```
+
+**Nguyên tắc:** mỗi lần kiểm tra request chỉ lấy `clock.now()` một lần, rồi dùng cùng thời điểm đó cho toàn bộ quyết định.
+
+Tránh tình huống đọc phiên lúc 09:14:59 nhưng kiểm tra loại lệnh bằng lần đọc tiếp theo đã sang 09:15:00.
+
+### 4.3. Cấu hình lịch
+
+```ts
+const marketConfig = {
+  marketCode: "SIM_EQ_A",
+  timeZone: "Asia/Ho_Chi_Minh",
+
+  // Quy ước trong cấu hình: 1 = thứ Hai, 7 = Chủ nhật.
+  workingWeekdays: [1, 2, 3, 4, 5],
+
+  holidays: [],
+
+  sessions: [
+    {
+      state: "OPENING_AUCTION",
+      start: "09:00:00",
+      end: "09:15:00",
+      allowedOrderTypes: ["LO", "ATO"]
+    },
+    {
+      state: "CONTINUOUS",
+      start: "09:15:00",
+      end: "11:30:00",
+      allowedOrderTypes: ["LO"]
+    },
+    {
+      state: "BREAK",
+      start: "11:30:00",
+      end: "13:00:00",
+      allowedOrderTypes: []
+    },
+    {
+      state: "CONTINUOUS",
+      start: "13:00:00",
+      end: "14:30:00",
+      allowedOrderTypes: ["LO"]
+    },
+    {
+      state: "CLOSING_AUCTION",
+      start: "14:30:00",
+      end: "14:45:00",
+      allowedOrderTypes: ["LO", "ATC"]
+    }
+  ]
+};
+```
+
+Trước phiên đầu tiên trả `PRE_OPEN`; sau phiên cuối trả `CLOSED`.
+
+Thứ tự đánh giá:
+
+1. Chuyển instant sang ngày, thứ và giờ theo timezone của thị trường.
+2. Kiểm tra ngày nghỉ hoặc cuối tuần.
+3. Tìm khoảng phiên chứa thời điểm.
+4. Xác định trước phiên hoặc sau giờ.
+5. Trả các loại lệnh được phép.
+
+Kiểm tra cấu hình khi khởi động: khoảng thời gian hợp lệ, không chồng lấn và timezone được hỗ trợ.
+
+### 4.4. UTC và giờ Việt Nam
+
+Hai biểu diễn này là **cùng một thời điểm**:
+
+```text
+2026-10-20T09:15:00+07:00
+2026-10-20T02:15:00Z
+```
+
+Vì vậy, cả hai phải cho cùng kết quả:
+
+```text
+CONTINUOUS
+```
+
+Không lấy `getHours()` của máy chạy backend rồi mặc định đó là giờ Việt Nam. Dùng thư viện thời gian hiện có hoặc API timezone phù hợp để chuyển theo `Asia/Ho_Chi_Minh`.
+
+Không cộng thêm 7 giờ vào một `Date` đã được parse từ chuỗi có `+07:00`.
+
+### 4.5. MySQL sử dụng thế nào hôm nay?
+
+| Dữ liệu | Nơi lưu |
+|---|---|
+| Chứng khoán và `market_code` | MySQL, bảng `securities` ngày 2 |
+| Lịch phiên | File cấu hình TypeScript |
+| Thời gian giả lập | Clock trong ứng dụng |
+| Giá mới nhất | Redis ngày 3 |
+| Lệnh và giữ tiền | Chưa tạo hôm nay |
+
+Chưa cần tạo thêm bảng chỉ để lưu trạng thái phiên hiện tại: trạng thái được **tính từ lịch và thời điểm**.
+
+Nếu có thời gian mở rộng, có thể thiết kế bảng cấu hình lịch và ngày nghỉ trong MySQL. Chưa cần xây màn hình quản trị lịch.
+
+---
+
+## 5. API cần xây
+
+### 5.1. Xem phiên hiện tại
+
+```http
+GET /api/markets/SIM_EQ_A/session
+```
+
+Ví dụ tại 09:15 giờ Việt Nam:
+
+```json
+{
+  "data": {
+    "marketCode": "SIM_EQ_A",
+    "tradingDate": "2026-10-20",
+    "timeZone": "Asia/Ho_Chi_Minh",
+    "evaluatedAt": "2026-10-20T02:15:00Z",
+    "state": "CONTINUOUS",
+    "acceptsNewOrders": true,
+    "allowedOrderTypes": ["LO"],
+    "sessionEndsAt": "2026-10-20T04:30:00Z",
+    "clockMode": "FIXED",
+    "simulation": true
+  }
+}
+```
+
+`sessionEndsAt` là thời điểm kết thúc khoảng hiện tại. Có thể trả `null` khi `CLOSED` trong phạm vi bài này.
+
+### 5.2. Kiểm tra thử yêu cầu đặt lệnh
+
+```http
+POST /api/order-validations/session
+```
+
+Request:
+
+```json
+{
+  "securityId": "sec-001",
+  "side": "BUY",
+  "orderType": "LO",
+  "price": 25000,
+  "quantity": 100
+}
+```
+
+Service tự lấy `marketCode` từ Security Master. Không tin một `marketCode` do client gửi để quyết định lịch của chứng khoán.
+
+Response hợp lệ:
+
+```json
+{
+  "data": {
+    "valid": true,
+    "scope": "SECURITY_AND_SESSION",
+    "securityId": "sec-001",
+    "marketCode": "SIM_EQ_A",
+    "sessionState": "CONTINUOUS",
+    "evaluatedAt": "2026-10-20T02:15:00Z",
+    "reasonCode": null
+  }
+}
+```
+
+Tên `scope` làm rõ: kết quả này chưa phải chấp nhận đặt lệnh hoàn chỉnh.
+
+Ví dụ gửi ATO trong phiên liên tục:
+
+```json
+{
+  "data": {
+    "valid": false,
+    "scope": "SECURITY_AND_SESSION",
+    "securityId": "sec-001",
+    "marketCode": "SIM_EQ_A",
+    "sessionState": "CONTINUOUS",
+    "evaluatedAt": "2026-10-20T02:15:00Z",
+    "reasonCode": "ORDER_TYPE_NOT_ALLOWED_IN_SESSION"
+  }
+}
+```
+
+**Quy ước HTTP cho endpoint kiểm tra thử:**
+
+| Trường hợp | HTTP | Kết quả |
+|---|---:|---|
+| Request đúng cấu trúc, kiểm tra đạt | 200 | `valid: true` |
+| Request đúng cấu trúc, bị từ chối vì phiên/trạng thái | 200 | `valid: false` và reason |
+| Thiếu giá LO, quantity âm, loại lệnh không hỗ trợ | 400 | Lỗi request |
+| Không tìm thấy chứng khoán | 404 | `SECURITY_NOT_FOUND` |
+| Chứng khoán tồn tại nhưng thị trường chưa cấu hình | 422 | `MARKET_SESSION_NOT_CONFIGURED` |
+
+HTTP 200 ở đây nghĩa **đã thực hiện kiểm tra thành công**, không có nghĩa đã tạo lệnh.
+
+### 5.3. Pipeline kiểm tra
+
+```text
+Cấu trúc request
+→ Chứng khoán tồn tại
+→ Chứng khoán TRADABLE
+→ Thị trường có cấu hình
+→ Ngày/phiên có nhận lệnh
+→ Loại lệnh phù hợp phiên
+```
+
+Các reason code nghiệp vụ:
+
+| Reason code | Ý nghĩa |
+|---|---|
+| `SECURITY_NOT_TRADABLE` | Chứng khoán tạm ngừng hoặc không còn được giao dịch |
+| `NON_TRADING_DAY` | Cuối tuần hoặc ngày nghỉ cấu hình |
+| `SESSION_NOT_ACCEPTING_ORDERS` | Trước phiên, nghỉ trưa hoặc sau giờ |
+| `ORDER_TYPE_NOT_ALLOWED_IN_SESSION` | Ví dụ ATO trong phiên liên tục |
+
+Quy tắc cấu trúc:
+
+- `quantity`: số nguyên dương.
+- `side`: `BUY` hoặc `SELL`.
+- LO: `price` phải là số nguyên dương.
+- ATO/ATC: không gửi trường `price`.
+- Chưa kiểm tra lô, bước giá, biên độ, quyền tài khoản hoặc tài sản trong ngày 4.
+
+---
+
+## 6. Thực hành — 30–60 phút
+
+| Thời gian | Việc cần làm |
+|---|---|
+| 10 phút | Tạo Clock, config và hàm xác định phiên |
+| 10–15 phút | Tạo validator và hai API |
+| 10–15 phút | Viết kiểm thử ranh giới |
+| 10–20 phút mở rộng | Hiển thị phiên trên Vue 3 + TypeScript + Tailwind CSS và tích hợp simulator |
+
+**Bước 1 — Chạy bằng đồng hồ cố định**
+
+Đề xuất cấu hình local:
+
+```dotenv
+SIM_CLOCK_MODE=FIXED
+SIM_NOW=2026-10-20T09:10:00+07:00
+```
+
+Backend phải parse thành một instant hợp lệ; cấu hình sai thì báo rõ khi khởi động.
+
+Sau khi đổi `SIM_NOW`, khởi động lại backend. Không cần API chỉnh giờ dùng chung trong ngày 4.
+
+**Bước 2 — Kiểm tra phiên**
+
+```bash
+curl "http://localhost:3000/api/markets/SIM_EQ_A/session"
+```
+
+Kỳ vọng tại 09:10:
+
+```text
+state = OPENING_AUCTION
+allowedOrderTypes = LO, ATO
+```
+
+**Bước 3 — Gửi yêu cầu kiểm tra thử**
+
+```bash
+curl -X POST \
+  "http://localhost:3000/api/order-validations/session" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "securityId": "sec-001",
+    "side": "BUY",
+    "orderType": "ATO",
+    "quantity": 100
+  }'
+```
+
+Kỳ vọng:
+
+- Tại 09:10: `valid: true`.
+- Tại 09:15: `valid: false`.
+- Tại 12:00: `valid: false`.
+
+**Bước 4 — Thêm một vùng hiển thị trên Vue 3 + TypeScript + Tailwind CSS**
+
+Hiển thị:
+
+```text
+Thị trường: SIM_EQ_A
+Phiên: Định kỳ mở cửa
+Loại lệnh: LO, ATO
+Đồng hồ: Giả lập
+```
+
+Có thể gọi lại API phiên mỗi 5 giây. Khi dùng `FixedClock`, thời điểm đứng yên là hành vi mong đợi.
+
+Chưa cần xây form đặt lệnh hoàn chỉnh.
+
+---
+
+## 7. Bộ kiểm thử bắt buộc
+
+Dùng `FixedClock`, không dùng `sleep` để chờ đổi phiên.
+
+| Thời điểm địa phương | Loại lệnh | Kết quả |
+|---|---|---|
+| 08:59:59.999 | LO | Từ chối, chưa nhận lệnh |
+| 09:00:00.000 | ATO | Hợp lệ |
+| 09:14:59.999 | ATO | Hợp lệ |
+| 09:15:00.000 | ATO | Từ chối, sai loại lệnh theo phiên |
+| 09:15:00.000 | LO | Hợp lệ |
+| 11:30:00.000 | LO | Từ chối, nghỉ trưa |
+| 13:00:00.000 | LO | Hợp lệ |
+| 14:29:59.999 | ATC | Từ chối |
+| 14:30:00.000 | ATC | Hợp lệ |
+| 14:45:00.000 | ATC | Từ chối, đóng cửa |
+
+Kiểm tra bổ sung:
+
+- `09:15+07:00` và `02:15Z` cho cùng kết quả.
+- Thứ Bảy `2026-10-24` trả `NON_TRADING_DAY`.
+- Thêm `2026-10-21` vào danh sách **ngày nghỉ giả lập**, xác nhận bị đóng cửa.
+- `sec-002` bị từ chối dù đang trong phiên.
+- `sec-005` trả `MARKET_SESSION_NOT_CONFIGURED`, không dùng nhầm lịch thị trường A.
+- Gửi LO thiếu giá trả 400.
+- Gửi ATO kèm `price` trả 400.
+
+---
+
+## 8. Tình huống debug
+
+### A. Máy local đúng, server UTC sai
+
+Biểu hiện:
+
+```text
+09:15 giờ Việt Nam nhưng backend báo PRE_OPEN.
+```
+
+Nguyên nhân thường gặp:
+
+```ts
+const hour = now.getUTCHours();
+
+// So trực tiếp với mốc giờ địa phương.
+if (hour < 9) {
+  return "PRE_OPEN";
+}
+```
+
+Tại 09:15 Việt Nam, giờ UTC là 02:15. Phép so trên dùng hai hệ quy chiếu khác nhau.
+
+Cách sửa: chuyển instant sang timezone của thị trường trước khi đánh giá lịch.
+
+### B. Đúng 09:15 nhưng vẫn nhận ATO
+
+Nguyên nhân:
+
+```text
+OPENING_AUCTION: now <= 09:15
+CONTINUOUS:     now >= 09:15
+```
+
+Thời điểm 09:15 thuộc cả hai khoảng.
+
+Cách sửa:
+
+```text
+OPENING_AUCTION: 09:00 <= now < 09:15
+CONTINUOUS:     09:15 <= now < 11:30
+```
+
+### C. Giao diện cho phép nhưng backend từ chối
+
+Người dùng xem phiên lúc 09:14:59 rồi gửi ATO sau 09:15.
+
+Đây có thể là kết quả đúng do thời gian đã đổi.
+
+- UI hiển thị trạng thái để hỗ trợ thao tác.
+- Backend luôn kiểm tra lại bằng thời điểm xử lý.
+- Không dùng `sessionState` do client gửi làm quyết định.
+
+---
+
+## 9. Tích hợp với Market Data ngày 3 — phần mở rộng
+
+Bộ sinh giá ngày 3 đang tạo lần khớp giả mỗi 2 giây.
+
+Có thể bổ sung chính sách:
+
+| Phiên | Bộ sinh tick khớp liên tục |
+|---|---|
+| `CONTINUOUS` | Chạy |
+| `PRE_OPEN`, `BREAK`, `CLOSED` | Tạm dừng |
+| `OPENING_AUCTION`, `CLOSING_AUCTION` | Chưa sinh tick khớp; chưa có bộ đấu giá |
+
+Giữ nguyên snapshot cuối khi tạm dừng; không xóa giá.
+
+**Không có tick mới trong giờ nghỉ không đồng nghĩa mất kết nối.** Trạng thái WebSocket và trạng thái phiên phải được hiển thị riêng.
+
+Nếu làm phần này, dùng cùng Clock và cùng ngày phiên cho Market Session và simulator. Với `FixedClock`, thời gian thị trường không tự tiến dù timer chạy theo thời gian máy.
+
+---
+
+## 10. Prompt cho OpenCode
+
+```text
+Tôi đang học ngày 4 của Securities Trading Simulator:
+Phiên giao dịch và kiểm tra loại lệnh theo thời điểm.
+
+Môi trường:
+- Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS.
+- OpenCode; model tôi cấu hình GPT 5.6 Terra, High.
+- Modular monolith.
+- Giữ cấu trúc project từ ngày 1–3.
+
+Trước khi code:
+1. Đọc Security Master, Market Data và cách xử lý lỗi.
+2. Tóm tắt nguồn thời gian hiện tại của ứng dụng.
+3. Đề xuất phạm vi tối thiểu hoàn thành trong 30–60 phút.
+
+Phạm vi:
+- Chỉ cấu hình thị trường SIM_EQ_A.
+- Chưa tạo orders, execution, reservation hay ledger.
+- API hôm nay chỉ kiểm tra thử.
+- Chưa kiểm tra tài khoản, lô, bước giá, biên độ hoặc tài sản.
+
+Triển khai Clock:
+- Interface Clock.now(): Date.
+- SystemClock và FixedClock.
+- Service dùng Clock được inject.
+- Mỗi request lấy now một lần.
+- Local hỗ trợ:
+  SIM_CLOCK_MODE=FIXED
+  SIM_NOW=2026-10-20T09:10:00+07:00.
+- Cấu hình thời gian sai phải báo rõ khi khởi động.
+
+Lịch giả lập, timezone Asia/Ho_Chi_Minh:
+- Trước 09:00: PRE_OPEN, không nhận.
+- [09:00,09:15): OPENING_AUCTION, LO và ATO.
+- [09:15,11:30): CONTINUOUS, LO.
+- [11:30,13:00): BREAK, không nhận.
+- [13:00,14:30): CONTINUOUS, LO.
+- [14:30,14:45): CLOSING_AUCTION, LO và ATC.
+- Từ 14:45: CLOSED.
+- Thứ Bảy, Chủ nhật, ngày nghỉ cấu hình: CLOSED.
+- Không nhận lệnh chờ ngoài phiên.
+- Kiểm tra lịch không chồng lấn.
+- Đây là quy tắc simulator, không phải lịch chung mọi sàn.
+
+API:
+1. GET /api/markets/:marketCode/session.
+2. POST /api/order-validations/session.
+
+Validation request:
+- securityId, side, orderType, quantity.
+- LO bắt buộc price nguyên dương.
+- ATO/ATC không được gửi price.
+- quantity nguyên dương.
+- Chỉ hỗ trợ LO, ATO, ATC.
+- Lấy marketCode từ Security Master, không tin marketCode client.
+- Kiểm tra chứng khoán tồn tại và TRADABLE.
+- Thị trường thiếu cấu hình không được fallback sang SIM_EQ_A.
+- Kiểm tra ngày, phiên, loại lệnh.
+
+Response:
+- API preview trả 200 với valid true/false khi request đúng cấu trúc.
+- Luôn ghi scope=SECURITY_AND_SESSION và evaluatedAt.
+- Sai cấu trúc: 400.
+- Chứng khoán không tồn tại: 404.
+- Thị trường chưa cấu hình: 422.
+- Reason:
+  SECURITY_NOT_TRADABLE,
+  NON_TRADING_DAY,
+  SESSION_NOT_ACCEPTING_ORDERS,
+  ORDER_TYPE_NOT_ALLOWED_IN_SESSION.
+- Kết quả không có nghĩa đã tạo hoặc khớp lệnh.
+
+Kiểm thử:
+- Trước, đúng và sau ranh giới các phiên.
+- 09:15 loại ATO bị từ chối, LO hợp lệ.
+- 14:30 ATC hợp lệ, 14:45 bị từ chối.
+- 09:15+07:00 và 02:15Z cùng kết quả.
+- Thứ Bảy 2026-10-24 đóng cửa.
+- Ngày nghỉ giả lập 2026-10-21 đóng cửa khi được cấu hình.
+- sec-002 không được giao dịch.
+- sec-005 chưa có cấu hình thị trường.
+- LO thiếu giá và ATO kèm giá trả 400.
+- Không dùng sleep để chờ ranh giới.
+
+Nếu còn thời gian:
+- Vue 3 + TypeScript + Tailwind CSS hiển thị phiên, loại lệnh và chế độ Clock.
+- Cho simulator sinh tick liên tục chỉ trong CONTINUOUS.
+- Các phiên khác giữ snapshot cuối, chưa mô phỏng đấu giá.
+- Dùng cùng Clock và ngày phiên giữa các module.
+
+Sau khi làm:
+- Chạy kiểm tra phù hợp và nêu kết quả thực tế.
+- Giải thích một request ATO trước và sau 09:15.
+- Cập nhật README về Clock, lịch, API và giới hạn.
+```
+
+## Ngày 4 hoàn thành khi:
+
+- [ ] Bạn phân biệt được phiên liên tục và định kỳ.
+- [ ] Bạn giải thích được LO, ATO, ATC ở mức cơ bản.
+- [ ] API tính đúng phiên theo giờ Việt Nam.
+- [ ] Clock giả lập giúp kiểm tra mà không phải chờ.
+- [ ] Các ranh giới phiên không bị chồng lấn.
+- [ ] ATO/ATC được chấp nhận hoặc từ chối đúng cấu hình.
+- [ ] Kết quả kiểm tra thử không bị hiểu nhầm là lệnh đã được tạo.
+
+Ngày 5 sẽ xây **Order Book và Matching Simulator cho lệnh LO trong phiên liên tục**, thực hành ưu tiên giá, thời gian và khớp một phần.

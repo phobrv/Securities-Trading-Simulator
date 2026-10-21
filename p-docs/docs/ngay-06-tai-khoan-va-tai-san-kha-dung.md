@@ -1,0 +1,846 @@
+# Ngày 6 — Tài khoản, tiền và chứng khoán khả dụng
+
+Ngày 5, Matching Simulator đã biết khớp lệnh. Hôm nay bạn bổ sung câu hỏi trước khi giao dịch:
+
+> “Tài khoản này có đủ tiền để mua hoặc đủ chứng khoán để bán không?”
+
+Điểm quan trọng nhất: **tài sản đang có và tài sản được phép sử dụng là hai con số khác nhau**.
+
+Tiếp tục dùng **Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS**, thực hành bằng **OpenCode**.
+
+---
+
+## 1. Mục tiêu và thời gian học
+
+| Thời gian | Nội dung | Kết quả |
+|---|---|---|
+| 30 phút nghiệp vụ | Khách hàng, tài khoản, tiểu khoản và tài sản khả dụng | Tự tính được tiền mua và lượng có thể bán |
+| 30 phút kỹ thuật | Thiết kế Accounts, số dư và khoản giữ chứng khoán | Có schema và công thức thống nhất |
+| 30–60 phút thực hành | Seed hai tài khoản, API đọc và kiểm tra thử | Hiển thị số dư và từ chối yêu cầu vượt khả dụng |
+
+**Sản phẩm cuối buổi:** màn hình tài sản tối giản và API kiểm tra khả năng mua/bán.
+
+Hôm nay kiểm tra **chỉ đọc**, chưa giữ tài sản khi gửi yêu cầu và chưa nối trực tiếp vào matching. Các bước đó sẽ được triển khai cùng OMS và transaction ở những ngày sau.
+
+---
+
+## 2. Nghiệp vụ — 30 phút
+
+### 2.1. Khách hàng, tài khoản và tiểu khoản
+
+Bạn có thể gặp cấu trúc:
+
+| Khái niệm | Ý nghĩa |
+|---|---|
+| Khách hàng | Cá nhân hoặc tổ chức sử dụng dịch vụ |
+| Tài khoản giao dịch | Quan hệ tài khoản tại công ty chứng khoán |
+| Tiểu khoản | Phân chia phục vụ nghiệp vụ, ví dụ giao dịch thường hoặc ký quỹ |
+
+Một khách hàng có thể có nhiều tiểu khoản với chính sách và tài sản khác nhau. VCBS cũng phân biệt các tiểu khoản như thường, ký quỹ và phái sinh trong hướng dẫn của mình. [vcbs.com.vn](https://www.vcbs.com.vn/cau-hoi-thuong-gap?utm_source=chatgpt.com)
+
+**Quy ước dự án:** mỗi bản ghi `accounts` hôm nay đại diện cho **một đơn vị giao dịch và quản lý tài sản độc lập, tương đương một tiểu khoản**.
+
+Chỉ triển khai loại `CASH`. `customer_ref` là mã tham chiếu khách hàng giả lập; chưa xây module quản lý khách hàng hoặc đăng nhập.
+
+### 2.2. Phân biệt các khoản tiền
+
+Trong simulator, dùng những trường sau:
+
+| Trường | Cách hiểu |
+|---|---|
+| `settledCash` | Tiền đã thanh toán, còn ghi nhận trên tài khoản |
+| `reservedCash` | Tiền đang giữ cho phần lệnh mua chưa khớp |
+| `buyPayable` | Nghĩa vụ tiền mua đã khớp nhưng chưa thanh toán |
+| `blockedCash` | Tiền bị phong tỏa vì lý do khác |
+| `pendingReceivable` | Tiền bán chờ nhận |
+| `availableCash` | Tiền được phép dùng cho yêu cầu mua mới |
+
+**Công thức mô phỏng:**
+
+```text
+availableCash
+= settledCash
+− reservedCash
+− buyPayable
+− blockedCash
+```
+
+Hôm nay:
+
+- Không có margin.
+- Không ứng trước tiền bán.
+- Không cộng tiền ngân hàng liên kết.
+- Phí và thuế bằng 0.
+
+Tiền bán chờ nhận được hiển thị riêng, **chưa cộng vào khả dụng**.
+
+Các công ty chứng khoán có thể tính sức mua từ nhiều nguồn và chính sách khác nhau; chẳng hạn TCBS mô tả sức mua có thể bao gồm tiền mặt, tiền bán chờ về và các nguồn khác. Công thức hôm nay là chính sách của simulator. [Trung tâm hỗ trợ - TCBS](https://help.tcbs.com.vn/cach-tinh-suc-mua-khi-giao-dich-co-phieu-2/?utm_source=chatgpt.com)
+
+### 2.3. Ví dụ tiền
+
+Tài khoản A:
+
+| Khoản | Giá trị |
+|---|---:|
+| Tiền đã thanh toán | 10.000.000 |
+| Giữ cho lệnh mua chưa khớp | 2.500.000 |
+| Nghĩa vụ mua chờ thanh toán | 1.000.000 |
+| Phong tỏa khác | 500.000 |
+| Tiền bán chờ nhận | 2.000.000 |
+
+Kết quả:
+
+```text
+availableCash
+= 10.000.000 − 2.500.000 − 1.000.000 − 500.000
+= 6.000.000 đồng
+```
+
+Không phải 10 triệu và cũng không phải 12 triệu.
+
+Với LO mua giá 25.000 đồng:
+
+```text
+Mua 100 cổ phiếu:
+100 × 25.000 = 2.500.000 → đủ tiền.
+
+Mua 300 cổ phiếu:
+300 × 25.000 = 7.500.000 → không đủ tiền.
+```
+
+### 2.4. Phân biệt các lượng chứng khoán
+
+| Trường | Cách hiểu trong simulator |
+|---|---|
+| `settledQuantity` | Chứng khoán đã thanh toán, chưa bị ghi giảm bởi thanh toán bán |
+| `pendingBuyQuantity` | Chứng khoán đã mua, đang chờ nhận |
+| `pendingSellQuantity` | Chứng khoán đã bán, đang chờ giao |
+| `reservedQuantity` | Giữ cho phần lệnh bán chưa khớp |
+| `blockedQuantity` | Phong tỏa khác |
+| `availableQuantity` | Lượng được phép dùng cho lệnh bán mới |
+
+**Công thức:**
+
+```text
+availableQuantity
+= settledQuantity
+− pendingSellQuantity
+− reservedQuantity
+− blockedQuantity
+```
+
+Chứng khoán mua chờ nhận chưa được cộng vào lượng có thể bán theo chính sách hôm nay.
+
+Ví dụ tài khoản A có `sec-001`:
+
+| Khoản | Khối lượng |
+|---|---:|
+| Đã thanh toán | 1.000 |
+| Mua chờ nhận | 200 |
+| Bán chờ giao | 100 |
+| Giữ cho lệnh bán chưa khớp | 300 |
+| Phong tỏa khác | 50 |
+
+```text
+availableQuantity
+= 1.000 − 100 − 300 − 50
+= 550 cổ phiếu
+```
+
+Lệnh bán 600 phải bị từ chối, dù trường `settledQuantity` là 1.000.
+
+### 2.5. Tránh tính trùng khi lệnh khớp
+
+Giả sử đang giữ 300 cổ phiếu cho một lệnh bán. Sau đó khớp 100:
+
+```text
+reservedQuantity:    300 → 200
+pendingSellQuantity: 100 → 200
+```
+
+Tổng phần chưa được dùng tiếp vẫn như cũ:
+
+```text
+Trước: 300 + 100 = 400
+Sau:   200 + 200 = 400
+```
+
+Nếu chỉ tăng `pendingSellQuantity` mà không giảm khoản giữ tương ứng, bạn đã trừ khả dụng hai lần.
+
+Đây là nguyên tắc để hiểu mô hình; hôm nay chưa triển khai cập nhật sau execution.
+
+---
+
+## 3. Kỹ thuật — 30 phút
+
+### 3.1. Trách nhiệm của Accounts
+
+| Module | Trách nhiệm |
+|---|---|
+| Accounts | Số dư tiền, lượng chứng khoán và khả dụng |
+| Security Master | Thông tin chứng khoán và trạng thái giao dịch |
+| OMS | Lệnh và vòng đời lệnh |
+| Matching Simulator | Tạo kết quả khớp |
+| Portfolio | Giá vốn, định giá và P&L — học ngày 11 |
+
+Không đưa giá vốn hoặc lãi/lỗ vào công thức xác định lượng được bán.
+
+Cấu trúc đề xuất:
+
+```text
+src/modules/accounts/
+  account.routes.ts
+  account.service.ts
+  account.repository.ts
+  account.types.ts
+  availability.calculator.ts
+  availability.calculator.test.ts
+```
+
+`availability.calculator.ts` chứa các hàm tính thuần, không gọi database.
+
+### 3.2. Không lưu sẵn trường khả dụng
+
+Trong bài này:
+
+- Lưu các thành phần số dư.
+- Tính `availableCash` khi đọc.
+- Tính `availableQuantity` khi đọc.
+- Lấy `reservedQuantity` từ tổng khoản giữ đang hoạt động.
+
+Không vừa lưu `availableQuantity`, vừa tính lại từ các thành phần mà thiếu cơ chế đồng bộ.
+
+### 3.3. Kiểu dữ liệu tiền
+
+MySQL có các kiểu số chính xác như integer và `DECIMAL`; phù hợp hơn số thực xấp xỉ cho các phép tính tiền cần chính xác. [dev.mysql.com](https://dev.mysql.com/doc/refman/8.4/en/precision-math-numbers.html?utm_source=chatgpt.com)
+
+Quy ước hôm nay:
+
+| Dữ liệu | MySQL | Trong backend | JSON |
+|---|---|---|---|
+| Tiền VND | `DECIMAL(20,0)` | `bigint` | Chuỗi số nguyên |
+| Khối lượng | `INT UNSIGNED` | `number` trong phạm vi hợp lệ | Số |
+| Giá đầu vào demo | — | Số nguyên an toàn | Số |
+
+Ví dụ tính tiền:
+
+```ts
+const requiredCash =
+  BigInt(price) * BigInt(quantity);
+```
+
+Chỉ chuyển sau khi kiểm tra `price` và `quantity` là số nguyên an toàn hợp lệ.
+
+Không nhân bằng JavaScript `number` trước rồi mới chuyển sang `bigint`.
+
+Response:
+
+```json
+{
+  "availableCash": "6000000"
+}
+```
+
+`bigint` không được đưa trực tiếp vào JSON; chuyển thành chuỗi.
+
+---
+
+## 4. Schema MySQL
+
+Bốn bảng dưới đây là phạm vi ngày 6. Kiểm tra phiên bản MySQL đang dùng và cơ chế migration hiện có trước khi áp dụng.
+
+### 4.1. Tài khoản
+
+```sql
+CREATE TABLE accounts (
+    id VARCHAR(36) NOT NULL,
+    customer_ref VARCHAR(36) NOT NULL,
+    account_type ENUM('CASH') NOT NULL DEFAULT 'CASH',
+    status ENUM('ACTIVE', 'BLOCKED') NOT NULL DEFAULT 'ACTIVE',
+
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### 4.2. Các thành phần số dư tiền
+
+```sql
+CREATE TABLE cash_balances (
+    account_id VARCHAR(36) NOT NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'VND',
+
+    settled_cash DECIMAL(20,0) NOT NULL DEFAULT 0,
+    reserved_cash DECIMAL(20,0) NOT NULL DEFAULT 0,
+    buy_payable DECIMAL(20,0) NOT NULL DEFAULT 0,
+    blocked_cash DECIMAL(20,0) NOT NULL DEFAULT 0,
+    pending_receivable DECIMAL(20,0) NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (account_id),
+
+    FOREIGN KEY (account_id) REFERENCES accounts(id),
+
+    CONSTRAINT chk_cash_nonnegative CHECK (
+        settled_cash >= 0
+        AND reserved_cash >= 0
+        AND buy_payable >= 0
+        AND blocked_cash >= 0
+        AND pending_receivable >= 0
+    ),
+
+    CONSTRAINT chk_cash_available CHECK (
+        settled_cash >=
+        reserved_cash + buy_payable + blocked_cash
+    ),
+
+    CONSTRAINT chk_cash_currency CHECK (currency = 'VND')
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+`reserved_cash` hôm nay là số tổng được seed để học đọc số dư. Ngày 10 sẽ bổ sung chi tiết khoản giữ tiền và sổ cái.
+
+### 4.3. Lượng chứng khoán
+
+```sql
+CREATE TABLE positions (
+    account_id VARCHAR(36) NOT NULL,
+    security_id VARCHAR(36) NOT NULL,
+
+    settled_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+    pending_buy_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+    pending_sell_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+    blocked_quantity INT UNSIGNED NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (account_id, security_id),
+
+    FOREIGN KEY (account_id) REFERENCES accounts(id),
+    FOREIGN KEY (security_id) REFERENCES securities(id),
+
+    CONSTRAINT chk_position_base CHECK (
+        settled_quantity >=
+        pending_sell_quantity + blocked_quantity
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+Bảng này chưa chứa giá vốn. Các ngày sau sẽ mở rộng trách nhiệm hoặc tách projection khi cần.
+
+### 4.4. Khoản giữ chứng khoán
+
+```sql
+CREATE TABLE security_reservations (
+    id VARCHAR(36) NOT NULL,
+    account_id VARCHAR(36) NOT NULL,
+    security_id VARCHAR(36) NOT NULL,
+
+    order_reference VARCHAR(64) NOT NULL,
+    quantity INT UNSIGNED NOT NULL,
+
+    status ENUM('ACTIVE', 'RELEASED') NOT NULL,
+
+    PRIMARY KEY (id),
+
+    UNIQUE KEY uq_security_reservation_order (
+        account_id,
+        order_reference
+    ),
+
+    FOREIGN KEY (account_id, security_id)
+        REFERENCES positions(account_id, security_id),
+
+    CONSTRAINT chk_security_reservation_quantity
+        CHECK (quantity > 0),
+
+    INDEX idx_security_reservations_lookup (
+        account_id,
+        security_id,
+        status
+    )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+`order_reference` là tham chiếu fixture. Chưa tạo khóa ngoại tới lệnh simulator vì lệnh ngày 5 đang nằm trong bộ nhớ.
+
+**Giới hạn cần hiểu:** `CHECK` trên một hàng không tự bảo đảm tổng các khoản giữ ở bảng khác không vượt khả dụng. Ngày 19 sẽ bảo vệ luồng ghi bằng transaction và kiểm soát đồng thời.
+
+---
+
+## 5. Dữ liệu mẫu
+
+Chạy trên database demo sau khi đã có `sec-001` từ ngày 2:
+
+```sql
+START TRANSACTION;
+
+INSERT INTO accounts (
+    id, customer_ref, account_type, status
+)
+VALUES
+    ('acc-001', 'customer-001', 'CASH', 'ACTIVE'),
+    ('acc-002', 'customer-002', 'CASH', 'ACTIVE');
+
+INSERT INTO cash_balances (
+    account_id,
+    currency,
+    settled_cash,
+    reserved_cash,
+    buy_payable,
+    blocked_cash,
+    pending_receivable
+)
+VALUES
+    ('acc-001', 'VND',
+     10000000, 2500000, 1000000, 500000, 2000000),
+
+    ('acc-002', 'VND',
+     1000000, 0, 0, 0, 0);
+
+INSERT INTO positions (
+    account_id,
+    security_id,
+    settled_quantity,
+    pending_buy_quantity,
+    pending_sell_quantity,
+    blocked_quantity
+)
+VALUES
+    ('acc-001', 'sec-001', 1000, 200, 100, 50),
+    ('acc-002', 'sec-001', 100, 0, 0, 0);
+
+INSERT INTO security_reservations (
+    id,
+    account_id,
+    security_id,
+    order_reference,
+    quantity,
+    status
+)
+VALUES
+    ('res-001', 'acc-001', 'sec-001',
+     'fixture-sell-001', 200, 'ACTIVE'),
+
+    ('res-002', 'acc-001', 'sec-001',
+     'fixture-sell-002', 100, 'ACTIVE'),
+
+    ('res-003', 'acc-001', 'sec-001',
+     'fixture-sell-old', 50, 'RELEASED');
+
+COMMIT;
+```
+
+Kết quả mong đợi:
+
+| Tài khoản | Tiền khả dụng | `sec-001` có thể bán |
+|---|---:|---:|
+| `acc-001` | 6.000.000 đồng | 550 |
+| `acc-002` | 1.000.000 đồng | 100 |
+
+Khoản `RELEASED` không được cộng vào tổng đang giữ.
+
+---
+
+## 6. API cần xây
+
+### 6.1. Xem số dư tiền
+
+```http
+GET /api/accounts/acc-001/balances
+```
+
+```json
+{
+  "data": {
+    "accountId": "acc-001",
+    "currency": "VND",
+    "settledCash": "10000000",
+    "reservedCash": "2500000",
+    "buyPayable": "1000000",
+    "blockedCash": "500000",
+    "pendingReceivable": "2000000",
+    "availableCash": "6000000",
+    "policy": "CASH_ONLY_NO_ADVANCE"
+  }
+}
+```
+
+### 6.2. Xem chứng khoán
+
+```http
+GET /api/accounts/acc-001/positions
+```
+
+```json
+{
+  "data": [
+    {
+      "securityId": "sec-001",
+      "symbol": "SIMAAA",
+      "marketCode": "SIM_EQ_A",
+      "settledQuantity": 1000,
+      "pendingBuyQuantity": 200,
+      "pendingSellQuantity": 100,
+      "reservedQuantity": 300,
+      "blockedQuantity": 50,
+      "availableQuantity": 550
+    }
+  ]
+}
+```
+
+Tổng khoản giữ nên được tính trong truy vấn tổng hợp cùng dữ liệu vị thế, tránh đọc từng khoản bằng nhiều truy vấn rời rạc.
+
+### 6.3. Kiểm tra thử tài sản
+
+```http
+POST /api/accounts/acc-001/availability-checks
+```
+
+Request mua:
+
+```json
+{
+  "securityId": "sec-001",
+  "side": "BUY",
+  "orderType": "LO",
+  "price": 25000,
+  "quantity": 300
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "valid": false,
+    "scope": "ASSET_AVAILABILITY",
+    "reasonCode": "INSUFFICIENT_CASH",
+    "requiredCash": "7500000",
+    "availableCash": "6000000",
+    "shortfallCash": "1500000"
+  }
+}
+```
+
+Request bán:
+
+```json
+{
+  "securityId": "sec-001",
+  "side": "SELL",
+  "orderType": "LO",
+  "price": 25000,
+  "quantity": 600
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "valid": false,
+    "scope": "ASSET_AVAILABILITY",
+    "reasonCode": "INSUFFICIENT_SECURITIES",
+    "requiredQuantity": 600,
+    "availableQuantity": 550,
+    "shortfallQuantity": 50
+  }
+}
+```
+
+Quy tắc:
+
+| Tình huống | Kết quả |
+|---|---|
+| Đúng bằng khả dụng | Hợp lệ |
+| Vượt khả dụng | `valid: false` |
+| Tài khoản bị khóa | `valid: false`, `ACCOUNT_NOT_ACTIVE` |
+| Chứng khoán không được giao dịch | `valid: false`, `SECURITY_NOT_TRADABLE` |
+| Tài khoản hoặc chứng khoán không tồn tại | HTTP 404 |
+| Sai cấu trúc request | HTTP 400 |
+| Tài khoản tồn tại nhưng thiếu bản ghi số dư tiền | Lỗi toàn vẹn dữ liệu, không coi là số dư 0 |
+| Chứng khoán tồn tại nhưng tài khoản chưa có vị thế | Lượng có thể bán bằng 0 |
+
+Các trường hợp nghiệp vụ `valid: false` trả HTTP 200 giống API kiểm tra thử ngày 4.
+
+**Đây là kiểm tra tài sản**, chưa tổng hợp kiểm tra phiên, bước giá, lô hoặc phân quyền người dùng. Kết quả không giữ chỗ tài sản.
+
+---
+
+## 7. Thực hành — 30–60 phút
+
+| Thời gian | Công việc |
+|---|---|
+| 10–15 phút | Migration và seed |
+| 10 phút | Hai calculator và kiểm thử |
+| 10–15 phút | API đọc và availability check |
+| 10–20 phút mở rộng | Hiển thị bằng Vue 3 + TypeScript + Tailwind CSS và debug |
+
+**Hai hàm tính thuần cần có:**
+
+```ts
+calculateAvailableCash(input): bigint
+```
+
+```ts
+calculateAvailableQuantity(input): number
+```
+
+Nếu các thành phần tạo ra khả dụng âm, báo lỗi dữ liệu. Không dùng:
+
+```ts
+Math.max(available, 0)
+```
+
+để che sai lệch.
+
+**Kiểm tra API:**
+
+```bash
+curl "http://localhost:3000/api/accounts/acc-001/balances"
+```
+
+```bash
+curl "http://localhost:3000/api/accounts/acc-001/positions"
+```
+
+```bash
+curl -X POST \
+  "http://localhost:3000/api/accounts/acc-001/availability-checks" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "securityId": "sec-001",
+    "side": "SELL",
+    "orderType": "LO",
+    "price": 25000,
+    "quantity": 600
+  }'
+```
+
+**Vue 3 + TypeScript + Tailwind CSS tối giản:**
+
+- Bộ chọn tài khoản.
+- Panel tiền với các thành phần và tiền khả dụng.
+- Bảng chứng khoán với lượng khả dụng.
+- Form kiểm tra thử mua/bán và lý do từ chối.
+
+Ghi nhãn rõ **“Kiểm tra thử”**. Chưa dùng nút “Đặt lệnh”.
+
+---
+
+## 8. Kiểm thử bắt buộc
+
+| Trường hợp với `acc-001` | Kết quả |
+|---|---|
+| Tính tiền khả dụng | 6.000.000 |
+| Tính lượng có thể bán | 550 |
+| Mua 240 tại 25.000 | Hợp lệ, cần đúng 6 triệu |
+| Mua 241 tại 25.000 | Thiếu 25.000 đồng |
+| Bán 550 | Hợp lệ |
+| Bán 551 | Thiếu 1 cổ phiếu |
+| Có 200 mua chờ nhận | Không tăng lượng có thể bán |
+| Có 2 triệu tiền bán chờ nhận | Không tăng tiền khả dụng |
+| Khoản giữ `RELEASED` là 50 | Không làm giảm khả dụng |
+| Gọi kiểm tra thử nhiều lần | Số dư và khoản giữ không thay đổi |
+
+Kiểm tra thêm:
+
+- Tài khoản B không nhận nhầm khoản giữ của A.
+- `sec-005` không được dùng vị thế của `sec-001`, dù cùng symbol.
+- Giá trị tiền lớn vẫn tính chính xác bằng `bigint`.
+- API không trả giá trị `bigint` trực tiếp gây lỗi JSON.
+
+---
+
+## 9. Tình huống debug
+
+### A. Có 1.000 cổ phiếu nhưng cho bán 800
+
+Code lỗi:
+
+```ts
+return requestedQuantity <= position.settledQuantity;
+```
+
+Nó bỏ qua:
+
+```text
+100 bán chờ giao
+300 đang giữ
+50 phong tỏa
+```
+
+Cách sửa: so sánh với `availableQuantity = 550`.
+
+### B. Khoản giữ đã giải phóng vẫn bị trừ
+
+Query lỗi:
+
+```sql
+SELECT SUM(quantity)
+FROM security_reservations
+WHERE account_id = ?
+  AND security_id = ?;
+```
+
+Thiếu:
+
+```sql
+AND status = 'ACTIVE'
+```
+
+Kết quả sai: giữ 350, khả dụng 500.
+
+Kết quả đúng: giữ 300, khả dụng 550.
+
+### C. Join làm khoản giữ bị nhân đôi
+
+Nếu ghép nhiều bảng quan hệ một-nhiều rồi mới `SUM`, mỗi khoản giữ có thể xuất hiện nhiều lần.
+
+Cách sửa: tổng hợp khoản giữ theo `(account_id, security_id)` trước, sau đó join vào `positions`.
+
+### D. Kiểm tra đủ tiền nhưng hai lệnh vẫn dùng vượt tiền
+
+Hai yêu cầu cùng kiểm tra số dư 6 triệu, mỗi yêu cầu cần 4 triệu:
+
+```text
+Request A: đủ.
+Request B: đủ.
+```
+
+Điều này chưa chứng minh cả hai được phép đặt.
+
+API hôm nay chỉ đọc. Khi triển khai thật, **kiểm tra và giữ tài sản phải là một thao tác được bảo vệ**, học ở ngày 10 và 19.
+
+---
+
+## 10. Prompt cho OpenCode
+
+```text
+Tôi đang học ngày 6 của Securities Trading Simulator:
+Tài khoản, tiền và chứng khoán khả dụng.
+
+Môi trường:
+- Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS.
+- OpenCode, cấu hình model hiện tại.
+- Giữ kiến trúc modular monolith ngày 1–5.
+
+Trước khi code:
+1. Đọc Security Master, cách dùng MySQL và xử lý lỗi.
+2. Kiểm tra phiên bản MySQL và migration hiện có.
+3. Giải thích tài sản đang có khác khả dụng thế nào.
+4. Chọn phạm vi hoàn thành trong 30–60 phút.
+
+Phạm vi:
+- Chỉ tài khoản CASH, VND.
+- Mỗi accounts là một đơn vị giao dịch tương đương tiểu khoản.
+- customer_ref là tham chiếu giả lập.
+- Không margin, ứng trước, ngân hàng liên kết, phí hoặc thuế.
+- Chỉ đọc và kiểm tra thử.
+- Chưa nối matching với số dư.
+- Chưa triển khai đăng nhập hoặc phân quyền thật.
+
+Tạo bốn bảng theo schema bài học:
+- accounts.
+- cash_balances.
+- positions.
+- security_reservations.
+
+Công thức:
+availableCash =
+settledCash - reservedCash - buyPayable - blockedCash.
+
+availableQuantity =
+settledQuantity - pendingSellQuantity
+- activeReservedQuantity - blockedQuantity.
+
+Không cộng:
+- pendingReceivable vào tiền khả dụng.
+- pendingBuyQuantity vào lượng có thể bán.
+
+Dữ liệu:
+acc-001:
+- customer-001, CASH, ACTIVE.
+- settledCash=10000000.
+- reservedCash=2500000.
+- buyPayable=1000000.
+- blockedCash=500000.
+- pendingReceivable=2000000.
+- sec-001: settled=1000, pendingBuy=200,
+  pendingSell=100, blocked=50.
+- Hai khoản giữ ACTIVE: 200 và 100.
+- Một khoản RELEASED: 50.
+Kỳ vọng: availableCash=6000000, availableQuantity=550.
+
+acc-002:
+- customer-002, CASH, ACTIVE.
+- settledCash=1000000, các thành phần tiền khác bằng 0.
+- sec-001 settled=100, các thành phần khác bằng 0.
+- Không có khoản giữ.
+
+Triển khai:
+1. Accounts module có route/service/repository/types.
+2. Calculator thuần cho khả dụng.
+3. GET /api/accounts/:id/balances.
+4. GET /api/accounts/:id/positions.
+5. POST /api/accounts/:id/availability-checks:
+   nhận securityId, side, orderType=LO, price, quantity.
+6. BUY kiểm tra price*quantity với tiền khả dụng.
+7. SELL kiểm tra quantity với chứng khoán khả dụng.
+8. Kiểm tra account ACTIVE và security TRADABLE.
+9. Chưa tổng hợp validation phiên hoặc quy tắc lô/bước giá.
+
+Quy tắc dữ liệu:
+- Tiền MySQL DECIMAL(20,0).
+- Tính tiền bằng bigint, JSON trả chuỗi số nguyên.
+- Validate input number là số nguyên an toàn trước chuyển bigint.
+- Chuyển từng toán hạng sang bigint trước khi nhân.
+- Quantity trong phạm vi INT UNSIGNED.
+- Chỉ SUM khoản giữ ACTIVE.
+- Tổng hợp khoản giữ trước khi join để tránh nhân đôi.
+- Không lưu trường available riêng.
+- Khả dụng âm phải báo lỗi dữ liệu, không clamp về 0.
+- Thiếu cash_balances của account tồn tại là lỗi dữ liệu.
+- Không có position của security hợp lệ thì lượng có thể bán bằng 0.
+- Request kiểm tra thử không ghi hoặc giữ tài sản.
+
+Response:
+- Valid request trả 200 với valid true/false.
+- Scope ASSET_AVAILABILITY.
+- Reason INSUFFICIENT_CASH, INSUFFICIENT_SECURITIES,
+  ACCOUNT_NOT_ACTIVE, SECURITY_NOT_TRADABLE.
+- Sai input trả 400.
+- Account/security không tồn tại trả 404.
+- Trả required, available và shortfall phù hợp.
+
+Kiểm thử:
+- Tiền khả dụng 6000000 và lượng khả dụng 550.
+- BUY 240@25000 đạt, 241@25000 thiếu 25000.
+- SELL 550 đạt, 551 thiếu 1.
+- Pending assets không làm tăng khả dụng.
+- RELEASED reservation không bị tính.
+- Hai tài khoản không dùng nhầm dữ liệu.
+- Không nhầm sec-001 với sec-005.
+- Gọi preview nhiều lần không thay đổi database.
+- Tiền lớn không mất chính xác.
+
+Nếu còn thời gian:
+- Vue 3 + TypeScript + Tailwind CSS có chọn tài khoản, BalancePanel, PositionsPanel.
+- Form ghi rõ Kiểm tra thử, chưa Đặt lệnh.
+
+Sau khi làm:
+- Chạy kiểm tra phù hợp, báo kết quả thực tế.
+- Cập nhật README và giải thích mô hình số dư.
+- Nêu rõ preview không bảo đảm tài sản khi có request đồng thời.
+```
+
+## Ngày 6 hoàn thành khi:
+
+- [ ] Bạn phân biệt được khách hàng, tài khoản và tiểu khoản.
+- [ ] Tính đúng 6 triệu tiền khả dụng và 550 cổ phiếu có thể bán.
+- [ ] API phân biệt tài sản chờ về, khoản giữ và tài sản khả dụng.
+- [ ] Kiểm tra mua/bán trả đúng lý do thiếu tài sản.
+- [ ] Các khoản giữ không bị cộng trùng hoặc tính sai trạng thái.
+- [ ] Bạn hiểu kiểm tra đủ tài sản chưa thay thế cho thao tác giữ tài sản.
+
+Ngày 7 sẽ ghép kết quả thành **sản phẩm tuần 1: bảng giá mô phỏng, trạng thái phiên, sổ lệnh và số dư tài khoản**, có kịch bản demo xuyên suốt.
