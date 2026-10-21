@@ -549,7 +549,7 @@ Chưa cần tổng hợp toàn danh mục nếu còn vị thế thiếu giá ho�
 
 ---
 
-## 10. Vue 3 + TypeScript + Tailwind CSS và bài tập debug
+## 10. Giao diện Vue và bài tập debug
 
 Hiển thị tối thiểu:
 
@@ -740,7 +740,7 @@ Kiểm thử:
 - Reserved/blocked không bị trừ khỏi lượng định giá.
 
 Nếu còn thời gian:
-- Vue 3 + TypeScript + Tailwind CSS PortfolioPanel hiển thị rõ mua chờ nhận,
+- PortfolioPanel Vue hiển thị rõ chứng khoán mua chờ nhận,
   số lượng định giá và số lượng có thể bán.
 
 Sau khi làm:

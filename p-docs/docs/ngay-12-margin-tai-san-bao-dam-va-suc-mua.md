@@ -516,7 +516,7 @@ Với thiếu cấu hình hoặc dữ liệu định giá cần thiết, trả `
 | 10 phút | Định nghĩa input và policy |
 | 15–20 phút | Calculator và kiểm thử |
 | 10–15 phút | Seed scenario và API |
-| 10–15 phút mở rộng | Hiển thị bảng giải thích trên Vue 3 + TypeScript + Tailwind CSS |
+| 10–15 phút mở rộng | Hiển thị bảng giải thích trên giao diện Vue |
 
 Thực hiện theo thứ tự:
 
@@ -527,7 +527,7 @@ Thực hiện theo thứ tự:
 5. Thử lệnh vi phạm tỷ lệ tài trợ dù còn hạn mức.
 6. Xác nhận số dư, reservation và order của các ngày trước không đổi.
 
-Nếu thêm Vue 3 + TypeScript + Tailwind CSS, hiển thị hai bảng:
+Nếu thêm giao diện Vue 3 + TypeScript + Tailwind CSS, hiển thị hai bảng:
 
 - Từng chứng khoán đóng góp bao nhiêu năng lực bảo đảm.
 - Yêu cầu mua cần bao nhiêu vốn vay và bị giới hạn ở đâu.
@@ -724,7 +724,7 @@ Không chỉ trả boolean.
 ALLOW chỉ có nghĩa đạt bộ kiểm tra mô phỏng này.
 
 Nếu còn thời gian:
-- Vue 3 + TypeScript + Tailwind CSS hiển thị so sánh A/B và giải thích từng bước.
+- Giao diện Vue 3 + TypeScript + Tailwind CSS hiển thị so sánh A/B và giải thích từng bước.
 - Không nối vào nút đặt lệnh tiền mặt.
 
 Sau khi làm:

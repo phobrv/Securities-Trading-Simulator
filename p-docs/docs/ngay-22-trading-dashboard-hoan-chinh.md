@@ -180,19 +180,19 @@ Hai điều này có thể đồng thời đúng.
 
 ```text
 src/features/trading/
-  TradingDashboard.tsx
+  TradingDashboard.vue
 
   components/
-    AccountSelector.tsx
-    SessionBanner.tsx
-    QuoteBoard.tsx
-    OrderEntry.tsx
-    OrderList.tsx
-    OrderDetails.tsx
-    BalancePanel.tsx
-    PortfolioPanel.tsx
+    AccountSelector.vue
+    SessionBanner.vue
+    QuoteBoard.vue
+    OrderEntry.vue
+    OrderList.vue
+    OrderDetails.vue
+    BalancePanel.vue
+    PortfolioPanel.vue
 
-  hooks/
+  composables/
     useAccountBalances.ts
     useAccountPortfolio.ts
     useAccountOrders.ts
@@ -207,6 +207,8 @@ src/features/trading/
 ```
 
 Dùng lại thư viện và cơ chế quản lý dữ liệu hiện có. Chưa cần thêm một thư viện state chỉ vì dashboard có nhiều panel.
+
+Dùng Tailwind CSS trong template của các Vue SFC cho bố cục, khoảng cách, màu trạng thái và responsive. Computed/composable chịu trách nhiệm dữ liệu; không đưa quy tắc nghiệp vụ vào class CSS.
 
 **Trách nhiệm chính:**
 
@@ -482,7 +484,7 @@ Môi trường:
 
 Trước khi code:
 1. Đọc frontend và API thực tế.
-2. Xác định component/hook có thể dùng lại.
+2. Xác định component/composable có thể dùng lại.
 3. Liệt kê endpoint còn thiếu.
 4. Chọn phạm vi30–60 phút, không đổi stack hoặc thêm
    thư viện state nếu chưa cần.

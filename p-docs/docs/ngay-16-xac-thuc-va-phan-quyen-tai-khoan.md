@@ -722,7 +722,7 @@ Kiểm thử:
 - Các bài transaction và đối chiếu tài sản trước vẫn đúng.
 
 Nếu còn thời gian:
-- Vue 3 + TypeScript + Tailwind CSS login, token lưu trong bộ nhớ cho demo.
+- Trang đăng nhập Vue 3 + TypeScript + Tailwind CSS, token lưu trong bộ nhớ cho demo.
 - Account selector lấy từ /api/me/accounts.
 - Reload có thể yêu cầu login lại; chưa cần refresh token.
 - Không coi UI là nơi quyết định quyền.
