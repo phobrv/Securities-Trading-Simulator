@@ -6,8 +6,6 @@ Sau hai tuần, dự án đã có một giao dịch xuyên suốt. Hôm nay bạ
 
 Mục tiêu là làm rõ ranh giới trước khi bổ sung phân quyền, concurrency và khả năng phục hồi.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

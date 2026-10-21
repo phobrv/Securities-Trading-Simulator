@@ -6,8 +6,6 @@ Hôm nay bạn ghép các chức năng đã xây thành một màn hình giao d�
 
 Trọng tâm là giao diện phản ánh đúng backend, có loading và lỗi rõ ràng, đồng thời không làm người dùng hiểu nhầm “đã gửi” thành “đã khớp”.
 
-Môi trường giữ nguyên: **Vue 3 + TypeScript + Tailwind CSS, Node.js + TypeScript, MySQL và Redis**, triển khai bằng **OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

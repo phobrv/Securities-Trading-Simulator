@@ -6,8 +6,6 @@ Ngày 3 đã có bảng giá realtime. Hôm nay bạn xử lý trường hợp k
 
 Bạn sẽ bổ sung **sequence, nhận diện luồng dữ liệu, phát hiện khoảng trống và quy trình lấy lại snapshot**.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, Redis, Vue 3 + TypeScript + Tailwind CSS, MySQL và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

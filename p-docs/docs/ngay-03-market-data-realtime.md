@@ -4,8 +4,6 @@ Hôm nay bạn dùng danh mục chứng khoán của ngày 2 để xây **bảng
 
 **Bộ sinh giá mô phỏng → Redis → WebSocket → Vue.**
 
-MySQL tiếp tục quản lý Security Master. OpenCode là công cụ triển khai, dùng model bạn đã cấu hình.
-
 ---
 
 ## 1. Mục tiêu và phân bổ thời gian

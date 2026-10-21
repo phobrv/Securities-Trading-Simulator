@@ -6,8 +6,6 @@ Ngày 24 đã bảo vệ tài sản cho cả mua và bán. Hôm nay bạn hoàn 
 
 Trọng tâm là **định danh execution, ánh xạ lệnh, thứ tự phản hồi và chống cập nhật trùng**.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

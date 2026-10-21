@@ -6,8 +6,6 @@ Ngày 23 đã giữ đúng một ý định đặt lệnh khi retry hoặc reloa
 
 Trọng tâm mới là **giữ chứng khoán cho lệnh bán trong cùng transaction tạo lệnh**.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

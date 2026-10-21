@@ -8,8 +8,6 @@ Ngày 26, bạn đã thiết kế log có cấu trúc, audit trail, metrics và 
 - Execution thất bại giữa transaction.
 - Settlement gặp lỗi rồi được chạy lại.
 
-Môi trường tiếp tục dùng **MySQL, Node.js + TypeScript, Vue 3 + TypeScript + Tailwind CSS, Redis, WebSocket và OpenCode với cấu hình model bạn đã chọn**.
-
 Các tình huống và số liệu dưới đây thuộc simulator.
 
 ---

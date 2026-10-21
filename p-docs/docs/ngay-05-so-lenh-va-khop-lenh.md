@@ -2,7 +2,7 @@
 
 Hôm nay bạn xây **Matching Simulator**: nhận lệnh LO, tìm lệnh đối ứng và tạo các lần khớp theo ưu tiên giá rồi thời gian.
 
-Bạn sẽ tự tính kết quả trước, sau đó dùng code để kiểm chứng. Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS**, triển khai bằng **OpenCode**.
+Bạn sẽ tự tính kết quả trước, sau đó dùng code để kiểm chứng.
 
 ---
 

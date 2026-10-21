@@ -6,8 +6,6 @@ Ngày 10 đã quản lý tiền của lệnh mua. Hôm nay bạn bổ sung phầ
 
 Điểm quan trọng nhất là **dùng giá khớp thực tế để tính giá vốn**, đồng thời tách số lượng dùng để định giá khỏi số lượng được phép bán.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

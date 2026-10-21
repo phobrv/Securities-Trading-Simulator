@@ -6,8 +6,6 @@ Ngày 25, bạn đã nối OMS với matching engine và xử lý tình huống 
 - Ai đã thực hiện thao tác và kết quả được ghi nhận ra sao?
 - Hệ thống đang gặp lỗi ở bước nào?
 
-Môi trường tiếp tục sử dụng **MySQL, Vue 3 + TypeScript + Tailwind CSS, Node.js + TypeScript, Redis, WebSocket và OpenCode với cấu hình model bạn đã chọn**.
-
 Toàn bộ số liệu bên dưới là dữ liệu của simulator.
 
 ---

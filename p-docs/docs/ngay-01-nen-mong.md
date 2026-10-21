@@ -4,8 +4,6 @@
 
 Kết nối nghiệp vụ giao dịch với thành phần phần mềm: khi người dùng bấm **Mua**, hệ thống nào tiếp nhận, kiểm tra, khớp lệnh và ghi nhận tài sản?
 
-Stack giao diện xuyên suốt lộ trình là **Vue 3 + TypeScript + Tailwind CSS**; frontend sẽ được bổ sung khi xây Trading Dashboard.
-
 Cuối buổi cần đạt:
 
 - Giải thích được hành trình từ đặt lệnh đến thanh toán.

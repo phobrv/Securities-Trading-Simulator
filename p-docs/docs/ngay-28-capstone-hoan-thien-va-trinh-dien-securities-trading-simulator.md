@@ -4,7 +4,7 @@ Hôm nay, bạn tổng hợp những phần đã học thành một demo xuyên 
 
 Mục tiêu cuối cùng là giải thích được **mỗi thay đổi của tiền, chứng khoán và trạng thái lệnh đều đến từ nghiệp vụ nào**, kèm bằng chứng trong database và giao diện.
 
-Tiếp tục sử dụng **Vue 3 + TypeScript + Tailwind CSS, Node.js + TypeScript, MySQL/InnoDB, Redis, WebSocket và OpenCode với cấu hình model bạn đã chọn**. Toàn bộ dữ liệu, lịch và quy tắc giao dịch dưới đây thuộc simulator.
+Toàn bộ dữ liệu, lịch và quy tắc giao dịch dưới đây thuộc simulator.
 
 ---
 

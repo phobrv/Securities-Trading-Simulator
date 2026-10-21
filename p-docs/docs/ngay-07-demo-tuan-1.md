@@ -4,8 +4,6 @@ Hôm nay bạn ghép các module của sáu ngày đầu thành **một bản de
 
 Mục tiêu là chứng minh dữ liệu đi đúng qua từng module: danh mục → phiên → sổ lệnh → lần khớp → bảng giá, đồng thời hiển thị tài sản và kiểm tra khả dụng.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và phân bổ thời gian

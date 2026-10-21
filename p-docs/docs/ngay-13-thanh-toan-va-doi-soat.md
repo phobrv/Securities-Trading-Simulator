@@ -6,8 +6,6 @@ Ngày 10–11 đã ghi nhận tiền mua phải trả và chứng khoán mua ch�
 
 Bạn sẽ xây **Settlement Service**, lịch ngày làm việc và một bài đối soát bằng báo cáo giả lập.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

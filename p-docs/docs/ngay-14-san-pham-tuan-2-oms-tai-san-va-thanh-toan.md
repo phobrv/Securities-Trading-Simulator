@@ -6,8 +6,6 @@ Hôm nay bạn ghép các phần đã học thành một giao dịch xuyên su�
 
 Mục tiêu không phải thêm nhiều tính năng, mà chứng minh **lệnh, tiền và chứng khoán cùng phản ánh đúng một giao dịch**.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

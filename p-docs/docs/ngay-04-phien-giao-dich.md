@@ -6,8 +6,6 @@ Hôm nay bạn bổ sung khả năng trả lời:
 
 Bạn sẽ xây module **Market Session**, sử dụng đồng hồ giả lập để kiểm tra ranh giới phiên mà không phải chờ đến đúng giờ giao dịch.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS**, triển khai bằng **OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

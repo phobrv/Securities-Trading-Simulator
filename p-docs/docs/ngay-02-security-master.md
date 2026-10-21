@@ -2,8 +2,6 @@
 
 Hôm nay bạn xây **danh mục chứng khoán gốc** cho dự án Securities Trading Simulator. Module này sẽ giúp bảng giá và OMS trả lời: “Đây là chứng khoán nào, thuộc loại gì và đang ở trạng thái nào?”.
 
-Môi trường tiếp tục dùng **Node.js + TypeScript + MySQL**, thực hành với **OpenCode và model bạn đã cấu hình: GPT 5.6 Terra, High**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

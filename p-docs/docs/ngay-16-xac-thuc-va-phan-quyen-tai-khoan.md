@@ -6,8 +6,6 @@ Từ ngày 9–15, API đã xử lý lệnh và tài sản. Hôm nay bạn bổ 
 
 Trọng tâm là **backend kiểm tra quyền trên từng tài nguyên**, thay vì chỉ ẩn tài khoản trên giao diện.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS và OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

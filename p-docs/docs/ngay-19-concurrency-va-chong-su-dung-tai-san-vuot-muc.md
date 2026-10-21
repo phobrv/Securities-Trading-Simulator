@@ -6,8 +6,6 @@ Ngày 10 đã đặt lệnh và giữ tiền trong cùng transaction. Hôm nay b
 
 Bạn sẽ dùng **MySQL thật với nhiều connection**, tái hiện lỗi đọc dữ liệu cũ và kiểm tra các cơ chế bảo vệ.
 
-Môi trường giữ nguyên: **Node.js + TypeScript, MySQL, OpenCode**, cùng phân quyền và idempotency đã có.
-
 ---
 
 ## 1. Mục tiêu và thời gian học

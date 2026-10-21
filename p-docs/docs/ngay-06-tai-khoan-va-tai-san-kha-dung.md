@@ -6,8 +6,6 @@ Ngày 5, Matching Simulator đã biết khớp lệnh. Hôm nay bạn bổ sung 
 
 Điểm quan trọng nhất: **tài sản đang có và tài sản được phép sử dụng là hai con số khác nhau**.
 
-Tiếp tục dùng **Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS**, thực hành bằng **OpenCode**.
-
 ---
 
 ## 1. Mục tiêu và thời gian học
