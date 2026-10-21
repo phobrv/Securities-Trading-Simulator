@@ -27,6 +27,10 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Ngày 5 — Sổ lệnh và khớp lệnh](./ngay-05-so-lenh-va-khop-lenh.md) | Order book, ưu tiên giá-thời gian, khớp một phần và execution. |
 | [Ngày 6 — Tài khoản và tài sản khả dụng](./ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Số dư tiền, vị thế, khoản giữ và kiểm tra khả năng mua/bán. |
 | [Ngày 7 — Demo tuần 1](./ngay-07-demo-tuan-1.md) | Ghép bảng giá, phiên, sổ lệnh, execution và tài sản thành kịch bản demo. |
+| [Ngày 11 — Danh mục, giá vốn và lãi/lỗ](./ngay-11-danh-muc-gia-von-va-lai-lo.md) | Tính giá vốn bình quân từ execution, định giá danh mục và P&L. |
+| [Ngày 12 — Margin, tài sản bảo đảm và sức mua](./ngay-12-margin-tai-san-bao-dam-va-suc-mua.md) | Mô phỏng năng lực vay, kiểm tra tài sản bảo đảm và lý do quyết định. |
+| [Ngày 13 — Thanh toán và đối soát](./ngay-13-thanh-toan-va-doi-soat.md) | Nghĩa vụ T+2, batch thanh toán an toàn khi chạy lại và đối soát. |
+| [Ngày 14 — Sản phẩm tuần 2](./ngay-14-san-pham-tuan-2-oms-tai-san-va-thanh-toan.md) | Kịch bản xuyên suốt: đặt mua, khớp một phần, hủy và thanh toán. |
 
 ## Stack thực hành
 

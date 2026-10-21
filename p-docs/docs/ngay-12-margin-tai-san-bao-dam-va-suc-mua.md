@@ -1,0 +1,746 @@
+# Ngày 12 — Margin, tài sản bảo đảm và sức mua
+
+Ngày 11 đã tính được giá trị danh mục và P&L. Hôm nay bạn tìm hiểu một câu hỏi khác:
+
+> “Danh mục này có thể được dùng làm tài sản bảo đảm đến mức nào, và hệ thống có cho phép dùng thêm vốn vay để mua không?”
+
+Bạn sẽ xây **Margin Calculator và RiskCheckService**, trả kết quả kèm cách tính và lý do.
+
+Toàn bộ tỷ lệ trong bài là **giả lập**. Calculator chưa cấp khoản vay, chưa sửa số dư và chưa được dùng để bỏ qua kiểm tra tiền mặt ngày 10.
+
+---
+
+## 1. Mục tiêu và thời gian học
+
+| Thời gian | Nội dung | Kết quả |
+|---|---|---|
+| 30 phút nghiệp vụ | Vốn tự có, khoản vay, tài sản bảo đảm và hạn mức | Hiểu vì sao cùng giá trị danh mục nhưng khác sức mua |
+| 30 phút kỹ thuật | Chính sách, calculator và reason code | Có công thức giải thích được |
+| 30–60 phút thực hành | Hai danh mục đối chiếu, API mô phỏng và kiểm thử | Tính đúng và không làm thay đổi tài sản |
+
+**Sản phẩm cuối buổi:**
+
+- Tính giá trị tài sản đủ điều kiện.
+- Áp dụng giá định giá và tỷ lệ giả lập.
+- Trừ dư nợ, lãi và phần hạn mức đã giữ.
+- Kiểm tra một yêu cầu mua có dùng vốn vay.
+- Trả kết quả chi tiết, không chỉ `true/false`.
+
+---
+
+## 2. Nghiệp vụ — 30 phút
+
+### 2.1. Margin là gì?
+
+Giao dịch ký quỹ sử dụng tiền vay của công ty chứng khoán để mua chứng khoán, với tài sản bảo đảm và các điều kiện theo chính sách áp dụng. Đây cũng là cách BSC mô tả dịch vụ giao dịch ký quỹ của mình. [BSC](https://www.bsc.com.vn/giao-dich-ky-quy/?utm_source=chatgpt.com)
+
+Ví dụ đơn giản, bỏ qua phí và lãi:
+
+```text
+Vốn tự có: 10 triệu.
+Vay thêm:  10 triệu.
+Mua:       20 triệu chứng khoán.
+```
+
+Nếu giá trị chứng khoán giảm 10%:
+
+```text
+Giá trị còn lại: 18 triệu.
+Nợ gốc:         10 triệu.
+Vốn còn lại:     8 triệu.
+```
+
+Giá chứng khoán giảm 10%, nhưng vốn tự có giảm từ 10 xuống 8 triệu, tức 20%.
+
+Khoản vay không tự giảm khi giá tài sản giảm.
+
+### 2.2. Giá trị danh mục khác giá trị được chấp nhận làm bảo đảm
+
+Danh mục có giá thị trường 25 triệu không đồng nghĩa được vay 25 triệu.
+
+Hệ thống còn xét:
+
+| Yếu tố | Ví dụ |
+|---|---|
+| Chứng khoán đủ điều kiện không | Một mã được chấp nhận, mã khác không |
+| Khối lượng đủ điều kiện | Không phải mọi lượng đang hiển thị đều được tính |
+| Giá dùng để định giá | Có thể thấp hơn giá thị trường |
+| Tỷ lệ quy đổi | Chỉ tính một phần giá trị |
+| Hạn mức tài khoản | Có giới hạn riêng |
+| Dư nợ hiện tại | Đã sử dụng một phần khả năng vay |
+
+Các công ty chứng khoán thực tế cũng có danh mục, giá và tỷ lệ áp dụng theo từng thời kỳ. Bài này sử dụng cấu hình riêng để học thiết kế hệ thống. [vcbs.com.vn](https://www.vcbs.com.vn/chi-tiet-cong-bo-thong-tin/vcbs-thong-bao-dieu-chinh-danh-muc-cho-vay-ky-quy?utm_source=chatgpt.com)
+
+### 2.3. Phân biệt hai loại tỷ lệ
+
+Đây là điểm dễ thiết kế sai.
+
+| Tỷ lệ | Câu hỏi được trả lời |
+|---|---|
+| Tỷ lệ quy đổi tài sản bảo đảm | Tài sản hiện hữu tạo ra bao nhiêu năng lực bảo đảm khoản vay? |
+| Tỷ lệ tài trợ lệnh mua | Tối đa bao nhiêu phần giá trị lệnh mới được dùng vốn vay? |
+
+Hai tỷ lệ có thể cùng là 50% trong ví dụ, nhưng có ý nghĩa khác nhau.
+
+Không dùng một trường `marginRate` mơ hồ cho cả hai.
+
+### 2.4. Sức mua khác tiền khả dụng
+
+- **Tiền khả dụng:** nguồn tiền mặt theo mô hình ngày 6–10.
+- **Hạn mức vay bổ sung:** phần vốn vay còn có thể xem xét.
+- **Ngân sách mua ước tính:** còn bị giới hạn bởi chính sách tài trợ lệnh mua.
+- **Quyết định cho một lệnh cụ thể:** phải xét giá trị và chứng khoán muốn mua.
+
+Không cộng một con số “sức mua margin” vào `settledCash`.
+
+---
+
+## 3. Chính sách giả lập của ngày 12
+
+Dùng policy:
+
+```text
+SIM_MARGIN_V1
+```
+
+| Quy tắc | Giá trị giả lập |
+|---|---|
+| Tiền tệ | VND |
+| Tài sản bảo đảm | Chỉ lượng đã thanh toán và không bị loại trừ |
+| Giá định giá | Min(giá thị trường, giá chặn định giá) |
+| Tài sản mới dự kiến mua | Chưa cộng vào tài sản bảo đảm |
+| Tỷ lệ tài trợ lệnh mua | Tối đa 50% giá trị lệnh với mã được hỗ trợ |
+| Phí, thuế | 0 |
+| Giải ngân thật | Không |
+
+Cấu hình chứng khoán:
+
+| Chứng khoán | Được làm bảo đảm | Giá chặn | Tỷ lệ quy đổi | Được tài trợ mua | Tỷ lệ tài trợ |
+|---|---|---:|---:|---|---:|
+| `sec-001` | Có | 24.000 | 50% | Có | 50% |
+| `sec-003` | Không | — | 0% | Không | 0% |
+
+`sec-003` là ETF giả lập từ ngày 2. Việc loại mã này là **quyết định của fixture**, không phải kết luận chung rằng mọi ETF đều không đủ điều kiện.
+
+**Khối lượng bảo đảm trong simulator:**
+
+```text
+collateralQuantity
+= settledQuantity
+− pendingSellQuantity
+− reservedSellQuantity
+− blockedQuantity
+```
+
+Không tính `pendingBuyQuantity`.
+
+Việc loại cả chứng khoán đang giữ cho lệnh bán là chính sách thận trọng của bài học; không mặc định công thức này đại diện cho mọi hệ thống margin thực tế.
+
+---
+
+## 4. Công thức calculator
+
+### 4.1. Tính năng lực bảo đảm theo từng mã
+
+```text
+valuationPrice = min(marketPrice, priceCap)
+
+recognizedAssetValue
+= collateralQuantity × valuationPrice
+
+loanCapacity
+= floor(recognizedAssetValue × collateralRateBps / 10000)
+```
+
+Với mã được cấu hình rõ ràng là không đủ điều kiện:
+
+```text
+loanCapacity = 0
+```
+
+Phân biệt:
+
+- Có policy ghi “không đủ điều kiện”: kết quả hợp lệ bằng 0.
+- Không tìm thấy policy của mã: lỗi thiếu cấu hình, không tự coi là đủ điều kiện.
+
+### 4.2. Tính phần hạn mức vay còn lại
+
+```text
+grossLoanCapacity
+= tổng loanCapacity của các mã
+
+effectiveLoanLimit
+= min(grossLoanCapacity, accountCreditLimit)
+
+currentExposure
+= loanPrincipal + accruedInterest + reservedLoanAmount
+
+additionalLoanHeadroom
+= max(0, effectiveLoanLimit − currentExposure)
+```
+
+`reservedLoanAmount` là phần hạn mức vay đã dành cho yêu cầu khác trong kịch bản mô phỏng. Nó không phải khoản giữ tiền mặt ngày 10.
+
+Nếu:
+
+```text
+currentExposure > effectiveLoanLimit
+```
+
+thì có thiếu hụt theo policy giả lập. Trả trạng thái rủi ro và không kết luận tài khoản được mua mới.
+
+### 4.3. Kiểm tra một lệnh mua
+
+Giả định dùng tiền mặt trước:
+
+```text
+orderValue = orderPrice × orderQuantity
+
+requiredLoan
+= max(0, orderValue − availableCash)
+
+orderFinancingLimit
+= floor(orderValue × purchaseFinancingRateBps / 10000)
+```
+
+Lệnh chỉ đạt kiểm tra vốn vay khi:
+
+```text
+requiredLoan <= additionalLoanHeadroom
+
+và
+
+requiredLoan <= orderFinancingLimit
+```
+
+Nếu `requiredLoan > 0`, mã muốn mua cũng phải được policy cho phép tài trợ.
+
+**Không lấy toàn bộ hạn mức vay còn lại làm ngân sách mua tự động.**
+
+---
+
+## 5. Ví dụ tính tay: hai danh mục cùng giá trị
+
+Giả sử hai kịch bản đều có:
+
+```text
+Tiền khả dụng:       3 triệu.
+Hạn mức tài khoản:  20 triệu.
+Nợ gốc, lãi, giữ hạn mức vay: 0.
+```
+
+Giá thị trường giả lập của hai mã đều là 25.000.
+
+| Thành phần | Danh mục A | Danh mục B |
+|---|---|---|
+| Nắm giữ | 1.000 `sec-001` | 1.000 `sec-003` |
+| Giá trị thị trường | 25 triệu | 25 triệu |
+| Đủ điều kiện bảo đảm | Có | Không |
+| Giá định giá | 24.000 | Không áp dụng |
+| Giá trị được định giá | 24 triệu | 0 |
+| Năng lực vay | 12 triệu | 0 |
+
+Danh mục A:
+
+```text
+1.000 × 24.000 × 50% = 12.000.000
+```
+
+Danh mục B:
+
+```text
+Không đủ điều kiện → 0
+```
+
+### 5.1. Cùng muốn mua 200 `sec-001` tại 25.000
+
+```text
+Giá trị lệnh = 5 triệu.
+Tiền mặt dùng = 3 triệu.
+Cần vay = 2 triệu.
+```
+
+Giới hạn tài trợ của lệnh:
+
+```text
+5 triệu × 50% = 2,5 triệu.
+```
+
+| Điều kiện | Danh mục A | Danh mục B |
+|---|---|---|
+| Cần vay | 2 triệu | 2 triệu |
+| Hạn mức vay bổ sung | 12 triệu | 0 |
+| Giới hạn tài trợ lệnh | 2,5 triệu | 2,5 triệu |
+| Kết quả | Đạt | Không đạt |
+
+### 5.2. Vì sao A không được mua 15 triệu?
+
+Nếu chỉ tính:
+
+```text
+3 triệu tiền mặt + 12 triệu hạn mức vay = 15 triệu
+```
+
+thì bạn bỏ qua tỷ lệ tài trợ của lệnh.
+
+Mua 15 triệu cần vay 12 triệu, nhưng lệnh chỉ được tài trợ:
+
+```text
+15 triệu × 50% = 7,5 triệu.
+```
+
+Vì vậy không đạt.
+
+Với tỷ lệ tài trợ 50%, tiền mặt 3 triệu chỉ hỗ trợ ngân sách mua tối đa 6 triệu trong mô hình này:
+
+```text
+Ngân sách theo nguồn vốn = 3 + 12 = 15 triệu.
+Ngân sách theo tỷ lệ tài trợ = 3 / (1 − 50%) = 6 triệu.
+
+Ngân sách mua ước tính = min(15, 6) = 6 triệu.
+```
+
+Đây là phép tính trước giao dịch, không cộng chứng khoán dự kiến mua vào tài sản bảo đảm.
+
+### 5.3. Thêm dư nợ hiện tại
+
+Vẫn danh mục A:
+
+```text
+Nợ gốc:          4.000.000
+Lãi đã phát sinh:   100.000
+Hạn mức đã giữ:   1.000.000
+```
+
+```text
+currentExposure = 5.100.000
+
+additionalLoanHeadroom
+= 12.000.000 − 5.100.000
+= 6.900.000
+```
+
+Không trừ dư nợ thêm lần nữa sau khi đã tính `additionalLoanHeadroom`.
+
+---
+
+## 6. Thiết kế kỹ thuật
+
+### 6.1. Tách calculator khỏi controller
+
+```text
+src/modules/risk/
+  margin.types.ts
+  margin-policy.repository.ts
+  margin.calculator.ts
+  risk-check.service.ts
+  risk.routes.ts
+  margin.calculator.test.ts
+```
+
+| Thành phần | Trách nhiệm |
+|---|---|
+| Repository | Đọc policy và cấu hình |
+| Calculator | Tính toán thuần từ input |
+| RiskCheckService | Kiểm tra dữ liệu, gọi calculator, tạo quyết định |
+| Controller | Nhận request và trả response |
+
+Calculator không gọi MySQL, Redis hoặc API giá.
+
+Các dữ liệu phải được gom thành input rõ ràng trước khi tính.
+
+### 6.2. Đầu vào phải có nguồn và thời điểm
+
+```ts
+type MarginCalculationContext = {
+  policyCode: string;
+  policyVersion: number;
+  evaluatedAt: string;
+  pricingMode: "SCENARIO_INPUT";
+};
+```
+
+Hôm nay dùng **giá giả lập trong scenario**, không giả vờ đó là giá realtime thực tế.
+
+Khi tích hợp dữ liệu thật sau này, cần xử lý thêm tuổi quote, thời điểm policy và tính nhất quán của snapshot đầu vào.
+
+### 6.3. Tiền và tỷ lệ
+
+| Dữ liệu | Cách biểu diễn |
+|---|---|
+| Tiền, giá trị, dư nợ | `DECIMAL(20,0)` / `bigint` |
+| Tỷ lệ | Basis point, số nguyên |
+| Kết quả tiền qua JSON | Chuỗi |
+| Tính năng lực vay | Làm tròn xuống từng mã, rồi cộng |
+
+```text
+5000 bps = 50%.
+```
+
+Không dùng số thực JavaScript để nhân chia tiền.
+
+`max(0, ...)` ở hạn mức bổ sung là quy tắc nghiệp vụ hợp lệ. Ngược lại, nếu dữ liệu đầu vào tạo ra `collateralQuantity < 0`, phải báo lỗi dữ liệu, không âm thầm ép về 0.
+
+---
+
+## 7. Database cho bài học
+
+Đề xuất bốn bảng **dữ liệu mô phỏng**, không ghi vào số dư tài khoản tiền mặt:
+
+| Bảng | Trường chính |
+|---|---|
+| `margin_policies` | code, version, rounding policy, trạng thái |
+| `collateral_eligibility` | policy, security, eligibility, price cap, hai loại tỷ lệ |
+| `margin_scenarios` | policy, tiền khả dụng, hạn mức, positions JSON |
+| `loan_balances` | scenario, nợ gốc, lãi, hạn mức vay đã giữ |
+
+Trong `collateral_eligibility`, dùng tên riêng:
+
+```text
+collateral_eligible
+collateral_rate_bps
+collateral_price_cap
+
+purchase_financing_eligible
+purchase_financing_rate_bps
+```
+
+Ràng buộc nên có:
+
+```text
+UNIQUE(policy_id, security_id)
+
+0 <= collateral_rate_bps <= 10000
+
+0 <= purchase_financing_rate_bps < 10000
+
+Các khoản tiền đầu vào không âm.
+```
+
+Tỷ lệ tài trợ mua nhỏ hơn 100% giúp công thức ngân sách theo vốn tự có có mẫu số dương trong bài này.
+
+**Dữ liệu seed:**
+
+| Scenario | Positions | Available cash | Credit limit | Nợ/lãi/giữ vay |
+|---|---|---:|---:|---:|
+| `scenario-A` | 1.000 `sec-001`, settled | 3 triệu | 20 triệu | 0 |
+| `scenario-B` | 1.000 `sec-003`, settled | 3 triệu | 20 triệu | 0 |
+| `scenario-A-debt` | Như A | 3 triệu | 20 triệu | 4 triệu / 100 nghìn / 1 triệu |
+
+Các bảng này không biến `acc-001` hoặc `acc-004` thành tài khoản margin. Chưa sửa enum tài khoản `CASH`, chưa tạo giải ngân hoặc nghĩa vụ vay trong sổ cái tiền.
+
+---
+
+## 8. API kiểm tra giả lập
+
+```http
+POST /api/risk/margin-simulations
+```
+
+Request:
+
+```json
+{
+  "scenarioId": "scenario-A",
+  "order": {
+    "securityId": "sec-001",
+    "side": "BUY",
+    "price": 25000,
+    "quantity": 200
+  }
+}
+```
+
+Response mẫu:
+
+```json
+{
+  "data": {
+    "mode": "SIMULATION_ONLY",
+    "policyCode": "SIM_MARGIN_V1",
+    "policyVersion": 1,
+
+    "availableCash": "3000000",
+    "grossLoanCapacity": "12000000",
+    "accountCreditLimit": "20000000",
+    "effectiveLoanLimit": "12000000",
+
+    "currentExposure": "0",
+    "additionalLoanHeadroom": "12000000",
+
+    "orderValue": "5000000",
+    "requiredLoan": "2000000",
+    "orderFinancingLimit": "2500000",
+
+    "decision": "ALLOW",
+    "reasonCodes": [],
+
+    "collateralBreakdown": [
+      {
+        "securityId": "sec-001",
+        "eligible": true,
+        "collateralQuantity": 1000,
+        "marketPrice": "25000",
+        "valuationPrice": "24000",
+        "recognizedAssetValue": "24000000",
+        "collateralRateBps": 5000,
+        "loanCapacity": "12000000"
+      }
+    ]
+  }
+}
+```
+
+`ALLOW` nghĩa là **đạt bộ kiểm tra margin giả lập này**. Không chứng minh đã qua phiên, quyền tài khoản, giữ vốn, giải ngân hoặc mọi kiểm tra đặt lệnh.
+
+Reason code:
+
+| Mã | Ý nghĩa |
+|---|---|
+| `INSUFFICIENT_LOAN_HEADROOM` | Không đủ phần hạn mức vay còn lại |
+| `ORDER_FINANCING_RATIO_EXCEEDED` | Lệnh yêu cầu tỷ lệ tài trợ quá cao |
+| `SECURITY_NOT_FINANCEABLE` | Mã mua không được hỗ trợ vốn vay |
+| `EXISTING_EXPOSURE_EXCEEDS_LIMIT` | Nghĩa vụ hiện tại vượt giới hạn theo policy |
+| `POLICY_NOT_CONFIGURED` | Thiếu cấu hình |
+| `MISSING_VALUATION_PRICE` | Thiếu giá cần thiết |
+| `INVALID_COLLATERAL_QUANTITY` | Thành phần khối lượng không hợp lệ |
+
+Với thiếu cấu hình hoặc dữ liệu định giá cần thiết, trả `decision: UNAVAILABLE` và để các tổng không xác định là `null`; không trả một kết quả “đạt” dựa trên dữ liệu thiếu.
+
+---
+
+## 9. Thực hành — 30–60 phút
+
+| Thời gian | Công việc |
+|---|---|
+| 10 phút | Định nghĩa input và policy |
+| 15–20 phút | Calculator và kiểm thử |
+| 10–15 phút | Seed scenario và API |
+| 10–15 phút mở rộng | Hiển thị bảng giải thích trên Vue 3 + TypeScript + Tailwind CSS |
+
+Thực hiện theo thứ tự:
+
+1. Tính tay A và B.
+2. Viết calculator thuần.
+3. Chạy cùng một lệnh mua trên hai scenario.
+4. Chạy scenario có dư nợ.
+5. Thử lệnh vi phạm tỷ lệ tài trợ dù còn hạn mức.
+6. Xác nhận số dư, reservation và order của các ngày trước không đổi.
+
+Nếu thêm Vue 3 + TypeScript + Tailwind CSS, hiển thị hai bảng:
+
+- Từng chứng khoán đóng góp bao nhiêu năng lực bảo đảm.
+- Yêu cầu mua cần bao nhiêu vốn vay và bị giới hạn ở đâu.
+
+Không đưa kết quả mô phỏng vào nút đặt lệnh tiền mặt.
+
+---
+
+## 10. Kiểm thử và tình huống debug
+
+| Kiểm thử | Kết quả |
+|---|---|
+| Giá thị trường 25.000, cap 24.000 | Dùng 24.000 |
+| Giá thị trường 23.000, cap 24.000 | Dùng 23.000 |
+| Mã không đủ điều kiện | Loan capacity bằng 0 |
+| Mua chờ nhận | Không được tính bảo đảm |
+| Có bán chờ giao/giữ bán/phong tỏa | Giảm lượng theo policy |
+| Hạn mức tài khoản thấp hơn năng lực bảo đảm | Dùng hạn mức tài khoản |
+| Có nợ, lãi, hạn mức đã giữ | Trừ đúng một lần |
+| Đủ hạn mức nhưng vượt tỷ lệ tài trợ lệnh | Từ chối |
+| Không cần vay | Không yêu cầu mã phải được tài trợ margin |
+| Thiếu policy hoặc giá bắt buộc | Không kết luận ALLOW |
+| Gọi API nhiều lần | Không thay đổi tài sản hoặc khoản vay |
+
+**Debug A — Mọi cổ phiếu đều được tính bảo đảm**
+
+Code chỉ lọc:
+
+```ts
+securityType === "STOCK"
+```
+
+Như vậy chưa đủ. Cần đọc policy theo `securityId`.
+
+**Debug B — Dùng giá vốn để tính tài sản bảo đảm**
+
+Giá vốn là dữ liệu chi phí của tài khoản. Giá định giá bảo đảm đến từ chính sách và giá đầu vào, không lấy từ giá vốn bình quân.
+
+**Debug C — Áp dụng 50% hai lần**
+
+Đã tính:
+
+```text
+loanCapacity = 24 triệu × 50% = 12 triệu
+```
+
+Sau đó lại nhân 50% khi cộng vào hạn mức sẽ thành 6 triệu sai.
+
+Tỷ lệ tài trợ lệnh mua phải được áp dụng vào **giá trị lệnh**, không nhân tiếp vào năng lực bảo đảm.
+
+**Debug D — Tài sản dự kiến mua tự tạo thêm sức mua**
+
+Calculator cộng ngay chứng khoán chưa mua vào collateral, rồi tiếp tục tính vay từ số đó.
+
+Ngày 12 không có vòng tính này. Chỉ dùng tài sản hiện hữu đủ điều kiện để tính năng lực bảo đảm.
+
+---
+
+## 11. Prompt cho OpenCode
+
+```text
+Tôi đang học ngày 12 của Securities Trading Simulator:
+Margin, tài sản bảo đảm và sức mua.
+
+Môi trường:
+- Node.js + TypeScript, MySQL, Vue 3 + TypeScript + Tailwind CSS.
+- OpenCode, cấu hình model hiện tại.
+- Giữ kiến trúc ngày 1–11.
+
+Trước khi code:
+1. Đọc Accounts, positions, Portfolio và calculator tiền.
+2. Phân biệt giá vốn, giá thị trường và giá định giá bảo đảm.
+3. Đề xuất phạm vi 30–60 phút.
+
+Phạm vi:
+- Calculator và API mô phỏng độc lập.
+- Không giải ngân, không sửa cash_balances.
+- Không ghi cash/security reservations hoặc tạo orders.
+- Không dùng kết quả để vượt qua cash check ngày 10.
+- Không biến tài khoản CASH hiện có thành margin.
+- Không thực hiện call margin hoặc bán giải chấp.
+
+Policy SIM_MARGIN_V1, toàn bộ giả lập:
+- VND.
+- Chỉ tài sản hiện hữu đã thanh toán đủ điều kiện.
+- Không cộng tài sản dự kiến mua.
+- Phí/thuế=0.
+- Giá input từ scenario, pricingMode=SCENARIO_INPUT.
+
+Cấu hình:
+sec-001:
+- collateralEligible=true.
+- priceCap=24000.
+- collateralRateBps=5000.
+- purchaseFinancingEligible=true.
+- purchaseFinancingRateBps=5000.
+
+sec-003:
+- collateralEligible=false.
+- collateralRateBps=0.
+- purchaseFinancingEligible=false.
+- purchaseFinancingRateBps=0.
+
+Công thức:
+collateralQuantity =
+settled - pendingSell - reservedSell - blocked.
+Không tính pendingBuy.
+Nếu quantity âm: lỗi dữ liệu.
+
+valuationPrice = min(marketPrice, priceCap).
+loanCapacity từng mã =
+floor(quantity * valuationPrice * collateralRateBps / 10000).
+Làm tròn xuống từng mã rồi cộng.
+
+effectiveLoanLimit =
+min(sumLoanCapacity, accountCreditLimit).
+
+currentExposure =
+loanPrincipal + accruedInterest + reservedLoanAmount.
+
+additionalLoanHeadroom =
+max(0, effectiveLoanLimit - currentExposure).
+
+Nếu exposure vượt limit:
+decision BLOCK, reason EXISTING_EXPOSURE_EXCEEDS_LIMIT.
+
+Với lệnh BUY:
+orderValue = price * quantity.
+requiredLoan = max(0, orderValue - availableCash).
+orderFinancingLimit =
+floor(orderValue * purchaseFinancingRateBps / 10000).
+
+Nếu cần vay:
+- Mã mua phải được hỗ trợ tài trợ.
+- requiredLoan <= additionalLoanHeadroom.
+- requiredLoan <= orderFinancingLimit.
+
+Độ chính xác:
+- Tiền DECIMAL(20,0), backend bigint, JSON chuỗi.
+- Tỷ lệ là số nguyên bps.
+- Không dùng floating point để tính tiền.
+- 0 <= collateralRateBps <=10000.
+- 0 <= purchaseFinancingRateBps <10000.
+
+Database mô phỏng:
+- margin_policies.
+- collateral_eligibility.
+- margin_scenarios.
+- loan_balances liên kết scenario.
+- Không liên kết loan_balances này thành khoản nợ thật của Accounts.
+- Có policy version và scope theo securityId.
+
+Fixtures:
+A:
+- settled1000 sec-001, marketPrice25000.
+- availableCash3000000, creditLimit20000000.
+- debt/interest/reservedLoan=0.
+- Kỳ vọng capacity12000000.
+
+B:
+- settled1000 sec-003, marketPrice25000.
+- Các thành phần khác như A.
+- Kỳ vọng capacity0.
+
+A-debt:
+- Như A.
+- principal4000000, interest100000, reservedLoan1000000.
+- Kỳ vọng additionalLoanHeadroom6900000.
+
+Order:
+BUY200 sec-001 @25000.
+- Value5000000, requiredLoan2000000,
+  orderFinancingLimit2500000.
+- A ALLOW, B BLOCK.
+
+Kiểm tra thêm:
+- BUY300@25000 trên A:
+  requiredLoan4500000 > financingLimit3750000, BLOCK.
+- MarketPrice23000 dùng valuationPrice23000.
+- Credit limit thấp hơn capacity.
+- Không tính pendingBuy.
+- Giảm collateral theo pendingSell/reservedSell/blocked.
+- Thiếu policy không tự coi là eligible.
+- Thiếu giá bắt buộc trả UNAVAILABLE, không ALLOW.
+- API gọi nhiều lần không ghi tài sản.
+
+API:
+POST /api/risk/margin-simulations.
+Nhận scenarioId và order.
+Trả mode SIMULATION_ONLY, policy/version,
+breakdown từng mã, exposure, headroom,
+requiredLoan, financingLimit, decision và reasonCodes.
+Không chỉ trả boolean.
+ALLOW chỉ có nghĩa đạt bộ kiểm tra mô phỏng này.
+
+Nếu còn thời gian:
+- Vue 3 + TypeScript + Tailwind CSS hiển thị so sánh A/B và giải thích từng bước.
+- Không nối vào nút đặt lệnh tiền mặt.
+
+Sau khi làm:
+- Chạy kiểm tra phù hợp, báo kết quả thực tế.
+- Cập nhật README với công thức và giả định.
+- Giải thích vì sao cash3tr + headroom12tr
+  không có nghĩa được mua15tr khi financingRate50%.
+```
+
+**Ngày 12 hoàn thành khi:**
+
+- [ ] Phân biệt được giá thị trường, giá vốn và giá định giá bảo đảm.
+- [ ] Hai danh mục cùng giá trị thị trường có thể cho năng lực vay khác nhau.
+- [ ] Dư nợ, lãi và hạn mức đã giữ được trừ đúng một lần.
+- [ ] Tách tỷ lệ quy đổi tài sản khỏi tỷ lệ tài trợ lệnh mua.
+- [ ] Kết quả có breakdown và reason code.
+- [ ] Calculator không làm thay đổi tài sản hoặc luồng tiền mặt.
+
+Ngày 13 sẽ xây **thanh toán và đối soát**: chuyển tiền/chứng khoán chờ thanh toán thành trạng thái đã thanh toán, dùng lịch ngày làm việc và bảo đảm chạy lại không hạch toán trùng.

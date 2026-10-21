@@ -38,6 +38,16 @@ const documents = Object.entries(modules)
   .sort((first, second) => {
     if (first.path === 'README.md') return -1
     if (second.path === 'README.md') return 1
+
+    const firstDay = Number(first.path.match(/^ngay-(\d+)-/)?.[1])
+    const secondDay = Number(second.path.match(/^ngay-(\d+)-/)?.[1])
+    const hasFirstDay = Number.isFinite(firstDay)
+    const hasSecondDay = Number.isFinite(secondDay)
+
+    if (hasFirstDay && hasSecondDay) return firstDay - secondDay
+    if (hasFirstDay) return 1
+    if (hasSecondDay) return -1
+
     return first.title.localeCompare(second.title, 'vi')
   })
 
