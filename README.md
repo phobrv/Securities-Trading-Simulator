@@ -6,6 +6,15 @@ Thông qua việc mô phỏng các tình huống và quy trình giao dịch, ng�
 
 Dự án phục vụ mục đích học tập và không được sử dụng cho giao dịch thực tế hoặc làm cơ sở cho các quyết định đầu tư.
 
+## Cấu trúc dự án
+
+Dự án được chia thành hai phần bổ trợ cho nhau:
+
+- **`p-docs/`** — Không gian tài liệu học tập. Thư mục `docs/` lưu lộ trình 28 buổi, bài học theo từng ngày và các nội dung tham khảo về khái niệm, quy ước và tình huống giao dịch.
+- **`projects/`** — Không gian thực hành mô phỏng. Đây là nơi người học áp dụng kiến thức từ tài liệu vào các tình huống như theo dõi thị trường, quản lý thông tin chứng khoán, đặt lệnh và quản lý danh mục.
+
+Người học nên theo trình tự: đọc bài học trong `p-docs/`, sau đó thực hành và quan sát kết quả mô phỏng trong `projects/`.
+
 ## Lộ trình học 4 tuần (28 buổi)
 
 Mỗi tuần gồm 7 buổi. Nội dung đi từ kiến thức nền tảng đến quan sát và mô phỏng một quy trình giao dịch hoàn chỉnh.
