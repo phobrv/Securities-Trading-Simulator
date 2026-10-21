@@ -42,6 +42,9 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Ngày 23 — Tích hợp OMS từ giao diện](./ngay-23-tich-hop-oms-tu-giao-dien-timeout-retry-va-khoi-phuc-sau-reload.md) | Lưu intent, retry an toàn và khôi phục sau reload. |
 | [Ngày 24 — Tích hợp Risk và kiểm soát tài sản](./ngay-24-tich-hop-risk-va-kiem-soat-tai-san-cho-ca-mua-lan-ban.md) | Kiểm tra và giữ tiền/chứng khoán nhất quán cho lệnh mua lẫn bán. |
 | [Ngày 25 — Matching Adapter và nhiều lần khớp](./ngay-25-hoan-thien-matching-adapter-va-xu-ly-nhieu-lan-khop.md) | Ánh xạ OMS, execution ổn định, khớp nhiều lần và hủy phần còn lại. |
+| [Ngày 26 — Structured logging, audit trail và metrics](./ngay-26-structured-logging-audit-trail-va-metrics-theo-doi-mot-lenh-tu-api-den-khop-lenh.md) | Truy vết một lệnh từ API đến khớp lệnh bằng log, audit và chỉ số vận hành. |
+| [Ngày 27 — Incident Lab](./ngay-27-incident-lab-gay-loi-co-kiem-soat-dieu-tra-va-phuc-hoi-he-thong.md) | Gây lỗi có kiểm soát, điều tra và phục hồi mà vẫn bảo toàn bất biến nghiệp vụ. |
+| [Ngày 28 — Capstone](./ngay-28-capstone-hoan-thien-va-trinh-dien-securities-trading-simulator.md) | Demo xuyên suốt, đối chiếu tài sản, phục hồi sự cố và tài liệu bàn giao. |
 
 ## Stack thực hành
 
