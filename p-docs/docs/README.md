@@ -31,6 +31,10 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Ngày 12 — Margin, tài sản bảo đảm và sức mua](./ngay-12-margin-tai-san-bao-dam-va-suc-mua.md) | Mô phỏng năng lực vay, kiểm tra tài sản bảo đảm và lý do quyết định. |
 | [Ngày 13 — Thanh toán và đối soát](./ngay-13-thanh-toan-va-doi-soat.md) | Nghĩa vụ T+2, batch thanh toán an toàn khi chạy lại và đối soát. |
 | [Ngày 14 — Sản phẩm tuần 2](./ngay-14-san-pham-tuan-2-oms-tai-san-va-thanh-toan.md) | Kịch bản xuyên suốt: đặt mua, khớp một phần, hủy và thanh toán. |
+| [Ngày 15 — Kiến trúc tổng thể và quyền sở hữu dữ liệu](./ngay-15-kien-truc-tong-the-va-quyen-so-huu-du-lieu.md) | Bản đồ trách nhiệm module, quyền ghi dữ liệu và ranh giới transaction. |
+| [Ngày 16 — Xác thực và phân quyền tài khoản](./ngay-16-xac-thuc-va-phan-quyen-tai-khoan.md) | JWT, membership, kiểm tra quyền theo tài nguyên và audit. |
+| [Ngày 17 — Snapshot, delta và khôi phục WebSocket](./ngay-17-snapshot-delta-va-khoi-phuc-websocket.md) | Sequence, resync, reconnect và bảo vệ bảng giá trước dữ liệu cũ hoặc thiếu. |
+| [Ngày 18 — Sự kiện nghiệp vụ, retry và chống xử lý trùng](./ngay-18-su-kien-nghiep-vu-retry-va-chong-xu-ly-trung.md) | Event envelope, consumer dedup, projection và retry an toàn. |
 
 ## Stack thực hành
 
