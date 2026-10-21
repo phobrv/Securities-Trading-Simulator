@@ -1,0 +1,552 @@
+# Ngày 21 — Sản phẩm tuần 3: Backend có khả năng phục hồi
+
+Sau ngày 17–20, bạn đã có thiết kế đồng bộ realtime, consumer chống trùng, kiểm soát đồng thời và Transactional Outbox. Hôm nay bạn ghép chúng thành một bộ kiểm tra:
+
+> **Khi lỗi xảy ra, hệ thống có phục hồi về kết quả đúng mà không tạo thêm lệnh hoặc làm sai tài sản không?**
+
+Ngày 21 tập trung vào **bằng chứng thực hành**, không bổ sung công nghệ mới.
+
+---
+
+## 1. Mục tiêu và phân bổ thời gian
+
+| Thời gian | Nội dung | Kết quả |
+|---|---|---|
+| 30 phút nghiệp vụ | Phân loại lỗi và cách phục hồi | Biết khi nào được retry |
+| 30 phút kỹ thuật | Xác định điểm lỗi và bất biến | Có ma trận kiểm thử |
+| 30–60 phút thực hành | Chạy năm kịch bản | Có kết quả và bằng chứng |
+
+**Sản phẩm cuối buổi:**
+
+- Bộ kiểm tra năm tình huống lỗi.
+- Bảng đối chiếu order, tài sản, event và projection.
+- Hướng dẫn chạy lại.
+- Danh sách giới hạn chưa được giải quyết.
+
+---
+
+## 2. Nghiệp vụ — phân biệt ba kết quả
+
+| Kết quả | Ví dụ | Hành động |
+|---|---|---|
+| Thành công đã xác định | Backend trả orderId và trạng thái | Theo dõi lệnh |
+| Thất bại đã xác định | `INSUFFICIENT_CASH` | Thông báo lý do |
+| Chưa xác định | Client timeout sau khi gửi | Kiểm tra lại cùng ý định |
+
+Tình huống quan trọng:
+
+```text
+Không nhận được response
+không chứng minh
+backend chưa tạo lệnh.
+```
+
+Vì vậy, retry phải giữ nguyên định danh phù hợp:
+
+| Thao tác | Định danh giữ nguyên |
+|---|---|
+| Gửi lại yêu cầu đặt lệnh | `Idempotency-Key` |
+| Giao lại event | `eventId` |
+| Xử lý lại execution | Business key của execution |
+| Chạy lại thanh toán | `obligationId` |
+
+Không tạo định danh mới chỉ để vượt qua kết quả chưa rõ.
+
+**Câu hỏi tự kiểm tra:**
+
+> Nếu consumer đã commit nhưng worker chưa đánh dấu outbox đã giao, cần rollback consumer hay giao lại event?
+
+Đáp án: có thể giao lại **cùng event**. Consumer dedup ngăn tác động lần hai; không tự đảo dữ liệu đã commit.
+
+---
+
+## 3. Kiểm tra điều kiện trước khi chạy
+
+| Thành phần | Điều kiện cần có |
+|---|---|
+| MySQL | Transaction InnoDB, khóa hàng và unique constraint |
+| API Orders | Idempotency bền trong MySQL |
+| Accounts | Giữ tiền cùng transaction tạo lệnh |
+| Execution handler | Cập nhật OMS, tiền, vị thế và nghĩa vụ cùng transaction |
+| Consumer | Marker và projection cùng transaction |
+| Outbox | Event lưu cùng transaction nguồn |
+| Worker | Đọc lại MySQL sau restart, giữ nguyên eventId |
+| Market Data client | Sequence, snapshot, buffer và vòng sync |
+| Authorization | Kiểm tra quyền trước truy cập và replay |
+
+Nếu một thành phần chưa có trong code thực tế, ghi `BLOCKED` cho bài kiểm tra phụ thuộc. Có bài học hoặc có bảng database chưa đủ để kết luận chức năng đã hoạt động.
+
+**Phạm vi demo:**
+
+- Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS.
+- Một Outbox worker.
+- Direct transport tới consumer ngày 18.
+- Projection BUY riêng, không cập nhật lại tài sản nguồn.
+
+---
+
+## 4. Chuẩn bị fixture và bằng chứng
+
+Dùng dữ liệu độc lập cho từng kịch bản:
+
+| Kịch bản | Fixture |
+|---|---|
+| C1 | Tài khoản 10 triệu để tranh giữ tiền |
+| C2 | Tài khoản 10 triệu để kiểm tra HTTP retry |
+| C3 | Event và projection riêng |
+| C4 | Execution có Outbox, worker riêng |
+| C5 | Luồng quote riêng của test |
+
+Mỗi tài khoản giao dịch cần:
+
+- Số dư đầu kỳ và OPENING ledger.
+- Membership TRADE hợp lệ.
+- Không có dữ liệu từ bài chạy trước làm thay đổi kết quả.
+
+Không xóa toàn database hoặc Redis để reset.
+
+Log nên liên kết được:
+
+```text
+requestId → orderId → executionId → eventId
+```
+
+Với worker, thêm:
+
+```text
+attempt → outcome → errorCode
+```
+
+Fault injection chỉ được bật trong test/local hoặc qua công cụ OPS phù hợp.
+
+---
+
+## 5. C1 — Hai lệnh cạnh tranh cùng tiền
+
+**Đầu vào:**
+
+```text
+Tiền ban đầu: 10.000.000.
+
+A: BUY280 @25.000 → cần 7.000.000.
+B: BUY280 @25.000 → cần 7.000.000.
+
+A và B dùng hai Idempotency-Key khác nhau.
+```
+
+Không có thanh khoản bán để làm lệnh khớp ngay.
+
+**Cách tạo cạnh tranh:**
+
+1. Dùng ít nhất hai MySQL connection.
+2. Cho A lấy khóa số dư rồi dừng tại test latch.
+3. Cho B bắt đầu tranh cùng tài nguyên.
+4. Thả A để commit.
+5. B lấy khóa, đọc số dư mới và kiểm tra lại.
+
+Không yêu cầu cả hai cùng lấy được khóa rồi mới thả — test sẽ tự chờ.
+
+**Kết quả bắt buộc:**
+
+| Thành phần | Kỳ vọng |
+|---|---:|
+| Request được nhận | 1 |
+| Request thiếu tiền | 1 |
+| `reservedCash` | 7.000.000 |
+| `availableCash` | 3.000.000 |
+| Tổng khoản giữ mới | 7.000.000 |
+| Tổng delta RESERVE | 7.000.000 |
+
+Không bắt buộc A thắng.
+
+**Điểm cần chứng minh:** không chỉ số dư không âm; chi tiết reservation và ledger cũng phải khớp số tổng.
+
+---
+
+## 6. C2 — Timeout sau khi đặt lệnh đã commit
+
+**Đầu vào:**
+
+```text
+BUY100 @25.000.
+Idempotency-Key: week3-buy-retry-001.
+```
+
+**Điểm gây lỗi:**
+
+```text
+Order + hold + ledger + idempotency commit.
+→ Response bị chặn.
+→ Client timeout.
+```
+
+Độ trễ nằm **sau commit**, không nằm trong transaction giữ tiền.
+
+**Phục hồi:**
+
+Gửi lại cùng key và payload.
+
+**Kết quả bắt buộc:**
+
+```text
+Cùng orderId.
+Một order.
+Một OrderReceived.
+Một khoản giữ 2.500.000.
+Không chuyển thêm lệnh vào simulator.
+```
+
+Sau replay, gọi `GET /api/orders/:id` để lấy trạng thái hiện tại.
+
+Thử thêm:
+
+```text
+Cùng key nhưng quantity=200.
+→ 409 IDEMPOTENCY_KEY_REUSED.
+```
+
+UI cần phân biệt “chưa xác định kết quả” với “đã bị từ chối”.
+
+---
+
+## 7. C3 — Sự kiện execution được giao lại
+
+Dùng event hợp lệ:
+
+```text
+ExecutionApplied.
+BUY40 @24.900.
+Giá trị 996.000.
+```
+
+Nguồn Accounts đã được cập nhật một lần. Projection bắt đầu từ 0.
+
+**Thao tác:**
+
+```text
+Giao event E1.
+Giao lại chính E1.
+```
+
+**Kết quả:**
+
+```text
+Projection quantity = 40.
+Projection totalCost = 996.000.
+Không thành 80 và 1.992.000.
+```
+
+Kiểm tra thêm:
+
+| Biến thể | Kết quả |
+|---|---|
+| Cùng eventId, cùng nội dung | Duplicate hợp lệ |
+| EventId khác, cùng execution và nội dung | Business duplicate |
+| Cùng eventId, nội dung khác | Conflict |
+| Consumer commit rồi mất ACK | Redelivery không cộng thêm |
+
+Tài sản nguồn không thay đổi khi consumer cập nhật projection.
+
+Không lấy việc projection đúng để kết luận cash ledger hoặc OMS nguồn cũng đúng; cần kiểm tra chúng riêng.
+
+---
+
+## 8. C4 — Outbox worker dừng và khởi động lại
+
+Đây là bài tích hợp trực tiếp của ngày 20.
+
+### 8.1. Dừng trước khi giao event
+
+Tạm dừng worker, sau đó tạo execution mới:
+
+```text
+BUY40 @24.900.
+```
+
+Kiểm tra sau source transaction:
+
+```text
+OMS đã ghi nhận execution.
+Tiền và vị thế nguồn đã cập nhật.
+Obligation đã được tạo.
+Outbox có ExecutionApplied PENDING.
+Projection chưa cập nhật.
+```
+
+Khởi động worker.
+
+**Kết quả:**
+
+```text
+Worker đọc event từ MySQL.
+Giao đúng eventId đã lưu.
+Projection thành 40 / 996.000.
+Outbox thành DELIVERED.
+```
+
+Không tạo lại execution để kích hoạt consumer.
+
+### 8.2. Dừng sau consumer commit
+
+Dùng fixture khác:
+
+```text
+Worker giao event.
+Consumer commit.
+Worker dừng trước mark DELIVERED.
+```
+
+Restart worker:
+
+```text
+Event được giao lại.
+Consumer nhận diện duplicate.
+Projection không tăng thêm.
+Outbox hoàn tất.
+```
+
+**Bằng chứng cần ghi:**
+
+- EventId trước và sau restart.
+- Trạng thái outbox.
+- Marker consumer.
+- Giá trị projection.
+- Tiến trình thực sự đã được restart.
+
+Restart worker chưa chứng minh khôi phục được matching engine trong bộ nhớ. Ghi đúng phạm vi đã kiểm tra.
+
+---
+
+## 9. C5 — Client mất delta và đồng bộ lại
+
+**Đầu vào:**
+
+```text
+Client có snapshot100.
+Nguồn tạo101 rồi102.
+Bỏ101 trên đường gửi tới client.
+Client nhận102.
+```
+
+**Kết quả bắt buộc:**
+
+```text
+Phát hiện SEQUENCE_GAP.
+Không áp dụng102 lên nền100.
+Chuyển SYNCING.
+Lấy snapshot mới.
+Áp dụng buffer hợp lệ.
+Trở lại LIVE.
+```
+
+Thu lại trạng thái chuyển tiếp hoặc log resync, không chỉ nhìn giá cuối.
+
+**Hai biến thể quan trọng:**
+
+| Tình huống | Kỳ vọng |
+|---|---|
+| Snapshot vòng cũ về sau vòng mới | Không ghi đè dữ liệu |
+| Mất update cuối, không có delta tiếp theo | Heartbeat head phát hiện lệch |
+
+Nếu thử hai tab, chỉ làm mất bản tin của tab A:
+
+- A phải sync lại.
+- B tiếp tục bình thường.
+- Không tăng số publisher hoặc giao dịch.
+
+Dùng fixture Market Data; không cần phát sinh thêm tài sản để thử lỗi mạng.
+
+---
+
+## 10. Những bất biến phải kiểm tra
+
+| Nhóm | Bất biến |
+|---|---|
+| Tiền | Available = settled − reserved − payable − blocked |
+| Khoản giữ | Initial = remaining + consumed + released |
+| Lệnh đã được chấp nhận | Quantity = filled + remaining + canceled |
+| Chứng khoán | Economic = settled + pending buy − pending sell |
+| API retry | Một ý định không tạo nhiều lệnh |
+| Execution | Một execution không tạo nhiều tác động tài sản |
+| Consumer | Một event không tạo nhiều tác động trên cùng consumer logic |
+| Settlement | Một obligation không thanh toán hai lần |
+
+Cần kiểm tra cả trạng thái cuối và lịch sử.
+
+Hai lỗi ngược chiều có thể làm số dư cuối “đúng” nhưng ledger vẫn sai.
+
+---
+
+## 11. Phân loại kết quả và báo cáo
+
+Dùng bảng:
+
+| Kịch bản | Trạng thái | Bằng chứng | Vấn đề còn lại |
+|---|---|---|---|
+| C1 — Tranh tiền | Chưa chạy | — | — |
+| C2 — HTTP retry | Chưa chạy | — | — |
+| C3 — Event trùng | Chưa chạy | — | — |
+| C4 — Worker restart | Chưa chạy | — | — |
+| C5 — Mất delta | Chưa chạy | — | — |
+
+Sau khi thực hành, thay bằng:
+
+```text
+PASS
+FAIL
+BLOCKED
+NOT_RUN
+```
+
+Mỗi kết quả cần có:
+
+1. Fixture đầu vào.
+2. Điểm gây lỗi.
+3. Cách phục hồi.
+4. Kết quả mong đợi và thực tế.
+5. Log, truy vấn hoặc assertion liên quan.
+6. Giới hạn của kết luận.
+
+Không ghi PASS chỉ vì có `try/catch`, Outbox hoặc `FOR UPDATE`.
+
+---
+
+## 12. Phân bổ thực hành
+
+| Thời gian | Công việc |
+|---|---|
+| 10 phút | Preflight và fixture |
+| 15–20 phút | C1, C2 |
+| 15–20 phút | C3, C4 |
+| 10–15 phút | C5 và báo cáo |
+
+Thời lượng này phù hợp khi cơ chế nền đã được triển khai. Nếu phải xây lại một thành phần, hoàn thành phần thiếu trước rồi mới đánh giá bài kiểm tra tương ứng.
+
+Tài liệu đề xuất trong repository:
+
+```text
+docs/reliability/week3-checks.md
+```
+
+Chưa cần dashboard giám sát lớn. Một báo cáo rõ ràng và bộ test chạy được có giá trị hơn nhiều biểu đồ chưa có dữ liệu kiểm chứng.
+
+---
+
+## 13. Prompt cho OpenCode
+
+```text
+Tôi đang học ngày 21 của Securities Trading Simulator:
+Sản phẩm tuần 3 — kiểm chứng khả năng phục hồi.
+
+Môi trường:
+- Node.js + TypeScript, MySQL, Redis, Vue 3 + TypeScript + Tailwind CSS.
+- OpenCode, cấu hình model hiện tại.
+- Giữ kiến trúc modular monolith.
+- Dùng Outbox ngày20 và consumer ngày18.
+
+Trước khi sửa:
+1. Kiểm kê phần thực tế đã triển khai.
+2. Kiểm tra dependency của5 bài bên dưới.
+3. Phân biệt tài sản nguồn, projection và quote.
+4. Không viết lại module đã đúng.
+5. Dependency thiếu phải ghi BLOCKED, không giả báo PASS.
+
+Chuẩn bị:
+- Fixture riêng mỗi bài, không xóa toàn DB/Redis.
+- Tài khoản có OPENING ledger và membership hợp lệ.
+- MySQL thật, nhiều connection cho concurrency.
+- Market Clock, Auth Clock và timer vận hành độc lập.
+- Fault injection chỉ test/local hoặc OPS.
+- Direct transport và một Outbox worker là đủ.
+
+C1: Hai ý định tranh tiền.
+- Tiền10tr.
+- Hai BUY280@25000, hai idempotency key khác nhau.
+- Không sell liquidity.
+- Dùng latch và hai connection tạo overlap.
+- Một accepted, một insufficient.
+- Reserved7tr, available3tr.
+- Tổng hold và ledger khớp balance.
+- Failed request không có business data dở dang.
+
+C2: Timeout sau commit.
+- BUY100@25000.
+- Chặn response sau khi transaction commit.
+- Retry cùng key/payload.
+- Cùng orderId, một order/event/hold2500000.
+- Không dispatch matching lại.
+- Same key khác payload409.
+- GET order trả trạng thái hiện tại.
+
+C3: Duplicate event.
+- Nguồn đã áp dụng BUY40@24900 một lần.
+- Projection rỗng.
+- Giao cùng ExecutionApplied hai lần.
+- Projection40, cost996000.
+- Source assets không đổi thêm.
+- Commit consumer rồi mất ACK vẫn an toàn.
+- Cùng execution khác eventId không cộng thêm.
+- Same eventId khác nội dung là conflict.
+
+C4: Outbox worker restart.
+- Pause worker, tạo execution mới.
+- Xác nhận source transaction và outbox đã commit,
+  projection chưa cập nhật.
+- Restart worker, event lấy từ MySQL và giữ nguyên eventId.
+- Projection cập nhật, outbox DELIVERED.
+- Fixture riêng:
+  consumer commit nhưng worker chưa mark delivered rồi dừng.
+- Restart: redelivery được dedup, không tăng projection.
+- Ghi rõ dùng restart tiến trình thật hay exception mô phỏng.
+- Không coi việc gọi consumer hai lần là test Outbox.
+- Không tuyên bố đã khôi phục matching trong bộ nhớ.
+
+C5: Quote recovery.
+- Snapshot100, bỏ101, giao102.
+- Không patch102 lên nền100.
+- Có SEQUENCE_GAP, SYNCING, snapshot và LIVE.
+- Snapshot vòng cũ không overwrite vòng mới.
+- Mất bản tin cuối được heartbeat head phát hiện.
+- Hai tab không tạo thêm publisher/giao dịch.
+
+Quy tắc:
+- Retry giữ intent key hoặc eventId phù hợp.
+- Transaction retry có giới hạn.
+- Không retry vô hạn payload sai, conflict hoặc auth.
+- Không network call trong transaction tài sản.
+- Consumer marker và projection cùng transaction.
+- Outbox event và source update cùng transaction.
+- Không mark delivered trước xác nhận phù hợp.
+- Không sửa số dư để làm test qua.
+
+Bằng chứng:
+- Assert HTTP và dữ liệu liên quan.
+- Kiểm tra order, reservation, ledger, position,
+  obligation, outbox, consumer marker và projection khi phù hợp.
+- Có initial state, fault point, expected, actual.
+- Dùng PASS/FAIL/BLOCKED/NOT_RUN.
+- Không báo đã chạy nếu chưa chạy.
+
+Tài liệu:
+- docs/reliability/week3-checks.md.
+- Cách chạy lại và giới hạn mỗi bài.
+- Báo lỗi đã phát hiện, bản sửa và kết quả kiểm chứng.
+
+Sau khi làm:
+- Chạy kiểm tra phù hợp.
+- Tổng hợp kết quả thực tế cả5 bài.
+- Nêu giới hạn còn lại của matching, event ordering
+  và các side effect ngoài MySQL.
+```
+
+**Ngày 21 hoàn thành khi:**
+
+- [ ] Hai lệnh không dùng vượt cùng khoản tiền.
+- [ ] Timeout và retry không tạo thêm lệnh.
+- [ ] Event giao lại không cộng dữ liệu lần hai.
+- [ ] Worker restart xử lý được event đang chờ.
+- [ ] Client mất delta khôi phục đúng.
+- [ ] Mỗi kết luận có bằng chứng chạy thực tế.
+- [ ] Phạm vi đã kiểm chứng và giới hạn còn lại được ghi rõ.
+
+Ngày 22 bắt đầu tuần 4: **Trading Dashboard hoàn chỉnh**, ghép bảng giá, đặt lệnh, danh sách lệnh, số dư và danh mục trên một màn hình.

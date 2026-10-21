@@ -35,6 +35,13 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Ngày 16 — Xác thực và phân quyền tài khoản](./ngay-16-xac-thuc-va-phan-quyen-tai-khoan.md) | JWT, membership, kiểm tra quyền theo tài nguyên và audit. |
 | [Ngày 17 — Snapshot, delta và khôi phục WebSocket](./ngay-17-snapshot-delta-va-khoi-phuc-websocket.md) | Sequence, resync, reconnect và bảo vệ bảng giá trước dữ liệu cũ hoặc thiếu. |
 | [Ngày 18 — Sự kiện nghiệp vụ, retry và chống xử lý trùng](./ngay-18-su-kien-nghiep-vu-retry-va-chong-xu-ly-trung.md) | Event envelope, consumer dedup, projection và retry an toàn. |
+| [Ngày 19 — Concurrency và chống sử dụng tài sản vượt mức](./ngay-19-concurrency-va-chong-su-dung-tai-san-vuot-muc.md) | Row lock, optimistic locking và kiểm thử nhiều connection để bảo toàn tài sản. |
+| [Ngày 20 — Transactional Outbox](./ngay-20-transactional-outbox-khong-bo-quen-su-kien-sau-khi-commit.md) | Lưu event cùng transaction nghiệp vụ, worker retry và giao event an toàn. |
+| [Ngày 21 — Sản phẩm tuần 3](./ngay-21-san-pham-tuan-3-backend-co-kha-nang-phuc-hoi.md) | Bộ kiểm tra phục hồi cho retry, outbox, concurrency và dữ liệu realtime. |
+| [Ngày 22 — Trading Dashboard hoàn chỉnh](./ngay-22-trading-dashboard-hoan-chinh.md) | Dashboard Vue hiển thị giá, lệnh, tiền, danh mục và trạng thái dữ liệu. |
+| [Ngày 23 — Tích hợp OMS từ giao diện](./ngay-23-tich-hop-oms-tu-giao-dien-timeout-retry-va-khoi-phuc-sau-reload.md) | Lưu intent, retry an toàn và khôi phục sau reload. |
+| [Ngày 24 — Tích hợp Risk và kiểm soát tài sản](./ngay-24-tich-hop-risk-va-kiem-soat-tai-san-cho-ca-mua-lan-ban.md) | Kiểm tra và giữ tiền/chứng khoán nhất quán cho lệnh mua lẫn bán. |
+| [Ngày 25 — Matching Adapter và nhiều lần khớp](./ngay-25-hoan-thien-matching-adapter-va-xu-ly-nhieu-lan-khop.md) | Ánh xạ OMS, execution ổn định, khớp nhiều lần và hủy phần còn lại. |
 
 ## Stack thực hành
 
