@@ -1,4 +1,9 @@
-import mysql, { type Pool, type PoolOptions } from "mysql2/promise";
+import mysql, {
+  type Pool,
+  type PoolOptions,
+  type RowDataPacket,
+} from "mysql2/promise";
+import type { ExecuteValues } from "mysql2";
 
 import { env } from "../config/env.js";
 
@@ -7,6 +12,10 @@ export interface DatabaseHealthChecker {
 }
 
 export interface Database extends DatabaseHealthChecker {
+  query<TRow extends RowDataPacket[]>(
+    sql: string,
+    parameters?: ExecuteValues,
+  ): Promise<TRow>;
   close(): Promise<void>;
 }
 
@@ -28,6 +37,14 @@ export function createDatabase(): Database {
   return {
     async ping(): Promise<void> {
       await pool.query("SELECT 1");
+    },
+    async query<TRow extends RowDataPacket[]>(
+      sql: string,
+      parameters: ExecuteValues = [],
+    ): Promise<TRow> {
+      const [rows] = await pool.execute<TRow>(sql, parameters);
+
+      return rows;
     },
     async close(): Promise<void> {
       await pool.end();

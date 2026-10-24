@@ -10,13 +10,17 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc --noEmit",
     "start": "tsx src/server.ts",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "migration:run": "tsx ./node_modules/typeorm/cli.js migration:run -d src/infrastructure/typeorm-data-source.ts",
+    "migration:revert": "tsx ./node_modules/typeorm/cli.js migration:revert -d src/infrastructure/typeorm-data-source.ts",
+    "migration:show": "tsx ./node_modules/typeorm/cli.js migration:show -d src/infrastructure/typeorm-data-source.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
-    "mysql2": "^3.14.1"
+    "mysql2": "^3.14.1",
+    "typeorm": "^0.3.31"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

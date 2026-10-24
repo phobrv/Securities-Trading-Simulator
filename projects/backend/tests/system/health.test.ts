@@ -4,9 +4,16 @@ import request from "supertest";
 import { createApp } from "../../src/app.js";
 import type { DatabaseHealthChecker } from "../../src/infrastructure/database.js";
 import { SystemService } from "../../src/modules/system/system.service.js";
+import { SecurityService } from "../../src/modules/security-master/security.service.js";
 
 function createTestApp(database: DatabaseHealthChecker) {
-  return createApp({ systemService: new SystemService(database) });
+  return createApp({
+    systemService: new SystemService(database),
+    securityService: new SecurityService({
+      findAll: async () => [],
+      findById: async () => null,
+    }),
+  });
 }
 
 describe("health endpoints", () => {

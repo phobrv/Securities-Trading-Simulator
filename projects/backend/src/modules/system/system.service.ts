@@ -27,7 +27,7 @@ export class SystemService {
       },
       modules: [
         { name: "System", status: "IMPLEMENTED" },
-        { name: "SecurityMaster", status: "PLANNED" },
+        { name: "SecurityMaster", status: "IMPLEMENTED" },
         { name: "MarketData", status: "PLANNED" },
         { name: "OMS", status: "PLANNED" },
       ],

@@ -3,11 +3,14 @@ import express, { type Express } from "express";
 
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
+import { createSecurityRouter } from "./modules/security-master/security.routes.js";
+import { SecurityService } from "./modules/security-master/security.service.js";
 import { SystemService } from "./modules/system/system.service.js";
 import { createSystemRouter } from "./modules/system/system.routes.js";
 
 export type AppDependencies = {
   systemService: SystemService;
+  securityService: SecurityService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -23,7 +26,10 @@ function isLocalDevelopmentOrigin(origin: string): boolean {
   }
 }
 
-export function createApp({ systemService }: AppDependencies): Express {
+export function createApp({
+  systemService,
+  securityService,
+}: AppDependencies): Express {
   const app = express();
 
   app.disable("x-powered-by");
@@ -41,6 +47,7 @@ export function createApp({ systemService }: AppDependencies): Express {
   );
   app.use(express.json());
   app.use(createSystemRouter(systemService));
+  app.use(createSecurityRouter(securityService));
   app.use(notFoundHandler);
   app.use(errorHandler);
 

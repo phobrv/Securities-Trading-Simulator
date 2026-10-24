@@ -1,10 +1,15 @@
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { createDatabase } from "./infrastructure/database.js";
+import { MySqlSecurityRepository } from "./modules/security-master/security.repository.js";
+import { SecurityService } from "./modules/security-master/security.service.js";
 import { SystemService } from "./modules/system/system.service.js";
 
 const database = createDatabase();
-const app = createApp({ systemService: new SystemService(database) });
+const app = createApp({
+  systemService: new SystemService(database),
+  securityService: new SecurityService(new MySqlSecurityRepository(database)),
+});
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);
 });
