@@ -4,12 +4,23 @@ import request from "supertest";
 import { createApp } from "../../src/app.js";
 import { SystemService } from "../../src/modules/system/system.service.js";
 import { SecurityService } from "../../src/modules/security-master/security.service.js";
+import { MarketDataService } from "../../src/modules/market-data/market-data.service.js";
 
 function createSecurityService(): SecurityService {
   return new SecurityService({
     findAll: async () => [],
     findById: async () => null,
   });
+}
+
+function createMarketDataService(
+  securityService: SecurityService,
+): MarketDataService {
+  return new MarketDataService(
+    securityService,
+    { getQuote: async () => null, saveAndPublish: async () => undefined },
+    "2026-10-24",
+  );
 }
 
 describe("system overview", () => {
@@ -19,9 +30,11 @@ describe("system overview", () => {
         throw new Error("This endpoint must not query MySQL.");
       }),
     };
+    const securityService = createSecurityService();
     const app = createApp({
       systemService: new SystemService(database),
-      securityService: createSecurityService(),
+      securityService,
+      marketDataService: createMarketDataService(securityService),
     });
 
     const response = await request(app).get("/api/system/overview");
@@ -33,7 +46,7 @@ describe("system overview", () => {
       mode: "SIMULATION",
       conventions: {
         currency: "VND",
-        priceUnit: "VND_PER_SHARE",
+        priceUnit: "VND_PER_UNIT",
         timestampFormat: "ISO_8601",
         displayTimeZone: "Asia/Ho_Chi_Minh",
       },
@@ -41,9 +54,11 @@ describe("system overview", () => {
   });
 
   it("allows a frontend running on another local development port", async () => {
+    const securityService = createSecurityService();
     const app = createApp({
       systemService: new SystemService({ ping: async () => undefined }),
-      securityService: createSecurityService(),
+      securityService,
+      marketDataService: createMarketDataService(securityService),
     });
 
     const response = await request(app)

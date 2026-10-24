@@ -5,14 +5,22 @@ import { createApp } from "../../src/app.js";
 import type { DatabaseHealthChecker } from "../../src/infrastructure/database.js";
 import { SystemService } from "../../src/modules/system/system.service.js";
 import { SecurityService } from "../../src/modules/security-master/security.service.js";
+import { MarketDataService } from "../../src/modules/market-data/market-data.service.js";
 
 function createTestApp(database: DatabaseHealthChecker) {
+  const securityService = new SecurityService({
+    findAll: async () => [],
+    findById: async () => null,
+  });
+
   return createApp({
     systemService: new SystemService(database),
-    securityService: new SecurityService({
-      findAll: async () => [],
-      findById: async () => null,
-    }),
+    securityService,
+    marketDataService: new MarketDataService(
+      securityService,
+      { getQuote: async () => null, saveAndPublish: async () => undefined },
+      "2026-10-24",
+    ),
   });
 }
 

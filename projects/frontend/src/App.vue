@@ -1,97 +1,59 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted } from "vue";
 
-type SystemOverview = {
-  name: string;
-  mode: string;
-  conventions: {
-    currency: string;
-    priceUnit: string;
-    timestampFormat: string;
-    displayTimeZone: string;
-  };
-};
+import ConnectionStatus from "@/components/ConnectionStatus.vue";
+import QuoteBoard from "@/components/QuoteBoard.vue";
+import { useMarketData } from "@/composables/useMarketData";
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
-const overview = ref<SystemOverview | null>(null);
-const connectionState = ref<"loading" | "connected" | "unavailable">("loading");
+const {
+  securities,
+  quotesById,
+  connectionState,
+  loading,
+  errorMessage,
+  start,
+  stop,
+} = useMarketData();
 
-onMounted(async () => {
-  try {
-    const response = await fetch(`${apiBaseUrl}/api/system/overview`);
-
-    if (!response.ok) {
-      throw new Error("System overview is unavailable.");
-    }
-
-    overview.value = (await response.json()) as SystemOverview;
-    connectionState.value = "connected";
-  } catch {
-    connectionState.value = "unavailable";
-  }
-});
+onMounted(() => void start());
+onUnmounted(stop);
 </script>
 
 <template>
   <main class="min-h-screen bg-slate-950 px-6 py-16 text-slate-100 sm:px-10">
-    <section class="mx-auto max-w-3xl">
+    <section class="mx-auto max-w-7xl">
       <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300">
-        DAY 01 · FOUNDATION
+        DAY 03 · MARKET DATA REALTIME
       </p>
       <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
         Securities Trading Simulator
       </h1>
       <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-        Nền móng cho ứng dụng mô phỏng giao dịch chứng khoán. Dữ liệu, quy tắc
-        và kết quả chỉ dùng cho mục đích học tập.
+        Bảng giá giả lập cập nhật qua WebSocket. Giá hiển thị theo đồng trên một
+        đơn vị chứng khoán và chỉ dùng cho mục đích học tập.
       </p>
 
-      <div
-        class="mt-10 rounded-2xl border border-slate-700 bg-slate-900/70 p-6 shadow-2xl"
-      >
+      <div class="mt-10">
         <div class="flex items-center justify-between gap-4">
-          <h2 class="text-lg font-semibold">Kết nối backend</h2>
-          <span
-            class="rounded-full px-3 py-1 text-xs font-bold"
-            :class="{
-              'bg-amber-400/15 text-amber-200': connectionState === 'loading',
-              'bg-emerald-400/15 text-emerald-200':
-                connectionState === 'connected',
-              'bg-rose-400/15 text-rose-200': connectionState === 'unavailable',
-            }"
-          >
-            {{ connectionState }}
-          </span>
+          <h2 class="text-lg font-semibold">Bảng giá mô phỏng</h2>
+          <ConnectionStatus :state="connectionState" />
         </div>
 
-        <dl v-if="overview" class="mt-6 grid gap-4 text-sm sm:grid-cols-2">
-          <div class="rounded-lg bg-slate-800 p-4">
-            <dt class="text-slate-400">Chế độ</dt>
-            <dd class="mt-1 font-medium text-white">{{ overview.mode }}</dd>
-          </div>
-          <div class="rounded-lg bg-slate-800 p-4">
-            <dt class="text-slate-400">Tiền tệ</dt>
-            <dd class="mt-1 font-medium text-white">
-              {{ overview.conventions.currency }}
-            </dd>
-          </div>
-          <div class="rounded-lg bg-slate-800 p-4">
-            <dt class="text-slate-400">Đơn vị giá</dt>
-            <dd class="mt-1 font-medium text-white">
-              {{ overview.conventions.priceUnit }}
-            </dd>
-          </div>
-          <div class="rounded-lg bg-slate-800 p-4">
-            <dt class="text-slate-400">Múi giờ hiển thị</dt>
-            <dd class="mt-1 font-medium text-white">
-              {{ overview.conventions.displayTimeZone }}
-            </dd>
-          </div>
-        </dl>
-
-        <p v-else class="mt-6 text-sm leading-6 text-slate-400">
-          Chạy backend tại {{ apiBaseUrl }} để hiển thị metadata của simulator.
+        <p v-if="loading" class="mt-6 text-sm text-slate-400">
+          Đang tải danh mục chứng khoán…
         </p>
+        <p
+          v-else-if="errorMessage"
+          class="mt-6 rounded-lg border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-100"
+        >
+          {{ errorMessage }}
+        </p>
+        <QuoteBoard
+          v-else
+          :securities="securities"
+          :quotes-by-id="quotesById"
+          class="mt-6"
+        />
       </div>
     </section>
   </main>

@@ -3,7 +3,7 @@ export type SystemOverview = {
   mode: "SIMULATION";
   conventions: {
     currency: "VND";
-    priceUnit: "VND_PER_SHARE";
+    priceUnit: "VND_PER_UNIT";
     timestampFormat: "ISO_8601";
     displayTimeZone: "Asia/Ho_Chi_Minh";
   };

@@ -21,14 +21,14 @@ export class SystemService {
       mode: "SIMULATION",
       conventions: {
         currency: "VND",
-        priceUnit: "VND_PER_SHARE",
+        priceUnit: "VND_PER_UNIT",
         timestampFormat: "ISO_8601",
         displayTimeZone: "Asia/Ho_Chi_Minh",
       },
       modules: [
         { name: "System", status: "IMPLEMENTED" },
         { name: "SecurityMaster", status: "IMPLEMENTED" },
-        { name: "MarketData", status: "PLANNED" },
+        { name: "MarketData", status: "IMPLEMENTED" },
         { name: "OMS", status: "PLANNED" },
       ],
     };

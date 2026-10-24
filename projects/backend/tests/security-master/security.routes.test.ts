@@ -3,6 +3,7 @@ import request from "supertest";
 
 import { createApp } from "../../src/app.js";
 import { SecurityService } from "../../src/modules/security-master/security.service.js";
+import { MarketDataService } from "../../src/modules/market-data/market-data.service.js";
 import { SystemService } from "../../src/modules/system/system.service.js";
 import type {
   SecurityDetails,
@@ -58,9 +59,16 @@ const securities: SecurityDetails[] = [
 ];
 
 function createTestApp(repository: SecurityRepository) {
+  const securityService = new SecurityService(repository);
+
   return createApp({
     systemService: new SystemService({ ping: async () => undefined }),
-    securityService: new SecurityService(repository),
+    securityService,
+    marketDataService: new MarketDataService(
+      securityService,
+      { getQuote: async () => null, saveAndPublish: async () => undefined },
+      "2026-10-24",
+    ),
   });
 }
 

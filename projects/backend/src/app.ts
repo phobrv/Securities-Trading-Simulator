@@ -5,12 +5,15 @@ import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { createSecurityRouter } from "./modules/security-master/security.routes.js";
 import { SecurityService } from "./modules/security-master/security.service.js";
+import { createMarketDataRouter } from "./modules/market-data/market-data.routes.js";
+import { MarketDataService } from "./modules/market-data/market-data.service.js";
 import { SystemService } from "./modules/system/system.service.js";
 import { createSystemRouter } from "./modules/system/system.routes.js";
 
 export type AppDependencies = {
   systemService: SystemService;
   securityService: SecurityService;
+  marketDataService: MarketDataService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -29,6 +32,7 @@ function isLocalDevelopmentOrigin(origin: string): boolean {
 export function createApp({
   systemService,
   securityService,
+  marketDataService,
 }: AppDependencies): Express {
   const app = express();
 
@@ -48,6 +52,7 @@ export function createApp({
   app.use(express.json());
   app.use(createSystemRouter(systemService));
   app.use(createSecurityRouter(securityService));
+  app.use(createMarketDataRouter(marketDataService));
   app.use(notFoundHandler);
   app.use(errorHandler);
 

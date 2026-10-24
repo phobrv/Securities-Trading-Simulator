@@ -1,10 +1,10 @@
-# Securities Trading Simulator — Ngày 2
+# Securities Trading Simulator — Ngày 3
 
 Nền móng của ứng dụng mô phỏng giao dịch chứng khoán. Dự án chỉ phục vụ mục đích học tập, không dùng cho giao dịch thực tế.
 
 ## Cấu trúc
 
-- `backend/`: Node.js, TypeScript, Express và MySQL.
+- `backend/`: Node.js, TypeScript, Express, MySQL, Redis và WebSocket.
 - `frontend/`: Vue 3, TypeScript, Vite và Tailwind CSS.
 
 ## Yêu cầu
@@ -12,6 +12,7 @@ Nền móng của ứng dụng mô phỏng giao dịch chứng khoán. Dự án 
 - Node.js 20 trở lên.
 - npm.
 - MySQL 8.0 trở lên, cài trực tiếp trên máy.
+- Redis 7 trở lên, cài trực tiếp trên máy.
 
 ## Khởi động MySQL
 
@@ -36,6 +37,19 @@ FLUSH PRIVILEGES;
 ```
 
 Nếu đã có user MySQL local riêng, dùng user đó trong `projects/backend/.env` thay vì tạo user `simulator`.
+
+## Khởi động Redis
+
+Redis lưu snapshot bảng giá mới nhất và phân phối cập nhật cho WebSocket. Với
+Homebrew trên macOS:
+
+```bash
+brew services start redis
+redis-cli ping
+```
+
+Lệnh cuối phải trả `PONG`. Khi chỉ cần chạy tạm trong terminal hiện tại, có thể
+dùng `redis-server` thay cho `brew services start redis`.
 
 ## Cài dependencies
 
@@ -71,7 +85,7 @@ npm install
 npm run dev
 ```
 
-Mẫu backend `.env` mặc định trỏ đến MySQL local tại `localhost:3306`, database `securities_simulator` và user `simulator`.
+Mẫu backend `.env` mặc định trỏ đến MySQL local tại `localhost:3306`, database `securities_simulator` và user `simulator`. Redis mặc định là `redis://localhost:6379`.
 
 ## Database và Security Master
 
@@ -119,7 +133,7 @@ Kết quả kỳ vọng: `STOCK = 3`, `BOND = 1`, `ETF = 1`; tổng `TRADABLE = 
 tiền tệ và trạng thái giao dịch. Giá khớp, cung/cầu thuộc Market Data; số lượng,
 giá vốn và P&L thuộc Portfolio theo từng tài khoản.
 
-## API ngày 1 và ngày 2
+## API ngày 1, ngày 2 và ngày 3
 
 ```bash
 curl -i http://localhost:3000/health/live
@@ -129,6 +143,7 @@ curl "http://localhost:3000/api/securities?type=STOCK"
 curl "http://localhost:3000/api/securities?status=TRADABLE"
 curl "http://localhost:3000/api/securities?marketCode=SIM_EQ_A&symbol=%20simaaa%20"
 curl -i http://localhost:3000/api/securities/sec-004
+curl "http://localhost:3000/api/market-data/quotes?securityIds=sec-001,sec-003"
 ```
 
 - `/health/live`: xác nhận HTTP process hoạt động.
@@ -148,6 +163,65 @@ chối nó để OMS dùng ở các ngày sau.
 
 `type=CRYPTO` trả `400` với code `INVALID_SECURITY_FILTER`; ID không tồn tại
 trả `404` với code `SECURITY_NOT_FOUND`.
+
+## Market Data realtime
+
+Backend có đúng một Price Simulator cho `sec-001 / SIMAAA / SIM_EQ_A`, độc lập
+với số tab trình duyệt. Tick đầu được phát khi backend sẵn sàng với Redis, sau
+đó cứ 2 giây có một tick. Ba tick đầu là `25.000 × 100`, `25.100 × 200` và
+`25.200 × 100`; sau tick thứ ba, `totalVolume = 400` và
+`totalValue = 10.040.000`.
+
+Snapshot được lưu trước tại key Redis:
+
+```text
+md:quote:<tradingDate>:sec-001
+```
+
+Sau đó backend publish snapshot đầy đủ lên channel `md:quotes`. Gateway gửi
+envelope sau đến client đã đăng ký đúng `securityId`:
+
+```json
+{
+  "type": "quote.snapshot",
+  "data": { "securityId": "sec-001" }
+}
+```
+
+`GET /api/market-data/quotes?securityIds=sec-001,sec-003` trả quote hiện có và
+`missingQuoteSecurityIds` cho chứng khoán tồn tại nhưng chưa có giá. ID không
+tồn tại trả `400 INVALID_SECURITY_IDS`; Redis không khả dụng trả
+`503 MARKET_DATA_UNAVAILABLE`.
+
+WebSocket chạy tại `ws://localhost:3000/ws/market-data`. Client gửi:
+
+```json
+{ "type": "subscribe", "securityIds": ["sec-001"] }
+```
+
+Frontend tự tải Security Master, đăng ký tất cả `securityId`, thay thế snapshot
+theo ID và tự reconnect sau khi mất kết nối. Các mã chưa được mô phỏng, gồm
+`sec-002` SUSPENDED và `sec-005` có cùng symbol `SIMAAA`, vẫn xuất hiện nhưng
+hiển thị `—`.
+
+Giá API được tính bằng VND trên một đơn vị chứng khoán (`VND_PER_UNIT`), không
+nhân hoặc chia thêm 1.000 khi hiển thị.
+
+### Đường đi của một tick
+
+1. Price Simulator tính snapshot mới và cập nhật tổng khối lượng/giá trị.
+2. `RedisQuoteStore` ghi JSON vào key snapshot.
+3. Sau khi ghi thành công, store publish JSON qua `md:quotes`.
+4. Redis subscriber của Gateway lọc theo subscription và gửi WebSocket.
+5. Vue thay thế quote tại `quotesById[securityId]`; bảng đổi giá mà không reload.
+
+### Giới hạn của Ngày 3
+
+- Không ghi tick hay lịch sử giá vào MySQL.
+- Chưa có delta, sequence, replay hoặc khôi phục khoảng trống dữ liệu.
+- Redis Pub/Sub không phát lại thông báo đã bỏ lỡ; reconnect nhận lại snapshot mới nhất.
+- Chưa có matching engine, sổ lệnh thật hoặc bảng giá trái phiếu.
+- Tick thị trường không tạo execution hay thay đổi tài sản tài khoản.
 
 ## Kiểm thử và build
 

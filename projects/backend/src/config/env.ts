@@ -23,6 +23,16 @@ function readPositiveInteger(
   return parsed;
 }
 
+function readTradingDate(value: string | undefined): string {
+  const tradingDate = value ?? new Date().toISOString().slice(0, 10);
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tradingDate)) {
+    throw new Error("MARKET_DATA_TRADING_DATE phải có định dạng YYYY-MM-DD.");
+  }
+
+  return tradingDate;
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: readPort(process.env.PORT, 3000),
@@ -39,6 +49,14 @@ export const env = {
     connectTimeoutMs: readPositiveInteger(
       process.env.DB_CONNECT_TIMEOUT_MS,
       3000,
+    ),
+  },
+  marketData: {
+    redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
+    tradingDate: readTradingDate(process.env.MARKET_DATA_TRADING_DATE),
+    tickIntervalMs: readPositiveInteger(
+      process.env.MARKET_DATA_TICK_INTERVAL_MS,
+      2000,
     ),
   },
 };
