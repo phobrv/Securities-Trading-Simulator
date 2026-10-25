@@ -10,6 +10,7 @@ import type {
 } from "../../src/modules/market-data/market-data.types.js";
 import { SecurityService } from "../../src/modules/security-master/security.service.js";
 import type { SecurityRepository } from "../../src/modules/security-master/security.types.js";
+import { createMarketSessionDependencies } from "../test-support/market-session.js";
 
 const quote: QuoteSnapshot = {
   securityId: "sec-001",
@@ -43,6 +44,7 @@ function createTestApp(quoteStore: QuoteStore) {
       quoteStore,
       "2026-10-24",
     ),
+    ...createMarketSessionDependencies(securityService),
   });
 }
 

@@ -33,6 +33,78 @@ function readTradingDate(value: string | undefined): string {
   return tradingDate;
 }
 
+function readSimClock(): {
+  mode: "SYSTEM" | "FIXED";
+  fixedInstant: Date | null;
+} {
+  const mode = process.env.SIM_CLOCK_MODE ?? "SYSTEM";
+  if (mode !== "SYSTEM" && mode !== "FIXED") {
+    throw new Error("SIM_CLOCK_MODE phải là SYSTEM hoặc FIXED.");
+  }
+  if (mode === "SYSTEM") {
+    return { mode, fixedInstant: null };
+  }
+
+  const value = process.env.SIM_NOW;
+  const instant = value ? parseIsoInstant(value) : null;
+  if (!instant || Number.isNaN(instant.getTime())) {
+    throw new Error(
+      "SIM_NOW phải là một ISO 8601 instant hợp lệ, ví dụ 2026-10-20T09:10:00+07:00.",
+    );
+  }
+
+  return { mode, fixedInstant: instant };
+}
+
+function parseIsoInstant(value: string): Date | null {
+  const match =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,3})?(?:Z|[+-](\d{2}):(\d{2}))$/.exec(
+      value,
+    );
+  if (!match) {
+    return null;
+  }
+
+  const [
+    ,
+    yearText,
+    monthText,
+    dayText,
+    hourText,
+    minuteText,
+    secondText,
+    offsetHourText,
+    offsetMinuteText,
+  ] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const second = Number(secondText);
+  const offsetHour = offsetHourText === undefined ? 0 : Number(offsetHourText);
+  const offsetMinute =
+    offsetMinuteText === undefined ? 0 : Number(offsetMinuteText);
+  const calendarDate = new Date(Date.UTC(year, month - 1, day));
+  const hasValidDate =
+    calendarDate.getUTCFullYear() === year &&
+    calendarDate.getUTCMonth() === month - 1 &&
+    calendarDate.getUTCDate() === day;
+  if (
+    !hasValidDate ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59 ||
+    offsetHour > 23 ||
+    offsetMinute > 59
+  ) {
+    return null;
+  }
+
+  const instant = new Date(value);
+  return Number.isNaN(instant.getTime()) ? null : instant;
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   port: readPort(process.env.PORT, 3000),
@@ -59,4 +131,5 @@ export const env = {
       2000,
     ),
   },
+  simClock: readSimClock(),
 };

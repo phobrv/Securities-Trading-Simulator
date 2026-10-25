@@ -1,4 +1,4 @@
-# Securities Trading Simulator — Ngày 3
+# Securities Trading Simulator — Ngày 4
 
 Nền móng của ứng dụng mô phỏng giao dịch chứng khoán. Dự án chỉ phục vụ mục đích học tập, không dùng cho giao dịch thực tế.
 
@@ -87,6 +87,26 @@ npm run dev
 
 Mẫu backend `.env` mặc định trỏ đến MySQL local tại `localhost:3306`, database `securities_simulator` và user `simulator`. Redis mặc định là `redis://localhost:6379`.
 
+## Đồng hồ giả lập
+
+Market Session dùng một Clock riêng thay vì đọc thời gian ở nhiều nơi. Mặc định
+backend dùng giờ hệ thống:
+
+```dotenv
+SIM_CLOCK_MODE=SYSTEM
+```
+
+Để học và kiểm tra ranh giới phiên mà không phải chờ đến giờ thật, cấu hình
+Clock cố định rồi khởi động lại backend:
+
+```dotenv
+SIM_CLOCK_MODE=FIXED
+SIM_NOW=2026-10-20T09:10:00+07:00
+```
+
+`SIM_NOW` phải là ISO 8601 có timezone (ví dụ hậu tố `Z` hoặc `+07:00`). Cấu
+hình Clock không hợp lệ làm backend báo lỗi rõ ràng ngay khi khởi động.
+
 ## Database và Security Master
 
 MySQL server được kiểm tra cho môi trường học tập này là phiên bản `8.0.45`.
@@ -133,7 +153,7 @@ Kết quả kỳ vọng: `STOCK = 3`, `BOND = 1`, `ETF = 1`; tổng `TRADABLE = 
 tiền tệ và trạng thái giao dịch. Giá khớp, cung/cầu thuộc Market Data; số lượng,
 giá vốn và P&L thuộc Portfolio theo từng tài khoản.
 
-## API ngày 1, ngày 2 và ngày 3
+## API ngày 1 đến ngày 4
 
 ```bash
 curl -i http://localhost:3000/health/live
@@ -144,6 +164,10 @@ curl "http://localhost:3000/api/securities?status=TRADABLE"
 curl "http://localhost:3000/api/securities?marketCode=SIM_EQ_A&symbol=%20simaaa%20"
 curl -i http://localhost:3000/api/securities/sec-004
 curl "http://localhost:3000/api/market-data/quotes?securityIds=sec-001,sec-003"
+curl "http://localhost:3000/api/markets/SIM_EQ_A/session"
+curl -X POST http://localhost:3000/api/order-validations/session \
+  -H "Content-Type: application/json" \
+  -d '{"securityId":"sec-001","side":"BUY","orderType":"ATO","quantity":100}'
 ```
 
 - `/health/live`: xác nhận HTTP process hoạt động.
@@ -163,6 +187,46 @@ chối nó để OMS dùng ở các ngày sau.
 
 `type=CRYPTO` trả `400` với code `INVALID_SECURITY_FILTER`; ID không tồn tại
 trả `404` với code `SECURITY_NOT_FOUND`.
+
+## Market Session và kiểm tra thử lệnh
+
+Ngày 4 chỉ cấu hình lịch cho `SIM_EQ_A`, dùng timezone
+`Asia/Ho_Chi_Minh`. Ngày làm việc là thứ Hai đến thứ Sáu; `2026-10-21` là ngày
+nghỉ giả lập. Các thị trường `SIM_EQ_B`, `SIM_FUND` và `SIM_BOND` không dùng
+nhầm lịch này: chúng trả `422 MARKET_SESSION_NOT_CONFIGURED`.
+
+| Khoảng giờ địa phương | Phiên             | Loại lệnh được nhận |
+| --------------------- | ----------------- | ------------------- |
+| Trước 09:00           | `PRE_OPEN`        | Không nhận          |
+| 09:00–09:15           | `OPENING_AUCTION` | LO, ATO             |
+| 09:15–11:30           | `CONTINUOUS`      | LO                  |
+| 11:30–13:00           | `BREAK`           | Không nhận          |
+| 13:00–14:30           | `CONTINUOUS`      | LO                  |
+| 14:30–14:45           | `CLOSING_AUCTION` | LO, ATC             |
+| Từ 14:45              | `CLOSED`          | Không nhận          |
+
+Mọi khoảng dùng quy tắc **đầu gồm, cuối không gồm**. Vì vậy ATO lúc
+`09:14:59.999+07:00` hợp lệ, còn đúng `09:15:00+07:00` bị từ chối với
+`ORDER_TYPE_NOT_ALLOWED_IN_SESSION`; LO tại thời điểm đó hợp lệ.
+
+`GET /api/markets/:marketCode/session` trả phiên, các loại lệnh được nhận,
+instant đã đánh giá, thời điểm kết thúc phiên và chế độ Clock. Frontend tự làm
+mới trạng thái `SIM_EQ_A` mỗi 5 giây, đồng thời vẫn hiển thị trạng thái kết nối
+WebSocket riêng.
+
+`POST /api/order-validations/session` chỉ kiểm tra Security Master, ngày/phiên
+và loại lệnh. API lấy `marketCode` từ chứng khoán, không tin dữ liệu client.
+Request đúng cấu trúc luôn trả `200`: `valid: false` là kết quả kiểm tra từ
+chối, không phải lỗi HTTP. Các reason code là:
+
+- `SECURITY_NOT_TRADABLE`
+- `NON_TRADING_DAY`
+- `SESSION_NOT_ACCEPTING_ORDERS`
+- `ORDER_TYPE_NOT_ALLOWED_IN_SESSION`
+
+Request không đúng cấu trúc trả `400`; LO phải có `price` nguyên dương,
+ATO/ATC không được gửi `price`; `quantity` phải là số nguyên dương. Chứng
+khoán không tồn tại trả `404 SECURITY_NOT_FOUND`.
 
 ## Market Data realtime
 
@@ -222,6 +286,13 @@ nhân hoặc chia thêm 1.000 khi hiển thị.
 - Redis Pub/Sub không phát lại thông báo đã bỏ lỡ; reconnect nhận lại snapshot mới nhất.
 - Chưa có matching engine, sổ lệnh thật hoặc bảng giá trái phiếu.
 - Tick thị trường không tạo execution hay thay đổi tài sản tài khoản.
+
+### Giới hạn của Ngày 4
+
+- Kiểm tra thử không tạo order, không giữ tiền/chứng khoán và không tạo khớp lệnh.
+- Chưa kiểm tra tài khoản, lô, bước giá, biên độ giá hoặc tài sản khả dụng.
+- Price Simulator của Ngày 3 chưa bị dừng theo phiên; đây là phần mở rộng cho
+  bài tích hợp tiếp theo.
 
 ## Kiểm thử và build
 

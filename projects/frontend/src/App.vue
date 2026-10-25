@@ -2,8 +2,10 @@
 import { onMounted, onUnmounted } from "vue";
 
 import ConnectionStatus from "@/components/ConnectionStatus.vue";
+import MarketSessionPanel from "@/components/MarketSessionPanel.vue";
 import QuoteBoard from "@/components/QuoteBoard.vue";
 import { useMarketData } from "@/composables/useMarketData";
+import { useMarketSession } from "@/composables/useMarketSession";
 
 const {
   securities,
@@ -14,9 +16,22 @@ const {
   start,
   stop,
 } = useMarketData();
+const {
+  session,
+  loading: sessionLoading,
+  errorMessage: sessionErrorMessage,
+  start: startSession,
+  stop: stopSession,
+} = useMarketSession("SIM_EQ_A");
 
-onMounted(() => void start());
-onUnmounted(stop);
+onMounted(() => {
+  void start();
+  void startSession();
+});
+onUnmounted(() => {
+  stop();
+  stopSession();
+});
 </script>
 
 <template>
@@ -34,6 +49,12 @@ onUnmounted(stop);
       </p>
 
       <div class="mt-10">
+        <MarketSessionPanel
+          :session="session"
+          :loading="sessionLoading"
+          :error-message="sessionErrorMessage"
+          class="mb-10"
+        />
         <div class="flex items-center justify-between gap-4">
           <h2 class="text-lg font-semibold">Bảng giá mô phỏng</h2>
           <ConnectionStatus :state="connectionState" />

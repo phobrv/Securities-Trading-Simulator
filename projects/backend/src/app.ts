@@ -7,6 +7,9 @@ import { createSecurityRouter } from "./modules/security-master/security.routes.
 import { SecurityService } from "./modules/security-master/security.service.js";
 import { createMarketDataRouter } from "./modules/market-data/market-data.routes.js";
 import { MarketDataService } from "./modules/market-data/market-data.service.js";
+import { createMarketSessionRouter } from "./modules/market-session/market-session.routes.js";
+import { MarketSessionService } from "./modules/market-session/market-session.service.js";
+import { OrderSessionValidator } from "./modules/market-session/order-session-validator.js";
 import { SystemService } from "./modules/system/system.service.js";
 import { createSystemRouter } from "./modules/system/system.routes.js";
 
@@ -14,6 +17,8 @@ export type AppDependencies = {
   systemService: SystemService;
   securityService: SecurityService;
   marketDataService: MarketDataService;
+  marketSessionService: MarketSessionService;
+  orderSessionValidator: OrderSessionValidator;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -33,6 +38,8 @@ export function createApp({
   systemService,
   securityService,
   marketDataService,
+  marketSessionService,
+  orderSessionValidator,
 }: AppDependencies): Express {
   const app = express();
 
@@ -53,6 +60,9 @@ export function createApp({
   app.use(createSystemRouter(systemService));
   app.use(createSecurityRouter(securityService));
   app.use(createMarketDataRouter(marketDataService));
+  app.use(
+    createMarketSessionRouter(marketSessionService, orderSessionValidator),
+  );
   app.use(notFoundHandler);
   app.use(errorHandler);
 

@@ -9,6 +9,7 @@ import type {
   SecurityDetails,
   SecurityRepository,
 } from "../../src/modules/security-master/security.types.js";
+import { createMarketSessionDependencies } from "../test-support/market-session.js";
 
 const securities: SecurityDetails[] = [
   {
@@ -69,6 +70,7 @@ function createTestApp(repository: SecurityRepository) {
       { getQuote: async () => null, saveAndPublish: async () => undefined },
       "2026-10-24",
     ),
+    ...createMarketSessionDependencies(securityService),
   });
 }
 

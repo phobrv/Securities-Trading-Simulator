@@ -5,6 +5,7 @@ import { createApp } from "../../src/app.js";
 import { SystemService } from "../../src/modules/system/system.service.js";
 import { SecurityService } from "../../src/modules/security-master/security.service.js";
 import { MarketDataService } from "../../src/modules/market-data/market-data.service.js";
+import { createMarketSessionDependencies } from "../test-support/market-session.js";
 
 function createSecurityService(): SecurityService {
   return new SecurityService({
@@ -35,6 +36,7 @@ describe("system overview", () => {
       systemService: new SystemService(database),
       securityService,
       marketDataService: createMarketDataService(securityService),
+      ...createMarketSessionDependencies(securityService),
     });
 
     const response = await request(app).get("/api/system/overview");
@@ -59,6 +61,7 @@ describe("system overview", () => {
       systemService: new SystemService({ ping: async () => undefined }),
       securityService,
       marketDataService: createMarketDataService(securityService),
+      ...createMarketSessionDependencies(securityService),
     });
 
     const response = await request(app)

@@ -1,17 +1,36 @@
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { createDatabase } from "./infrastructure/database.js";
+import { FixedClock } from "./shared/clock/fixed-clock.js";
+import { SystemClock } from "./shared/clock/system-clock.js";
 import { MySqlSecurityRepository } from "./modules/security-master/security.repository.js";
 import { SecurityService } from "./modules/security-master/security.service.js";
 import { MarketDataGateway } from "./modules/market-data/market-data.gateway.js";
 import { MarketDataService } from "./modules/market-data/market-data.service.js";
 import { PriceSimulator } from "./modules/market-data/price-simulator.js";
 import { RedisQuoteStore } from "./modules/market-data/redis-quote-store.js";
+import { marketSessionConfigs } from "./modules/market-session/market-session.config.js";
+import { MarketSessionService } from "./modules/market-session/market-session.service.js";
+import { OrderSessionValidator } from "./modules/market-session/order-session-validator.js";
 import { SystemService } from "./modules/system/system.service.js";
 
 const database = createDatabase();
 const securityService = new SecurityService(
   new MySqlSecurityRepository(database),
+);
+const clock =
+  env.simClock.mode === "FIXED"
+    ? new FixedClock(env.simClock.fixedInstant!)
+    : new SystemClock();
+const marketSessionService = new MarketSessionService(
+  marketSessionConfigs,
+  clock,
+  env.simClock.mode,
+);
+const orderSessionValidator = new OrderSessionValidator(
+  securityService,
+  marketSessionService,
+  clock,
 );
 const quoteStore = new RedisQuoteStore(env.marketData.redisUrl);
 const marketDataService = new MarketDataService(
@@ -29,6 +48,8 @@ const app = createApp({
   systemService: new SystemService(database),
   securityService,
   marketDataService,
+  marketSessionService,
+  orderSessionValidator,
 });
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);

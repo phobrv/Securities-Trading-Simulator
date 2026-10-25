@@ -6,6 +6,7 @@ import type { DatabaseHealthChecker } from "../../src/infrastructure/database.js
 import { SystemService } from "../../src/modules/system/system.service.js";
 import { SecurityService } from "../../src/modules/security-master/security.service.js";
 import { MarketDataService } from "../../src/modules/market-data/market-data.service.js";
+import { createMarketSessionDependencies } from "../test-support/market-session.js";
 
 function createTestApp(database: DatabaseHealthChecker) {
   const securityService = new SecurityService({
@@ -21,6 +22,7 @@ function createTestApp(database: DatabaseHealthChecker) {
       { getQuote: async () => null, saveAndPublish: async () => undefined },
       "2026-10-24",
     ),
+    ...createMarketSessionDependencies(securityService),
   });
 }
 
