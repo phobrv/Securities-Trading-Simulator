@@ -17,6 +17,7 @@
 | [Ngày 4](./docs/ngay-04-market-session.md) | Market Session và kiểm tra phiên lệnh |
 | [Ngày 5](./docs/ngay-05-matching-simulator.md) | Sổ lệnh và Matching Simulator trong bộ nhớ |
 | [Ngày 6](./docs/ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Accounts, tiền và chứng khoán khả dụng |
+| [Ngày 7](./docs/ngay-07-demo-tuan-1.md) | Demo tuần 1: bảng giá và matching simulator |
 
 Xem [chỉ mục tài liệu](./docs/README.md) để biết quy ước cập nhật cho các ngày tiếp theo.
 
@@ -58,11 +59,40 @@ npm install
 cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 
-npm run migration:run
+npm run migration:run --prefix backend
 npm run dev
 ```
 
 Backend chạy tại `http://localhost:3000`; frontend chạy tại `http://localhost:5173`. Mẫu backend `.env` dùng MySQL `localhost:3306`, database `securities_simulator`, user `simulator` và Redis `redis://localhost:6379`.
+
+## Demo tuần 1
+
+Demo dùng thời gian cố định để phiên `CONTINUOUS` và ngày snapshot Redis nhất quán. Trong `backend/.env`, đặt:
+
+```dotenv
+SIM_CLOCK_MODE=FIXED
+SIM_NOW=2026-10-20T10:00:00+07:00
+MARKET_DATA_TRADING_DATE=2026-10-20
+```
+
+Sau migration, khởi động MySQL, Redis và backend. Mỗi lần backend khởi động, simulator trong bộ nhớ và snapshot Redis riêng của `sec-001` trong ngày demo được khởi tạo lại; không xóa dữ liệu MySQL hay các key Redis khác.
+
+Ở terminal khác, chạy kịch bản chuẩn một lần:
+
+```bash
+cd projects/backend
+npm run demo:week-one
+```
+
+Script dừng nếu sổ/executions không rỗng để tránh chạy chồng fixture. Kết quả mong đợi là hai execution `40 @ 24.900` và `60 @ 25.000`; quote có `totalVolume=100`, `totalValue=2496000`, `lastQuantity=60` và best ask `25.000 × 40`.
+
+Dashboard chỉ đọc REST/WebSocket nên reload hay mở tab mới không phát lệnh. Nó hiển thị rõ dữ liệu mô phỏng; số dư tài khoản fixture chưa được cập nhật từ matching.
+
+### Giới hạn demo
+
+- Sổ lệnh và executions chỉ ở bộ nhớ, mất khi backend khởi động lại.
+- Chưa giữ tài sản khi đặt lệnh, chưa settlement và chưa cập nhật số dư từ execution.
+- Chưa có outbox, replay hoặc cơ chế khôi phục khi matching đã xử lý nhưng Redis không ghi được snapshot.
 
 Chạy riêng từng ứng dụng:
 

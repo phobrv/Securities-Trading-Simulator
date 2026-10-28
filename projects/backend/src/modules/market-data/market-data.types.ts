@@ -12,7 +12,7 @@ export type QuoteSnapshot = {
   ceilingPrice: number;
   floorPrice: number;
   lastPrice: number | null;
-  lastQuantity: number;
+  lastQuantity: number | null;
   totalVolume: number;
   totalValue: number;
   openPrice: number | null;

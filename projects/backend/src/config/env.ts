@@ -126,10 +126,6 @@ export const env = {
   marketData: {
     redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
     tradingDate: readTradingDate(process.env.MARKET_DATA_TRADING_DATE),
-    tickIntervalMs: readPositiveInteger(
-      process.env.MARKET_DATA_TICK_INTERVAL_MS,
-      2000,
-    ),
   },
   simClock: readSimClock(),
 };

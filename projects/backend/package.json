@@ -10,6 +10,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc --noEmit",
     "start": "tsx src/server.ts",
+    "demo:week-one": "tsx scripts/run-week-one-demo.ts",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "migration:run": "tsx ./node_modules/typeorm/cli.js migration:run -d src/infrastructure/typeorm-data-source.ts",
     "migration:revert": "tsx ./node_modules/typeorm/cli.js migration:revert -d src/infrastructure/typeorm-data-source.ts",

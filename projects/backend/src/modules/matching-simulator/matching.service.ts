@@ -3,6 +3,7 @@ import type { Clock } from "../../shared/clock/clock.js";
 import type { MarketSessionService } from "../market-session/market-session.service.js";
 import type { SecurityService } from "../security-master/security.service.js";
 import { MatchingEngine } from "./matching-engine.js";
+import type { MatchingMarketDataUpdater } from "./matching-market-data.port.js";
 import type {
   Execution,
   OrderBookSnapshot,
@@ -27,9 +28,18 @@ export class MatchingService {
     private readonly securityService: SecurityService,
     private readonly marketSessionService: MarketSessionService,
     private readonly clock: Clock,
+    private readonly marketDataUpdater?: MatchingMarketDataUpdater,
   ) {}
 
+  private submissionQueue: Promise<void> = Promise.resolve();
+
   public async submitOrder(
+    request: SubmitSimulatorOrderRequest,
+  ): Promise<SubmitOrderResult> {
+    return this.runExclusively(() => this.submitOrderAndUpdateMarketData(request));
+  }
+
+  private async submitOrderAndUpdateMarketData(
     request: SubmitSimulatorOrderRequest,
   ): Promise<SubmitOrderResult> {
     const acceptedAt = this.clock.now();
@@ -46,10 +56,35 @@ export class MatchingService {
       throw new DuplicateClientOrderIdError();
     }
 
-    return this.matchingEngine.submitOrder({
+    const result = this.matchingEngine.submitOrder({
       ...request,
       acceptedAt: acceptedAt.toISOString(),
     });
+    if (this.marketDataUpdater) {
+      await this.marketDataUpdater.applyMatchingUpdate({
+        securityId: request.securityId,
+        executions: result.executions,
+        orderBook: this.matchingEngine.getOrderBook(request.securityId),
+        updatedAt: acceptedAt.toISOString(),
+      });
+    }
+
+    return result;
+  }
+
+  private async runExclusively<T>(operation: () => Promise<T>): Promise<T> {
+    const previous = this.submissionQueue;
+    let release: () => void = () => undefined;
+    this.submissionQueue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
   }
 
   public async getOrderBook(securityId: string): Promise<OrderBookSnapshot> {

@@ -7,9 +7,12 @@ import ConnectionStatus from "@/components/ConnectionStatus.vue";
 import MarketSessionPanel from "@/components/MarketSessionPanel.vue";
 import PositionsPanel from "@/components/PositionsPanel.vue";
 import QuoteBoard from "@/components/QuoteBoard.vue";
+import SimulatorExecutionsPanel from "@/components/SimulatorExecutionsPanel.vue";
+import SimulatorOrderBookPanel from "@/components/SimulatorOrderBookPanel.vue";
 import { useAccountOverview } from "@/composables/useAccountOverview";
 import { useMarketData } from "@/composables/useMarketData";
 import { useMarketSession } from "@/composables/useMarketSession";
+import { useSimulatorOverview } from "@/composables/useSimulatorOverview";
 import type { AvailabilityCheckRequest } from "@/types/account";
 
 const {
@@ -40,6 +43,14 @@ const {
   load: loadAccount,
   preview,
 } = useAccountOverview();
+const {
+  orderBook: simulatorOrderBook,
+  executions: simulatorExecutions,
+  loading: simulatorLoading,
+  errorMessage: simulatorErrorMessage,
+  start: startSimulator,
+  stop: stopSimulator,
+} = useSimulatorOverview("sec-001");
 
 const accountOptions = [
   { id: "acc-001", label: "Tài khoản mô phỏng A" },
@@ -58,10 +69,12 @@ onMounted(() => {
   void start();
   void startSession();
   void loadAccount(selectedAccountId.value);
+  startSimulator();
 });
 onUnmounted(() => {
   stop();
   stopSession();
+  stopSimulator();
 });
 </script>
 
@@ -69,15 +82,17 @@ onUnmounted(() => {
   <main class="min-h-screen bg-slate-950 px-6 py-16 text-slate-100 sm:px-10">
     <section class="mx-auto max-w-7xl">
       <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300">
-        DAY 06 · TÀI KHOẢN VÀ TÀI SẢN KHẢ DỤNG
+        DAY 07 · SẢN PHẨM TUẦN 1
       </p>
       <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
         Securities Trading Simulator
       </h1>
-      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-        Dữ liệu mô phỏng kết hợp bảng giá, trạng thái phiên và tài sản khả dụng.
-        Số dư tài khoản chưa cập nhật theo Matching Simulator.
-      </p>
+        <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+          Dữ liệu mô phỏng kết hợp bảng giá, trạng thái phiên và tài sản khả dụng.
+        </p>
+        <p class="mt-3 text-sm font-medium text-amber-200">
+          Dữ liệu mô phỏng. Số dư tài khoản chưa cập nhật theo matching.
+        </p>
 
       <div class="mt-10">
         <MarketSessionPanel
@@ -138,6 +153,18 @@ onUnmounted(() => {
           :quotes-by-id="quotesById"
           class="mt-6"
         />
+        <div class="mt-10 grid gap-5 xl:grid-cols-2">
+          <SimulatorOrderBookPanel
+            :order-book="simulatorOrderBook"
+            :loading="simulatorLoading"
+            :error-message="simulatorErrorMessage"
+          />
+          <SimulatorExecutionsPanel
+            :executions="simulatorExecutions"
+            :loading="simulatorLoading"
+            :error-message="simulatorErrorMessage"
+          />
+        </div>
       </div>
     </section>
   </main>

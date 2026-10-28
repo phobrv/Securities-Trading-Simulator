@@ -9,6 +9,11 @@ import type {
   QuoteSnapshot,
   QuoteStore,
 } from "./market-data.types.js";
+import type { MatchingMarketDataUpdate } from "../matching-simulator/matching-market-data.port.js";
+
+const SIMULATOR_REFERENCE_PRICE = 25_000;
+const SIMULATOR_CEILING_PRICE = 27_000;
+const SIMULATOR_FLOOR_PRICE = 23_000;
 
 export class MarketDataService {
   public constructor(
@@ -37,6 +42,30 @@ export class MarketDataService {
     }
   }
 
+  public async initializeSimulatorQuote(
+    securityId: string,
+    updatedAt: string,
+  ): Promise<void> {
+    await this.quoteStore.saveAndPublish(
+      createSimulatorQuote(this.tradingDate, securityId, updatedAt),
+    );
+  }
+
+  public async applyMatchingUpdate(
+    update: MatchingMarketDataUpdate,
+  ): Promise<void> {
+    const previous = await this.quoteStore.getQuote(
+      this.tradingDate,
+      update.securityId,
+    );
+    if (!previous) {
+      throw new MarketDataUnavailableError();
+    }
+
+    const next = applyMatchingUpdate(previous, update);
+    await this.quoteStore.saveAndPublish(next);
+  }
+
   private async assertSecurityIdsExist(securityIds: string[]): Promise<void> {
     try {
       await Promise.all(
@@ -52,6 +81,76 @@ export class MarketDataService {
       throw error;
     }
   }
+}
+
+export function createSimulatorQuote(
+  tradingDate: string,
+  securityId: string,
+  updatedAt: string,
+): QuoteSnapshot {
+  return {
+    securityId,
+    tradingDate,
+    currency: "VND",
+    priceUnit: "VND_PER_UNIT",
+    referencePrice: SIMULATOR_REFERENCE_PRICE,
+    ceilingPrice: SIMULATOR_CEILING_PRICE,
+    floorPrice: SIMULATOR_FLOOR_PRICE,
+    lastPrice: null,
+    lastQuantity: null,
+    totalVolume: 0,
+    totalValue: 0,
+    openPrice: null,
+    highPrice: null,
+    lowPrice: null,
+    bestBid: null,
+    bestAsk: null,
+    updatedAt,
+    source: "SIMULATOR",
+  };
+}
+
+function applyMatchingUpdate(
+  previous: QuoteSnapshot,
+  update: MatchingMarketDataUpdate,
+): QuoteSnapshot {
+  let next: QuoteSnapshot = {
+    ...previous,
+    bestBid: update.orderBook.bids[0]
+      ? {
+          price: update.orderBook.bids[0].price,
+          quantity: update.orderBook.bids[0].quantity,
+        }
+      : null,
+    bestAsk: update.orderBook.asks[0]
+      ? {
+          price: update.orderBook.asks[0].price,
+          quantity: update.orderBook.asks[0].quantity,
+        }
+      : null,
+    updatedAt: update.updatedAt,
+  };
+
+  for (const execution of update.executions) {
+    next = {
+      ...next,
+      lastPrice: execution.price,
+      lastQuantity: execution.quantity,
+      totalVolume: next.totalVolume + execution.quantity,
+      totalValue: next.totalValue + execution.price * execution.quantity,
+      openPrice: next.openPrice ?? execution.price,
+      highPrice:
+        next.highPrice === null
+          ? execution.price
+          : Math.max(next.highPrice, execution.price),
+      lowPrice:
+        next.lowPrice === null
+          ? execution.price
+          : Math.min(next.lowPrice, execution.price),
+    };
+  }
+
+  return next;
 }
 
 function splitQuotesByAvailability(

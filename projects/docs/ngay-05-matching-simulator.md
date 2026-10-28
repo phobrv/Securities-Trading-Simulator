@@ -53,4 +53,4 @@ curl "http://localhost:3000/api/simulator/executions?securityId=sec-001"
 
 ## Giới hạn
 
-Matching chưa tích hợp Market Data: Price Simulator vẫn tự tạo tick; execution/bid/ask chưa cập nhật Redis hoặc WebSocket. Matching cũng chưa là OMS, chưa giữ tài sản, chưa cập nhật số dư hay position sau execution. Kiểm tra availability nằm ở API Accounts riêng của Ngày 6 và chưa được gọi khi nhận lệnh.
+Tại thời điểm ngày 5, Matching chưa tích hợp Market Data. Từ [ngày 7](./ngay-07-demo-tuan-1.md), execution và bid/ask đã cập nhật Redis/WebSocket, và Price Simulator không còn được khởi chạy cho `sec-001`. Matching vẫn chưa là OMS, chưa giữ tài sản, chưa cập nhật số dư hay position sau execution. Kiểm tra availability nằm ở API Accounts riêng của ngày 6 và chưa được gọi khi nhận lệnh.

@@ -7,7 +7,6 @@ import { MySqlSecurityRepository } from "./modules/security-master/security.repo
 import { SecurityService } from "./modules/security-master/security.service.js";
 import { MarketDataGateway } from "./modules/market-data/market-data.gateway.js";
 import { MarketDataService } from "./modules/market-data/market-data.service.js";
-import { PriceSimulator } from "./modules/market-data/price-simulator.js";
 import { RedisQuoteStore } from "./modules/market-data/redis-quote-store.js";
 import { marketSessionConfigs } from "./modules/market-session/market-session.config.js";
 import { MarketSessionService } from "./modules/market-session/market-session.service.js";
@@ -40,24 +39,20 @@ const orderSessionValidator = new OrderSessionValidator(
   marketSessionService,
   clock,
 );
-const matchingService = new MatchingService(
-  new MatchingEngine(),
-  securityService,
-  marketSessionService,
-  clock,
-);
 const quoteStore = new RedisQuoteStore(env.marketData.redisUrl);
 const marketDataService = new MarketDataService(
   securityService,
   quoteStore,
   env.marketData.tradingDate,
 );
-const marketDataGateway = new MarketDataGateway(marketDataService);
-const priceSimulator = new PriceSimulator(
-  quoteStore,
-  env.marketData.tradingDate,
-  env.marketData.tickIntervalMs,
+const matchingService = new MatchingService(
+  new MatchingEngine(),
+  securityService,
+  marketSessionService,
+  clock,
+  marketDataService,
 );
+const marketDataGateway = new MarketDataGateway(marketDataService);
 const app = createApp({
   systemService: new SystemService(database),
   securityService,
@@ -83,7 +78,6 @@ async function shutdown(signal: string): Promise<void> {
 
   isShuttingDown = true;
   console.info(`Đã nhận ${signal}; đang đóng backend.`);
-  priceSimulator.stop();
   marketDataGateway.close();
 
   server.close(async () => {
@@ -99,7 +93,10 @@ process.once("SIGTERM", () => void shutdown("SIGTERM"));
 async function startMarketData(): Promise<void> {
   try {
     await quoteStore.start((quote) => marketDataGateway.broadcast(quote));
-    priceSimulator.start();
+    await marketDataService.initializeSimulatorQuote(
+      "sec-001",
+      clock.now().toISOString(),
+    );
   } catch (error) {
     console.error("Không thể khởi động Redis cho Market Data.", error);
   }

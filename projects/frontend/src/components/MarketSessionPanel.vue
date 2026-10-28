@@ -49,6 +49,10 @@ const sessionLabel = computed(() =>
         </dd>
       </div>
       <div>
+        <dt class="text-slate-400">Ngày phiên</dt>
+        <dd class="mt-1 font-medium text-slate-100">{{ session.tradingDate }}</dd>
+      </div>
+      <div>
         <dt class="text-slate-400">Phiên</dt>
         <dd class="mt-1 font-medium text-cyan-200">{{ sessionLabel }}</dd>
       </div>

@@ -31,7 +31,7 @@ export function createInitialQuote(
     ceilingPrice: 27_000,
     floorPrice: 23_000,
     lastPrice: null,
-    lastQuantity: 0,
+    lastQuantity: null,
     totalVolume: 0,
     totalValue: 0,
     openPrice: null,

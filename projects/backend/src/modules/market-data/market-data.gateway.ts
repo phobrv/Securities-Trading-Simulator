@@ -65,11 +65,11 @@ export class MarketDataGateway {
       return;
     }
 
+    client.setSubscriptions(message.securityIds);
     client.enqueue(async () => {
       const result = await this.marketDataService.getQuotes(
         message.securityIds,
       );
-      client.setSubscriptions(message.securityIds);
 
       for (const quote of result.data) {
         await client.sendSnapshot(quote);
