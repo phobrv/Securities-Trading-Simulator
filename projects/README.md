@@ -1,6 +1,6 @@
-# Securities Trading Simulator — Ngày 4
+# Securities Trading Simulator — Ngày 5
 
-Nền móng của ứng dụng mô phỏng giao dịch chứng khoán. Dự án chỉ phục vụ mục đích học tập, không dùng cho giao dịch thực tế.
+Ứng dụng mô phỏng giao dịch chứng khoán phục vụ học tập. Ngày 5 bổ sung Matching Simulator: sổ lệnh giới hạn trong bộ nhớ, ưu tiên giá/thời gian và các lần khớp lệnh cơ bản. Dự án không dùng cho giao dịch thực tế.
 
 ## Cấu trúc
 
@@ -101,7 +101,7 @@ Clock cố định rồi khởi động lại backend:
 
 ```dotenv
 SIM_CLOCK_MODE=FIXED
-SIM_NOW=2026-10-20T09:10:00+07:00
+SIM_NOW=2026-10-20T10:00:00+07:00
 ```
 
 `SIM_NOW` phải là ISO 8601 có timezone (ví dụ hậu tố `Z` hoặc `+07:00`). Cấu
@@ -153,7 +153,7 @@ Kết quả kỳ vọng: `STOCK = 3`, `BOND = 1`, `ETF = 1`; tổng `TRADABLE = 
 tiền tệ và trạng thái giao dịch. Giá khớp, cung/cầu thuộc Market Data; số lượng,
 giá vốn và P&L thuộc Portfolio theo từng tài khoản.
 
-## API ngày 1 đến ngày 4
+## API ngày 1 đến ngày 5
 
 ```bash
 curl -i http://localhost:3000/health/live
@@ -168,6 +168,11 @@ curl "http://localhost:3000/api/markets/SIM_EQ_A/session"
 curl -X POST http://localhost:3000/api/order-validations/session \
   -H "Content-Type: application/json" \
   -d '{"securityId":"sec-001","side":"BUY","orderType":"ATO","quantity":100}'
+curl -X POST http://localhost:3000/api/simulator/orders \
+  -H "Content-Type: application/json" \
+  -d '{"clientOrderId":"S1","securityId":"sec-001","side":"SELL","orderType":"LO","price":24900,"quantity":40}'
+curl http://localhost:3000/api/simulator/order-books/sec-001
+curl "http://localhost:3000/api/simulator/executions?securityId=sec-001"
 ```
 
 - `/health/live`: xác nhận HTTP process hoạt động.
@@ -228,6 +233,66 @@ Request không đúng cấu trúc trả `400`; LO phải có `price` nguyên dư
 ATO/ATC không được gửi `price`; `quantity` phải là số nguyên dương. Chứng
 khoán không tồn tại trả `404 SECURITY_NOT_FOUND`.
 
+## Matching Simulator — sổ lệnh và khớp lệnh
+
+Matching Simulator hiện chỉ hỗ trợ `sec-001 / SIMAAA / SIM_EQ_A`. Chỉ nhận
+lệnh giới hạn `LO` trong phiên `CONTINUOUS`; ví dụ dùng Clock cố định lúc
+`2026-10-20T10:00:00+07:00` để demo.
+
+```bash
+curl -X POST http://localhost:3000/api/simulator/orders \
+  -H "Content-Type: application/json" \
+  -d '{"clientOrderId":"S1","securityId":"sec-001","side":"SELL","orderType":"LO","price":24900,"quantity":40}'
+
+curl -X POST http://localhost:3000/api/simulator/orders \
+  -H "Content-Type: application/json" \
+  -d '{"clientOrderId":"S2","securityId":"sec-001","side":"SELL","orderType":"LO","price":25000,"quantity":100}'
+
+curl -X POST http://localhost:3000/api/simulator/orders \
+  -H "Content-Type: application/json" \
+  -d '{"clientOrderId":"S3","securityId":"sec-001","side":"SELL","orderType":"LO","price":25100,"quantity":50}'
+
+curl -X POST http://localhost:3000/api/simulator/orders \
+  -H "Content-Type: application/json" \
+  -d '{"clientOrderId":"B1","securityId":"sec-001","side":"BUY","orderType":"LO","price":25000,"quantity":100}'
+```
+
+`B1` tạo hai execution: `40 @ 24.900` với `S1` và `60 @ 25.000` với `S2`.
+Tổng giá trị là `2.496.000` VND. `B1` và `S1` ở trạng thái `FILLED`; `S2`
+còn 40 ở trạng thái `PARTIALLY_FILLED`; `S3` vẫn là `NEW`.
+
+Engine giữ từng lệnh để bảo toàn ưu tiên nhưng API sổ lệnh trả độ sâu cộng gộp
+theo mức giá:
+
+```bash
+curl http://localhost:3000/api/simulator/order-books/sec-001
+curl "http://localhost:3000/api/simulator/executions?securityId=sec-001"
+```
+
+Lệnh mua có giá cao hơn được ưu tiên, lệnh bán có giá thấp hơn được ưu tiên;
+cùng giá thì `arrivalSequence` do server cấp xác định FIFO. Khi giá giao nhau,
+giá execution lấy theo lệnh đang nằm trong sổ (`maker`), không phải giá giới
+hạn của lệnh mới (`taker`). Một lệnh có thể tạo nhiều execution; phần chưa khớp
+của LO tiếp tục nằm trong sổ và giữ thứ tự ban đầu.
+
+`POST /api/simulator/orders` trả `201` cùng order đã tiếp nhận và các execution
+vừa tạo. Các từ chối xảy ra trước khi thay đổi sổ:
+
+| Điều kiện | HTTP | Mã lỗi |
+| --- | ---: | --- |
+| Giá, khối lượng, side hoặc body không hợp lệ | 400 | `INVALID_ORDER_INPUT` |
+| Loại lệnh không phải LO | 400 | `UNSUPPORTED_ORDER_TYPE` |
+| Chứng khoán không tồn tại | 404 | `SECURITY_NOT_FOUND` |
+| Chứng khoán không ở trạng thái `TRADABLE` | 422 | `SECURITY_NOT_TRADABLE` |
+| Không phải `sec-001` | 422 | `SECURITY_NOT_SUPPORTED` |
+| Không trong phiên `CONTINUOUS` | 422 | `MATCHING_SESSION_NOT_SUPPORTED` |
+| `clientOrderId` đã dùng trong backend instance hiện tại | 409 | `DUPLICATE_CLIENT_ORDER_ID` |
+
+Sổ lệnh, arrival sequence, client order ID và execution chỉ nằm trong bộ nhớ
+của một backend instance. Khởi động lại backend làm mất toàn bộ dữ liệu này;
+chưa có persistence, khôi phục sự cố, kiểm tra tiền/chứng khoán khả dụng hoặc
+settlement.
+
 ## Market Data realtime
 
 Backend có đúng một Price Simulator cho `sec-001 / SIMAAA / SIM_EQ_A`, độc lập
@@ -284,12 +349,14 @@ nhân hoặc chia thêm 1.000 khi hiển thị.
 - Không ghi tick hay lịch sử giá vào MySQL.
 - Chưa có delta, sequence, replay hoặc khôi phục khoảng trống dữ liệu.
 - Redis Pub/Sub không phát lại thông báo đã bỏ lỡ; reconnect nhận lại snapshot mới nhất.
-- Chưa có matching engine, sổ lệnh thật hoặc bảng giá trái phiếu.
 - Tick thị trường không tạo execution hay thay đổi tài sản tài khoản.
 
-### Giới hạn của Ngày 4
+### Giới hạn của Ngày 5
 
-- Kiểm tra thử không tạo order, không giữ tiền/chứng khoán và không tạo khớp lệnh.
+- Matching Simulator chưa tích hợp vào Market Data: Price Simulator vẫn tạo tick
+  ngẫu nhiên cho `sec-001`, còn execution và thay đổi bid/ask chưa cập nhật Redis
+  hoặc WebSocket.
+- Matching Simulator chỉ là API thử nghiệm, chưa phải OMS cho lệnh khách hàng.
 - Chưa kiểm tra tài khoản, lô, bước giá, biên độ giá hoặc tài sản khả dụng.
 - Price Simulator của Ngày 3 chưa bị dừng theo phiên; đây là phần mở rộng cho
   bài tích hợp tiếp theo.
