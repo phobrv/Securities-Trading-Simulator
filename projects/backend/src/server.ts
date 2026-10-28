@@ -12,6 +12,8 @@ import { RedisQuoteStore } from "./modules/market-data/redis-quote-store.js";
 import { marketSessionConfigs } from "./modules/market-session/market-session.config.js";
 import { MarketSessionService } from "./modules/market-session/market-session.service.js";
 import { OrderSessionValidator } from "./modules/market-session/order-session-validator.js";
+import { MatchingEngine } from "./modules/matching-simulator/matching-engine.js";
+import { MatchingService } from "./modules/matching-simulator/matching.service.js";
 import { SystemService } from "./modules/system/system.service.js";
 
 const database = createDatabase();
@@ -28,6 +30,12 @@ const marketSessionService = new MarketSessionService(
   env.simClock.mode,
 );
 const orderSessionValidator = new OrderSessionValidator(
+  securityService,
+  marketSessionService,
+  clock,
+);
+const matchingService = new MatchingService(
+  new MatchingEngine(),
   securityService,
   marketSessionService,
   clock,
@@ -50,6 +58,7 @@ const app = createApp({
   marketDataService,
   marketSessionService,
   orderSessionValidator,
+  matchingService,
 });
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);

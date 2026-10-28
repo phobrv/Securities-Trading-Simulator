@@ -15,6 +15,23 @@ Dự án được chia thành hai phần bổ trợ cho nhau:
 
 Người học nên theo trình tự: đọc bài học trong `p-docs/`, sau đó thực hành và quan sát kết quả mô phỏng trong `projects/`.
 
+## Matching Simulator (Ngày 5)
+
+Backend cung cấp mô phỏng sổ lệnh cho riêng `sec-001` (`SIMAAA`) trong phiên `CONTINUOUS`:
+
+- `POST /api/simulator/orders` — gửi lệnh giới hạn `LO` mua hoặc bán.
+- `GET /api/simulator/order-books/sec-001` — xem độ sâu sổ lệnh cộng gộp theo giá.
+- `GET /api/simulator/executions?securityId=sec-001` — xem các lần khớp theo thứ tự tạo.
+
+Ví dụ chạy demo trong phiên liên tục:
+
+```dotenv
+SIM_CLOCK_MODE=FIXED
+SIM_NOW=2026-10-20T10:00:00+07:00
+```
+
+Matching Simulator chỉ phục vụ học tập: sổ lệnh và executions nằm trong bộ nhớ của một backend instance, nên sẽ mất khi backend khởi động lại. Chưa có kiểm tra tiền, chứng khoán khả dụng, settlement hoặc khôi phục sau sự cố.
+
 ## Lộ trình học 4 tuần (28 buổi)
 
 Mỗi tuần gồm 7 buổi. Nội dung đi từ kiến thức nền tảng đến quan sát và mô phỏng một quy trình giao dịch hoàn chỉnh.

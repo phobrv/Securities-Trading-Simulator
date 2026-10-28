@@ -10,6 +10,8 @@ import { MarketDataService } from "./modules/market-data/market-data.service.js"
 import { createMarketSessionRouter } from "./modules/market-session/market-session.routes.js";
 import { MarketSessionService } from "./modules/market-session/market-session.service.js";
 import { OrderSessionValidator } from "./modules/market-session/order-session-validator.js";
+import { createMatchingSimulatorRouter } from "./modules/matching-simulator/matching.routes.js";
+import { MatchingService } from "./modules/matching-simulator/matching.service.js";
 import { SystemService } from "./modules/system/system.service.js";
 import { createSystemRouter } from "./modules/system/system.routes.js";
 
@@ -19,6 +21,7 @@ export type AppDependencies = {
   marketDataService: MarketDataService;
   marketSessionService: MarketSessionService;
   orderSessionValidator: OrderSessionValidator;
+  matchingService?: MatchingService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -40,6 +43,7 @@ export function createApp({
   marketDataService,
   marketSessionService,
   orderSessionValidator,
+  matchingService,
 }: AppDependencies): Express {
   const app = express();
 
@@ -63,6 +67,9 @@ export function createApp({
   app.use(
     createMarketSessionRouter(marketSessionService, orderSessionValidator),
   );
+  if (matchingService) {
+    app.use(createMatchingSimulatorRouter(matchingService));
+  }
   app.use(notFoundHandler);
   app.use(errorHandler);
 
