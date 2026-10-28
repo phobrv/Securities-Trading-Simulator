@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
+import AccountBalancePanel from "@/components/AccountBalancePanel.vue";
+import AvailabilityCheckForm from "@/components/AvailabilityCheckForm.vue";
 import ConnectionStatus from "@/components/ConnectionStatus.vue";
 import MarketSessionPanel from "@/components/MarketSessionPanel.vue";
+import PositionsPanel from "@/components/PositionsPanel.vue";
 import QuoteBoard from "@/components/QuoteBoard.vue";
+import { useAccountOverview } from "@/composables/useAccountOverview";
 import { useMarketData } from "@/composables/useMarketData";
 import { useMarketSession } from "@/composables/useMarketSession";
+import type { AvailabilityCheckRequest } from "@/types/account";
 
 const {
   securities,
@@ -23,10 +28,36 @@ const {
   start: startSession,
   stop: stopSession,
 } = useMarketSession("SIM_EQ_A");
+const selectedAccountId = ref("acc-001");
+const {
+  balance,
+  positions,
+  loading: accountLoading,
+  errorMessage: accountErrorMessage,
+  previewResult,
+  previewLoading,
+  previewErrorMessage,
+  load: loadAccount,
+  preview,
+} = useAccountOverview();
+
+const accountOptions = [
+  { id: "acc-001", label: "Tài khoản mô phỏng A" },
+  { id: "acc-002", label: "Tài khoản mô phỏng B" },
+];
+
+function changeAccount(): void {
+  void loadAccount(selectedAccountId.value);
+}
+
+function checkAvailability(input: AvailabilityCheckRequest): void {
+  void preview(selectedAccountId.value, input);
+}
 
 onMounted(() => {
   void start();
   void startSession();
+  void loadAccount(selectedAccountId.value);
 });
 onUnmounted(() => {
   stop();
@@ -38,14 +69,14 @@ onUnmounted(() => {
   <main class="min-h-screen bg-slate-950 px-6 py-16 text-slate-100 sm:px-10">
     <section class="mx-auto max-w-7xl">
       <p class="text-sm font-semibold tracking-[0.2em] text-cyan-300">
-        DAY 03 · MARKET DATA REALTIME
+        DAY 06 · TÀI KHOẢN VÀ TÀI SẢN KHẢ DỤNG
       </p>
       <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
         Securities Trading Simulator
       </h1>
       <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-        Bảng giá giả lập cập nhật qua WebSocket. Giá hiển thị theo đồng trên một
-        đơn vị chứng khoán và chỉ dùng cho mục đích học tập.
+        Dữ liệu mô phỏng kết hợp bảng giá, trạng thái phiên và tài sản khả dụng.
+        Số dư tài khoản chưa cập nhật theo Matching Simulator.
       </p>
 
       <div class="mt-10">
@@ -55,6 +86,38 @@ onUnmounted(() => {
           :error-message="sessionErrorMessage"
           class="mb-10"
         />
+        <section class="mb-10" aria-labelledby="account-overview-title">
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 id="account-overview-title" class="text-lg font-semibold">Tài sản tài khoản</h2>
+              <p class="mt-1 text-sm text-slate-400">Số dư fixture, chỉ dùng để đọc và kiểm tra thử.</p>
+            </div>
+            <label class="grid gap-1 text-sm font-medium text-slate-200">
+              Chọn tài khoản
+              <select v-model="selectedAccountId" class="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100" @change="changeAccount">
+                <option v-for="account in accountOptions" :key="account.id" :value="account.id">
+                  {{ account.label }}
+                </option>
+              </select>
+            </label>
+          </div>
+          <div class="mt-5 grid gap-5 xl:grid-cols-2">
+            <AccountBalancePanel :balance="balance" :loading="accountLoading" :error-message="accountErrorMessage" />
+            <AvailabilityCheckForm
+              :securities="securities"
+              :loading="previewLoading"
+              :result="previewResult"
+              :error-message="previewErrorMessage"
+              @submit="checkAvailability"
+            />
+            <PositionsPanel
+              class="xl:col-span-2"
+              :positions="positions"
+              :loading="accountLoading"
+              :error-message="accountErrorMessage"
+            />
+          </div>
+        </section>
         <div class="flex items-center justify-between gap-4">
           <h2 class="text-lg font-semibold">Bảng giá mô phỏng</h2>
           <ConnectionStatus :state="connectionState" />

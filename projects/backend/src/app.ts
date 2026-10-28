@@ -14,6 +14,8 @@ import { createMatchingSimulatorRouter } from "./modules/matching-simulator/matc
 import { MatchingService } from "./modules/matching-simulator/matching.service.js";
 import { SystemService } from "./modules/system/system.service.js";
 import { createSystemRouter } from "./modules/system/system.routes.js";
+import { createAccountRouter } from "./modules/accounts/account.routes.js";
+import { AccountService } from "./modules/accounts/account.service.js";
 
 export type AppDependencies = {
   systemService: SystemService;
@@ -22,6 +24,7 @@ export type AppDependencies = {
   marketSessionService: MarketSessionService;
   orderSessionValidator: OrderSessionValidator;
   matchingService?: MatchingService;
+  accountService?: AccountService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -44,6 +47,7 @@ export function createApp({
   marketSessionService,
   orderSessionValidator,
   matchingService,
+  accountService,
 }: AppDependencies): Express {
   const app = express();
 
@@ -69,6 +73,9 @@ export function createApp({
   );
   if (matchingService) {
     app.use(createMatchingSimulatorRouter(matchingService));
+  }
+  if (accountService) {
+    app.use(createAccountRouter(accountService));
   }
   app.use(notFoundHandler);
   app.use(errorHandler);

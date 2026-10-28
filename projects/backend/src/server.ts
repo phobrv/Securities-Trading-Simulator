@@ -15,10 +15,16 @@ import { OrderSessionValidator } from "./modules/market-session/order-session-va
 import { MatchingEngine } from "./modules/matching-simulator/matching-engine.js";
 import { MatchingService } from "./modules/matching-simulator/matching.service.js";
 import { SystemService } from "./modules/system/system.service.js";
+import { MySqlAccountRepository } from "./modules/accounts/account.repository.js";
+import { AccountService } from "./modules/accounts/account.service.js";
 
 const database = createDatabase();
 const securityService = new SecurityService(
   new MySqlSecurityRepository(database),
+);
+const accountService = new AccountService(
+  new MySqlAccountRepository(database),
+  securityService,
 );
 const clock =
   env.simClock.mode === "FIXED"
@@ -59,6 +65,7 @@ const app = createApp({
   marketSessionService,
   orderSessionValidator,
   matchingService,
+  accountService,
 });
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);

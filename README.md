@@ -30,7 +30,33 @@ SIM_CLOCK_MODE=FIXED
 SIM_NOW=2026-10-20T10:00:00+07:00
 ```
 
-Matching Simulator chỉ phục vụ học tập: sổ lệnh và executions nằm trong bộ nhớ của một backend instance, nên sẽ mất khi backend khởi động lại. Chưa có kiểm tra tiền, chứng khoán khả dụng, settlement hoặc khôi phục sau sự cố.
+Matching Simulator chỉ phục vụ học tập: sổ lệnh và executions nằm trong bộ nhớ của một backend instance, nên sẽ mất khi backend khởi động lại. Chưa có settlement hoặc khôi phục sau sự cố.
+
+## Tài khoản và tài sản khả dụng (Ngày 6)
+
+Migration tạo hai tài khoản fixture độc lập `acc-001` và `acc-002`. Mỗi account là một tiểu khoản CASH, dùng VND và chưa có margin, phí, thuế hay ứng trước tiền bán.
+
+- `GET /api/accounts/acc-001/balances` — đọc các thành phần tiền và tiền khả dụng.
+- `GET /api/accounts/acc-001/positions` — đọc vị thế và lượng có thể bán.
+- `POST /api/accounts/acc-001/availability-checks` — kiểm tra thử một yêu cầu BUY/SELL LO.
+
+Khả dụng được tính khi đọc, không lưu thành một cột riêng:
+
+```text
+availableCash = settledCash - reservedCash - buyPayable - blockedCash
+availableQuantity = settledQuantity - pendingSellQuantity
+                    - activeReservedQuantity - blockedQuantity
+```
+
+`pendingReceivable` không tăng tiền khả dụng; `pendingBuyQuantity` không tăng lượng có thể bán. Tiền được trả trong JSON dưới dạng chuỗi số nguyên để không mất chính xác `bigint`.
+
+Fixture `acc-001` có `availableCash = 6000000` và `sec-001` có `availableQuantity = 550`; reservation `RELEASED` không bị tính. Chạy migration từ `projects/backend/`:
+
+```bash
+npm run migration:run
+```
+
+Availability check chỉ đọc dữ liệu, không gửi lệnh, không giữ tài sản và không làm thay đổi số dư. Vì vậy kết quả preview không bảo đảm tài sản vẫn đủ khi có request đồng thời; thao tác kiểm tra và giữ nguyên tử sẽ được bổ sung ở các phần sau.
 
 ## Lộ trình học 4 tuần (28 buổi)
 
