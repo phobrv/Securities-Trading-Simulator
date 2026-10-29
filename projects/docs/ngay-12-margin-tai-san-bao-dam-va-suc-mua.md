@@ -33,3 +33,114 @@ Giao diện so sánh A/B/A-debt chạy độc lập, không nối nút đặt l�
 ## Kiểm thử
 
 Backend: `npm test` và `npm run build`; frontend: `npm run build`. Test MySQL tùy chọn cần database test riêng đã migrate và không có ghi đồng thời: `DB_NAME=<database_test> MARGIN_MYSQL_TEST=true npm test -- --runTestsByPath tests/risk/margin.mysql.test.ts` từ `projects/backend/`.
+
+## Cấu trúc code
+
+| Thành phần       | Tệp trong `projects/`                                                                                       | Vai trò                                                                                                                                                           |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migration        | `backend/src/database/migrations/1792800009000-create-margin-simulation.ts`                                 | Tạo schema và dữ liệu mô phỏng; đăng ký trong `backend/src/infrastructure/typeorm-data-source.ts`.                                                                |
+| Kiểu dữ liệu     | `backend/src/modules/risk/margin.types.ts`                                                                  | Định nghĩa scenario, policy, lệnh, reason code và interface repository.                                                                                           |
+| Repository       | `backend/src/modules/risk/margin-policy.repository.ts`                                                      | Đọc scenario, dư nợ và cấu hình theo policy/security từ MySQL.                                                                                                    |
+| Calculator       | `backend/src/modules/risk/margin.calculator.ts`                                                             | Tính breakdown, hạn mức và quyết định từ input, không truy cập database hay API giá.                                                                              |
+| Service và route | `backend/src/modules/risk/risk-check.service.ts`, `risk.routes.ts`                                          | Tải scenario, gọi calculator, validate request và trả kết quả HTTP. Service được khởi tạo tại `backend/src/server.ts`, route được gắn trong `backend/src/app.ts`. |
+| Giao diện        | `frontend/src/features/risk/MarginComparison.vue`, `margin.types.ts`, `frontend/src/services/margin-api.ts` | Gọi API và so sánh A/B/A-debt; panel được gắn trong `frontend/src/App.vue`.                                                                                       |
+| Kiểm thử         | `backend/tests/risk/margin.test.ts`, `margin.mysql.test.ts`                                                 | Calculator, HTTP với fake repository và kiểm thử MySQL opt-in.                                                                                                    |
+
+## Dữ liệu mô phỏng
+
+| Bảng                     | Nội dung                                                                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `margin_policies`        | Code, version, trạng thái và quy tắc làm tròn `FLOOR_PER_SECURITY`; duy nhất theo code/version.                        |
+| `collateral_eligibility` | Cấu hình riêng cho từng cặp policy/security: tính đủ điều kiện bảo đảm, price cap, tỷ lệ bảo đảm và tỷ lệ tài trợ mua. |
+| `margin_scenarios`       | Policy, tiền khả dụng và hạn mức tài khoản mô phỏng, cùng positions JSON và giá đầu vào.                               |
+| `loan_balances`          | Nợ gốc, lãi và hạn mức vay đã giữ, liên kết với scenario chứ không phải tài khoản thực.                                |
+
+Các trường tiền trong bảng dùng `DECIMAL(20,0)` và có ràng buộc không âm. Tỷ lệ bảo đảm từ 0 đến 10.000 bps; tỷ lệ tài trợ mua từ 0 đến dưới 10.000 bps. Repository chỉ nạp eligibility khi policy đang `ACTIVE` và có quy tắc `FLOOR_PER_SECURITY`; policy không dùng được dẫn đến `POLICY_NOT_CONFIGURED` khi tính.
+
+| Scenario          | Position và giá scenario                  | Tiền khả dụng |    Hạn mức | Nợ gốc / lãi / giữ vay          |
+| ----------------- | ----------------------------------------- | ------------: | ---------: | ------------------------------- |
+| `scenario-A`      | 1.000 `sec-001` đã thanh toán, giá 25.000 |     3.000.000 | 20.000.000 | 0 / 0 / 0                       |
+| `scenario-B`      | 1.000 `sec-003` đã thanh toán, giá 25.000 |     3.000.000 | 20.000.000 | 0 / 0 / 0                       |
+| `scenario-A-debt` | Như A                                     |     3.000.000 | 20.000.000 | 4.000.000 / 100.000 / 1.000.000 |
+
+`reservedLoanAmount` chỉ là phần hạn mức vay giả lập đã giữ, không phải cash reservation ngày 10. Positions được đọc từ JSON của scenario, không lấy từ position hay tài khoản ngày 6–11. Giá và quantity của scenario không được API này sửa.
+
+## Hợp đồng API và reason code
+
+Request chỉ nhận lệnh `BUY`; `price` và `quantity` phải là số nguyên dương an toàn của JavaScript. `scenarioId` và `securityId` phải là chuỗi không rỗng, tối đa 36 ký tự. Ví dụ response cho request A ở trên, với `evaluatedAt` minh họa:
+
+```json
+{
+  "data": {
+    "mode": "SIMULATION_ONLY",
+    "policyCode": "SIM_MARGIN_V1",
+    "policyVersion": 1,
+    "evaluatedAt": "2026-10-20T03:00:00.000Z",
+    "pricingMode": "SCENARIO_INPUT",
+    "currency": "VND",
+    "availableCash": "3000000",
+    "grossLoanCapacity": "12000000",
+    "accountCreditLimit": "20000000",
+    "effectiveLoanLimit": "12000000",
+    "currentExposure": "0",
+    "additionalLoanHeadroom": "12000000",
+    "orderValue": "5000000",
+    "requiredLoan": "2000000",
+    "orderFinancingLimit": "2500000",
+    "decision": "ALLOW",
+    "reasonCodes": [],
+    "collateralBreakdown": [
+      {
+        "securityId": "sec-001",
+        "eligible": true,
+        "collateralQuantity": 1000,
+        "marketPrice": "25000",
+        "valuationPrice": "24000",
+        "recognizedAssetValue": "24000000",
+        "collateralRateBps": 5000,
+        "loanCapacity": "12000000"
+      }
+    ]
+  }
+}
+```
+
+`evaluatedAt` lấy từ đồng hồ simulator đã cấu hình, không phải timestamp của giá thị trường. Các trường tiền được trả dạng chuỗi để không mất độ chính xác; lượng và bps là số nguyên. Giá trị không xác định có thể là `null`; ví dụ khi thiếu giá hoặc policy, tổng năng lực, giới hạn hiệu lực và headroom là `null`, trong khi các giá trị vẫn tính được như `currentExposure` hoặc `orderValue` vẫn được trả. `orderFinancingLimit` là `null` nếu thiếu policy hợp lệ của mã mua.
+
+| Reason code                       | Ý nghĩa                                                             |
+| --------------------------------- | ------------------------------------------------------------------- |
+| `INSUFFICIENT_LOAN_HEADROOM`      | Vay cần thiết vượt hạn mức vay bổ sung.                             |
+| `ORDER_FINANCING_RATIO_EXCEEDED`  | Vay cần thiết vượt giới hạn tài trợ của lệnh.                       |
+| `SECURITY_NOT_FINANCEABLE`        | Lệnh cần vay nhưng mã mua không được tài trợ.                       |
+| `EXISTING_EXPOSURE_EXCEEDS_LIMIT` | Nợ, lãi và phần giữ vay hiện tại vượt giới hạn hiệu lực.            |
+| `POLICY_NOT_CONFIGURED`           | Thiếu hoặc không dùng được cấu hình policy cho mã mua hay position. |
+| `MISSING_VALUATION_PRICE`         | Position đủ điều kiện bảo đảm thiếu giá đầu vào hợp lệ.             |
+| `INVALID_COLLATERAL_QUANTITY`     | Thành phần lượng không hợp lệ hoặc lượng bảo đảm sau khi trừ bị âm. |
+
+Một quyết định có thể có nhiều reason code. Thiếu policy của mã mua vẫn trả `UNAVAILABLE` ngay cả khi lệnh không cần vay; với policy hợp lệ, không cần vay thì mã mua không bắt buộc được tài trợ. Position được policy xác định là không đủ điều kiện có năng lực bằng 0, không bắt buộc có giá định giá.
+
+## Chạy thử và đối chiếu
+
+Cấu hình môi trường theo [`../README.md`](../README.md), sau đó từ `projects/backend/` kiểm tra và chạy migration, rồi khởi động backend:
+
+```bash
+npm run migration:show
+npm run migration:run
+npm run dev
+```
+
+Ở terminal khác, có thể gọi lại API nhiều lần mà không tạo order hoặc reservation:
+
+```bash
+curl -X POST http://localhost:3000/api/risk/margin-simulations \
+  -H 'Content-Type: application/json' \
+  -d '{"scenarioId":"scenario-A","order":{"securityId":"sec-001","side":"BUY","price":25000,"quantity":200}}'
+```
+
+Thay `scenario-A` bằng `scenario-B` hoặc `scenario-A-debt` để đối chiếu; thay `quantity` bằng `300` để thấy A bị `ORDER_FINANCING_RATIO_EXCEEDED` dù còn headroom. Khởi động frontend theo README và tìm panel **Ngày 12 · Mô phỏng margin**: panel tự chạy ba scenario, cho đổi giá và số lượng của lệnh BUY `sec-001`, hiển thị bảng bảo đảm, kiểm tra vốn và reason code. Panel có trạng thái tải/lỗi và không gửi lệnh tới OMS.
+
+## Kết quả kiểm tra và giới hạn
+
+Lần kiểm tra khi triển khai: backend **103 test đạt, 23 test bỏ qua**, backend và frontend build thành công. Test mặc định dùng fake repository; kiểm thử MySQL opt-in và migration chưa được chạy trong lần kiểm tra đó, nên chưa kết luận fixture và truy vấn đã được xác minh trên MySQL thực tế. Test opt-in đối chiếu A/B/A-debt và chụp các bảng tài sản trước/sau các lần gọi; dùng database test riêng đã migrate, không dùng database đang có giao dịch đồng thời.
+
+Calculator chỉ mô phỏng chính sách cố định trên dữ liệu scenario. Chưa xử lý tuổi quote, snapshot nhất quán giữa các nguồn thật, cấp vay, giải ngân, call margin, bán giải chấp hoặc các kiểm tra phiên/quyền/giữ vốn. Số ngân sách ước tính 6 triệu ở ví dụ là phép giải thích, không phải trường API hay sức mua để đặt lệnh.
