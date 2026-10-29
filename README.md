@@ -71,6 +71,8 @@ Chạy migration từ `projects/backend/` bằng `npm run migration:run`. Chỉ 
 
 Kết quả: `CANCELED`, khớp 60, hủy 40, còn 0, version 6. `PENDING_NEW` chỉ chuyển `NEW` khi được chấp nhận; `CancelRequested` không hủy lệnh, và có thể tiếp tục khớp khi chờ. Nếu khớp hết trong lúc chờ, chỉ có thể nhận `CancelRejected`. `OrderRejected` và `CancelRejected` nhận thêm `reasonCode` và `message`. Từ chối sự kiện không hợp lệ không thay đổi lệnh hoặc timeline.
 
+Trên giao diện Vue, mục **Ngày 08 · OMS demo** cho phép tạo hoặc tra cứu lệnh theo ID, cấp các phản hồi mô phỏng và đọc timeline. Sao chép mã lệnh để tra cứu lại sau khi tải lại trang. Mục này cần backend đang chạy, migration đã áp dụng và `OMS_DEMO_ENABLED=true`; trạng thái hủy chỉ được xác nhận sau phản hồi `CancelConfirmed`.
+
 Kiểm thử transaction thật là tùy chọn, chỉ chạy trên **database test riêng** đã migration và có fixture: từ `projects/backend/` cấu hình `DB_*` trỏ đến database đó rồi chạy `OMS_MYSQL_TEST=true npm test -- --testPathPattern=oms.mysql`. Test tạo và dọn đúng lệnh của nó; bộ test mặc định không cần MySQL.
 
 ## Lộ trình học 4 tuần (28 buổi)

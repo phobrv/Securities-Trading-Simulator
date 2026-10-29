@@ -9,6 +9,7 @@ import PositionsPanel from "@/components/PositionsPanel.vue";
 import QuoteBoard from "@/components/QuoteBoard.vue";
 import SimulatorExecutionsPanel from "@/components/SimulatorExecutionsPanel.vue";
 import SimulatorOrderBookPanel from "@/components/SimulatorOrderBookPanel.vue";
+import OmsDemoPanel from "@/features/oms/OmsDemoPanel.vue";
 import { useAccountOverview } from "@/composables/useAccountOverview";
 import { useMarketData } from "@/composables/useMarketData";
 import { useMarketSession } from "@/composables/useMarketSession";
@@ -101,6 +102,7 @@ onUnmounted(() => {
           :error-message="sessionErrorMessage"
           class="mb-10"
         />
+        <OmsDemoPanel class="mb-10" />
         <section class="mb-10" aria-labelledby="account-overview-title">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
