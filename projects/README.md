@@ -10,18 +10,19 @@
 
 ## Tài liệu triển khai
 
-| Ngày                                                      | Nội dung                                    |
-| --------------------------------------------------------- | ------------------------------------------- |
-| [Ngày 2](./docs/ngay-02-security-master.md)               | Security Master và migration MySQL          |
-| [Ngày 3](./docs/ngay-03-market-data-realtime.md)          | Market Data realtime, Redis và WebSocket    |
-| [Ngày 4](./docs/ngay-04-market-session.md)                | Market Session và kiểm tra phiên lệnh       |
-| [Ngày 5](./docs/ngay-05-matching-simulator.md)            | Sổ lệnh và Matching Simulator trong bộ nhớ  |
-| [Ngày 6](./docs/ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Accounts, tiền và chứng khoán khả dụng      |
-| [Ngày 7](./docs/ngay-07-demo-tuan-1.md)                   | Demo tuần 1: bảng giá và matching simulator |
-| [Ngày 8](./docs/ngay-08-oms-va-vong-doi-lenh.md)          | OMS demo, vòng đời lệnh và timeline         |
-| [Ngày 9](./docs/ngay-09-api-dat-lenh-idempotency.md)      | API đặt lệnh, yêu cầu hủy và idempotency    |
-| [Ngày 10](./docs/ngay-10-giu-tien-va-so-cai-tien.md)      | Giữ tiền, reservation và sổ cái tiền        |
-| [Ngày 11](./docs/ngay-11-danh-muc-gia-von-va-lai-lo.md)   | Danh mục, giá vốn bình quân và lãi/lỗ       |
+| Ngày                                                           | Nội dung                                    |
+| -------------------------------------------------------------- | ------------------------------------------- |
+| [Ngày 2](./docs/ngay-02-security-master.md)                    | Security Master và migration MySQL          |
+| [Ngày 3](./docs/ngay-03-market-data-realtime.md)               | Market Data realtime, Redis và WebSocket    |
+| [Ngày 4](./docs/ngay-04-market-session.md)                     | Market Session và kiểm tra phiên lệnh       |
+| [Ngày 5](./docs/ngay-05-matching-simulator.md)                 | Sổ lệnh và Matching Simulator trong bộ nhớ  |
+| [Ngày 6](./docs/ngay-06-tai-khoan-va-tai-san-kha-dung.md)      | Accounts, tiền và chứng khoán khả dụng      |
+| [Ngày 7](./docs/ngay-07-demo-tuan-1.md)                        | Demo tuần 1: bảng giá và matching simulator |
+| [Ngày 8](./docs/ngay-08-oms-va-vong-doi-lenh.md)               | OMS demo, vòng đời lệnh và timeline         |
+| [Ngày 9](./docs/ngay-09-api-dat-lenh-idempotency.md)           | API đặt lệnh, yêu cầu hủy và idempotency    |
+| [Ngày 10](./docs/ngay-10-giu-tien-va-so-cai-tien.md)           | Giữ tiền, reservation và sổ cái tiền        |
+| [Ngày 11](./docs/ngay-11-danh-muc-gia-von-va-lai-lo.md)        | Danh mục, giá vốn bình quân và lãi/lỗ       |
+| [Ngày 12](./docs/ngay-12-margin-tai-san-bao-dam-va-suc-mua.md) | Mô phỏng margin và sức mua                  |
 
 Xem [chỉ mục tài liệu](./docs/README.md) để biết quy ước cập nhật cho các ngày tiếp theo.
 

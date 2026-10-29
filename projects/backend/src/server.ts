@@ -23,6 +23,8 @@ import { OrderApiService } from "./modules/oms/order-api.service.js";
 import { CashReadRepository } from "./modules/cash/cash-read.repository.js";
 import { CashReadService } from "./modules/cash/cash-read.service.js";
 import { PortfolioService } from "./modules/portfolio/portfolio.service.js";
+import { MySqlMarginPolicyRepository } from "./modules/risk/margin-policy.repository.js";
+import { RiskCheckService } from "./modules/risk/risk-check.service.js";
 
 const database = createDatabase();
 const securityService = new SecurityService(
@@ -80,6 +82,10 @@ const app = createApp({
       )
     : undefined,
   cashReadService: new CashReadService(new CashReadRepository(database)),
+  riskCheckService: new RiskCheckService(
+    new MySqlMarginPolicyRepository(database),
+    () => clock.now(),
+  ),
   portfolioService: new PortfolioService(
     new MySqlAccountRepository(database),
     marketDataService,

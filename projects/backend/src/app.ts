@@ -25,6 +25,8 @@ import { createCashReadRouter } from "./modules/cash/cash-read.routes.js";
 import type { CashReadService } from "./modules/cash/cash-read.service.js";
 import { createPortfolioRouter } from "./modules/portfolio/portfolio.routes.js";
 import type { PortfolioService } from "./modules/portfolio/portfolio.service.js";
+import { createRiskRouter } from "./modules/risk/risk.routes.js";
+import type { RiskCheckService } from "./modules/risk/risk-check.service.js";
 
 export type AppDependencies = {
   systemService: SystemService;
@@ -38,6 +40,7 @@ export type AppDependencies = {
   orderApiService?: OrderApiService;
   cashReadService?: CashReadService;
   portfolioService?: PortfolioService;
+  riskCheckService?: RiskCheckService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -65,6 +68,7 @@ export function createApp({
   orderApiService,
   cashReadService,
   portfolioService,
+  riskCheckService,
 }: AppDependencies): Express {
   const app = express();
 
@@ -106,6 +110,7 @@ export function createApp({
   if (orderApiService) app.use(createOrderApiRouter(orderApiService));
   if (cashReadService) app.use(createCashReadRouter(cashReadService));
   if (portfolioService) app.use(createPortfolioRouter(portfolioService));
+  if (riskCheckService) app.use(createRiskRouter(riskCheckService));
   app.use(notFoundHandler);
   app.use(errorHandler);
 

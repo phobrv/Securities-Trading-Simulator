@@ -9,6 +9,7 @@ import { CreateIdempotency1792800005000 } from "../database/migrations/179280000
 import { CreateCashLedger1792800006000 } from "../database/migrations/1792800006000-create-cash-ledger.js";
 import { SeedCashLedger1792800007000 } from "../database/migrations/1792800007000-seed-cash-ledger.js";
 import { CreatePortfolio1792800008000 } from "../database/migrations/1792800008000-create-portfolio.js";
+import { CreateMarginSimulation1792800009000 } from "../database/migrations/1792800009000-create-margin-simulation.js";
 import { env } from "../config/env.js";
 
 const migrationDataSource = new DataSource({
@@ -31,6 +32,7 @@ const migrationDataSource = new DataSource({
     CreateCashLedger1792800006000,
     SeedCashLedger1792800007000,
     CreatePortfolio1792800008000,
+    CreateMarginSimulation1792800009000,
   ],
 });
 

@@ -23,3 +23,4 @@ Khi hoàn thành một ngày mới:
 - [Ngày 9 — API đặt lệnh, yêu cầu hủy và idempotency](./ngay-09-api-dat-lenh-idempotency.md)
 - [Ngày 10 — Giữ tiền và sổ cái tiền](./ngay-10-giu-tien-va-so-cai-tien.md)
 - [Ngày 11 — Danh mục, giá vốn bình quân và lãi/lỗ](./ngay-11-danh-muc-gia-von-va-lai-lo.md)
+- [Ngày 12 — Margin, tài sản bảo đảm và sức mua](./ngay-12-margin-tai-san-bao-dam-va-suc-mua.md)

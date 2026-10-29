@@ -11,6 +11,7 @@ import SimulatorExecutionsPanel from "@/components/SimulatorExecutionsPanel.vue"
 import SimulatorOrderBookPanel from "@/components/SimulatorOrderBookPanel.vue";
 import OmsDemoPanel from "@/features/oms/OmsDemoPanel.vue";
 import PortfolioPanel from "@/features/portfolio/PortfolioPanel.vue";
+import MarginComparison from "@/features/risk/MarginComparison.vue";
 import { useAccountOverview } from "@/composables/useAccountOverview";
 import { useMarketData } from "@/composables/useMarketData";
 import { useMarketSession } from "@/composables/useMarketSession";
@@ -106,6 +107,7 @@ onUnmounted(() => {
           class="mb-10"
         />
         <OmsDemoPanel class="mb-10" />
+        <MarginComparison />
         <section class="mb-10" aria-labelledby="account-overview-title">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
