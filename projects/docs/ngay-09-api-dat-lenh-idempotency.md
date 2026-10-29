@@ -1,5 +1,7 @@
 # Ngày 9 — API đặt lệnh và idempotency
 
+> **Lưu ý sau ngày 10:** Nội dung dưới đây mô tả hành vi tại thời điểm ngày 9. API hiện tại yêu cầu tài khoản đã khởi tạo và đối chiếu ledger cho BUY; ví dụ `acc-001` bên dưới không còn đặt được qua `POST /api/orders`. Dùng [`acc-003` và hướng dẫn ngày 10](./ngay-10-giu-tien-va-so-cai-tien.md). Bộ integration MySQL ngày 9 cần cập nhật theo chính sách mới.
+
 API chỉ dành cho local/demo, bật `OMS_DEMO_ENABLED=true` trong `backend/.env` và chạy migration. Requester `local-demo` là cấu hình cố định, không phải xác thực; không dùng API này cho giao dịch thực.
 
 ```bash

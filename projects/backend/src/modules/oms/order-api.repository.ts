@@ -3,6 +3,7 @@ import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import type { Database } from "../../infrastructure/database.js";
 import { ApplicationError } from "../../errors/application-error.js";
 import { isInfrastructureUnavailable } from "../../errors/infrastructure-error.js";
+import { lockBalance } from "../cash/cash.repository.js";
 import type { Clock } from "../../shared/clock/clock.js";
 import { applyOrderEvent } from "./oms.reducer.js";
 import { insertEvent, orderSelect } from "./oms.repository.js";
@@ -75,9 +76,13 @@ export class OrderApiRepository {
   }
 
   public async cancel(connection: PoolConnection, id: string): Promise<Order> {
+    const [initial] = await connection.execute<OrderRow[]>(orderSelect, [id]);
+    if (!initial[0]) throw new ApplicationError(404, "ORDER_NOT_FOUND", "Không tìm thấy lệnh.");
+    await lockBalance(connection, initial[0].accountId);
     const [rows] = await connection.execute<OrderRow[]>(`${orderSelect} FOR UPDATE`, [id]);
     const previous = rows[0];
     if (!previous) throw new ApplicationError(404, "ORDER_NOT_FOUND", "Không tìm thấy lệnh.");
+    if (previous.accountId !== initial[0].accountId) throw new Error("Order account changed");
     if (previous.status !== "NEW" && previous.status !== "PARTIALLY_FILLED") {
       throw new ApplicationError(409, "ORDER_NOT_CANCELABLE", "Lệnh không thể nhận yêu cầu hủy.");
     }

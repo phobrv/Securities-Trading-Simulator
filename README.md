@@ -60,7 +60,7 @@ Availability check chỉ đọc dữ liệu, không gửi lệnh, không giữ t
 
 ## OMS demo (Ngày 8)
 
-OMS lưu trạng thái lệnh và timeline MySQL, độc lập với Matching Simulator trong bộ nhớ. Chưa giữ tiền/chứng khoán, settlement, chống sự kiện trùng hay xử lý sự kiện sai thứ tự; không coi transaction MySQL là giao dịch nguyên tử với matching.
+OMS demo cũ trên `acc-001` lưu trạng thái và timeline mà không giữ tài sản. Luồng BUY có giữ tiền ngày 10 dùng `acc-003` và `POST /api/orders`; xem [hướng dẫn ngày 10](projects/README.md#giữ-tiền-và-sổ-cái-ngày-10). Cả hai luồng độc lập với Matching Simulator và chưa settlement.
 
 Chạy migration từ `projects/backend/` bằng `npm run migration:run`. Chỉ trong môi trường local/demo, đặt `OMS_DEMO_ENABLED=true` trong cấu hình backend (mặc định tắt; chỉ cho phép với `NODE_ENV=development`, `test` hoặc `demo`). Dùng fixture `acc-001`, `sec-001`:
 

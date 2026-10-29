@@ -21,3 +21,4 @@ Khi hoàn thành một ngày mới:
 - [Ngày 7 — Demo tuần 1: bảng giá và giao dịch mô phỏng](./ngay-07-demo-tuan-1.md)
 - [Ngày 8 — OMS và vòng đời lệnh](./ngay-08-oms-va-vong-doi-lenh.md)
 - [Ngày 9 — API đặt lệnh, yêu cầu hủy và idempotency](./ngay-09-api-dat-lenh-idempotency.md)
+- [Ngày 10 — Giữ tiền và sổ cái tiền](./ngay-10-giu-tien-va-so-cai-tien.md)

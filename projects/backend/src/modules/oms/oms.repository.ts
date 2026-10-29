@@ -1,6 +1,7 @@
 import type { PoolConnection, RowDataPacket } from "mysql2/promise";
 import { ApplicationError } from "../../errors/application-error.js";
 import type { Database } from "../../infrastructure/database.js";
+import { applyCashEvent, hasOpening, isExecutionReplay, lockBalance, lockReservation } from "../cash/cash.repository.js";
 import type { Order, OmsRepository, RecordedEvent, OrderEvent } from "./oms.types.js";
 
 type OrderRow = RowDataPacket & Order;
@@ -21,6 +22,10 @@ export class MySqlOmsRepository implements OmsRepository {
   public async create(order: Order, event: RecordedEvent): Promise<void> {
     try {
       await this.database.transaction(async (connection) => {
+        await lockBalance(connection, order.accountId);
+        if (await hasOpening(connection, order.accountId)) {
+          throw new ApplicationError(409, "CASH_ORDER_REQUIRES_API", "Tài khoản này phải đặt lệnh qua API giữ tiền.");
+        }
         await connection.execute(`INSERT INTO orders
           (id, account_id, security_id, side, order_type, price, quantity, filled_quantity,
            remaining_quantity, canceled_quantity, status, cancel_request_status, version)
@@ -61,16 +66,27 @@ export class MySqlOmsRepository implements OmsRepository {
     });
   }
 
-  public async apply(id: string, update: (order: Order) => { order: Order; event: RecordedEvent }): Promise<Order | null> {
+  public async apply(id: string, update: (order: Order) => { order: Order; event: RecordedEvent }, incoming?: OrderEvent): Promise<Order | null> {
     return this.database.transaction(async (connection) => {
+      const [initial] = await connection.execute<OrderRow[]>(orderSelect, [id]);
+      if (!initial[0]) return null;
+      await lockBalance(connection, initial[0].accountId);
       const [rows] = await connection.execute<OrderRow[]>(`${orderSelect} FOR UPDATE`, [id]);
       if (!rows[0]) return null;
+      if (rows[0].accountId !== initial[0].accountId) throw new Error("Order account changed");
+      const reservation = await lockReservation(connection, rows[0]);
+      if (!reservation && await hasOpening(connection, rows[0].accountId)) {
+        throw new ApplicationError(409, "CASH_RESERVATION_MISSING", "Lệnh không có khoản giữ tiền.");
+      }
+      if (reservation && !incoming) throw new Error("Cash event is required");
+      if (reservation && incoming && await isExecutionReplay(connection, rows[0], incoming)) return rows[0];
       const { order, event } = update(rows[0]);
       await connection.execute(`UPDATE orders SET filled_quantity = ?, remaining_quantity = ?,
         canceled_quantity = ?, status = ?, cancel_request_status = ?, version = ? WHERE id = ?`,
       [order.filledQuantity, order.remainingQuantity, order.canceledQuantity, order.status,
         order.cancelRequestStatus, order.version, id]);
       await insertEvent(connection, event);
+      if (reservation) await applyCashEvent(connection, rows[0], event.event, reservation, event.occurredAt);
       return order;
     });
   }

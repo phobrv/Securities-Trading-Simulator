@@ -27,7 +27,7 @@ export class OmsService {
     const result = await this.repository.apply(id, (previous) => {
       const order = applyOrderEvent(previous, event, id);
       return { order, event: this.record(event, previous, order) };
-    });
+    }, event);
     return result ?? this.notFound();
   }
 

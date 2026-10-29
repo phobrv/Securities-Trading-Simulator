@@ -44,5 +44,5 @@ export interface OmsRepository {
   create(order: Order, event: RecordedEvent): Promise<void>;
   find(id: string): Promise<Order | null>;
   events(id: string): Promise<RecordedEvent[] | null>;
-  apply(id: string, update: (order: Order) => { order: Order; event: RecordedEvent }): Promise<Order | null>;
+  apply(id: string, update: (order: Order) => { order: Order; event: RecordedEvent }, event?: OrderEvent): Promise<Order | null>;
 }

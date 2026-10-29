@@ -6,6 +6,8 @@ import { CreateAccounts1792800002000 } from "../database/migrations/179280000200
 import { SeedAccounts1792800003000 } from "../database/migrations/1792800003000-seed-accounts.js";
 import { CreateOms1792800004000 } from "../database/migrations/1792800004000-create-oms.js";
 import { CreateIdempotency1792800005000 } from "../database/migrations/1792800005000-create-idempotency.js";
+import { CreateCashLedger1792800006000 } from "../database/migrations/1792800006000-create-cash-ledger.js";
+import { SeedCashLedger1792800007000 } from "../database/migrations/1792800007000-seed-cash-ledger.js";
 import { env } from "../config/env.js";
 
 const migrationDataSource = new DataSource({
@@ -17,6 +19,7 @@ const migrationDataSource = new DataSource({
   database: env.database.name,
   connectTimeout: env.database.connectTimeoutMs,
   migrationsTableName: "typeorm_migrations",
+  migrationsTransactionMode: "each",
   migrations: [
     CreateSecurityMaster1792800000000,
     SeedSecurityMaster1792800001000,
@@ -24,6 +27,8 @@ const migrationDataSource = new DataSource({
     SeedAccounts1792800003000,
     CreateOms1792800004000,
     CreateIdempotency1792800005000,
+    CreateCashLedger1792800006000,
+    SeedCashLedger1792800007000,
   ],
 });
 

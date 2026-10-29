@@ -20,8 +20,24 @@
 | [Ngày 7](./docs/ngay-07-demo-tuan-1.md) | Demo tuần 1: bảng giá và matching simulator |
 | [Ngày 8](./docs/ngay-08-oms-va-vong-doi-lenh.md) | OMS demo, vòng đời lệnh và timeline |
 | [Ngày 9](./docs/ngay-09-api-dat-lenh-idempotency.md) | API đặt lệnh, yêu cầu hủy và idempotency |
+| [Ngày 10](./docs/ngay-10-giu-tien-va-so-cai-tien.md) | Giữ tiền, reservation và sổ cái tiền |
 
 Xem [chỉ mục tài liệu](./docs/README.md) để biết quy ước cập nhật cho các ngày tiếp theo.
+
+## Giữ tiền và sổ cái (Ngày 10)
+
+Sau `npm run migration:run --prefix backend`, fixture `acc-003` có 10.000.000 VND và ledger `OPENING`. Bật `OMS_DEMO_ENABLED=true` trong môi trường local/demo để dùng API đặt lệnh và simulate. Luồng `POST /api/orders` hiện chỉ nhận BUY LO `sec-001` trên tài khoản có ledger và số dư đối chiếu đầy đủ; `acc-001`/`acc-002` vẫn đọc được và dùng được với OMS demo cũ, nhưng không được đặt qua API mới. OMS demo không được tạo trực tiếp lệnh cho tài khoản đã có `OPENING`.
+
+- `POST /api/orders` với `Idempotency-Key`: tạo lệnh và giữ tiền nguyên tử.
+- `POST /api/oms-demo/orders/:id/simulate`: mô phỏng `OrderAccepted`, `ExecutionReceived`, `CancelConfirmed`, `OrderRejected` hoặc `CancelRejected`.
+- `POST /api/orders/:id/cancel`: yêu cầu hủy, chưa giải phóng tiền.
+- `GET /api/accounts/:id/balances`, `GET /api/orders/:id/cash-reservation`, `GET /api/accounts/:id/cash-ledger`: đọc số dư, khoản giữ và lịch sử.
+
+Ví dụ dùng BUY 100 @25000, simulate accepted, execution 40 @24900, yêu cầu hủy rồi simulate cancel confirmed: `settledCash=10000000`, `reservedCash=0`, `buyPayable=996000`, `availableCash=9004000`. Execution chuyển tiền giữ sang nghĩa vụ mua, **không giảm `settledCash`**: nếu giảm đồng thời `settledCash` và tăng `buyPayable`, tiền khả dụng bị trừ hai lần. Tiền và ledger delta trả dưới dạng chuỗi; ledger chỉ là lịch sử biến động, chưa phải kế toán kép. Chưa có settlement, cập nhật positions hay nối matching.
+
+Khi replay cùng execution, API trả trạng thái lệnh hiện tại mà không ghi lại; cùng ID nhưng nội dung khác trả 409. Không sửa hoặc xóa ledger để điều chỉnh số dư. Migration ledger không hỗ trợ tự động revert vì có thể xóa lịch sử tài chính; MySQL DDL có implicit commit, nếu migration schema lỗi giữa chừng cần kiểm tra thủ công trước khi chạy lại.
+
+Test MySQL ngày 10 dùng database test riêng đã migrate: `DB_NAME=<database_test> CASH_MYSQL_TEST=true npm test -- --runTestsByPath tests/cash/cash.mysql.test.ts` từ `projects/backend/`.
 
 ## Yêu cầu
 
