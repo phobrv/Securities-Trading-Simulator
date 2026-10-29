@@ -567,6 +567,8 @@ Nếu thêm giao diện Vue, timeline cần thể hiện:
 
 Frontend đọc trạng thái từ API, không tự kết luận đã hủy ngay sau thao tác gửi yêu cầu.
 
+Phần code đã triển khai trong project, cách bật API demo và chạy kịch bản trên giao diện được mô tả trong tệp `projects/docs/ngay-08-oms-va-vong-doi-lenh.md` của repository.
+
 ---
 
 ## 10. Kiểm thử và bài debug bắt buộc

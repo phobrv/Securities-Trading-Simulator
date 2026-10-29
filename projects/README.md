@@ -18,6 +18,7 @@
 | [Ngày 5](./docs/ngay-05-matching-simulator.md) | Sổ lệnh và Matching Simulator trong bộ nhớ |
 | [Ngày 6](./docs/ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Accounts, tiền và chứng khoán khả dụng |
 | [Ngày 7](./docs/ngay-07-demo-tuan-1.md) | Demo tuần 1: bảng giá và matching simulator |
+| [Ngày 8](./docs/ngay-08-oms-va-vong-doi-lenh.md) | OMS demo, vòng đời lệnh và timeline |
 
 Xem [chỉ mục tài liệu](./docs/README.md) để biết quy ước cập nhật cho các ngày tiếp theo.
 

@@ -19,3 +19,4 @@ Khi hoàn thành một ngày mới:
 - [Ngày 5 — Matching Simulator](./ngay-05-matching-simulator.md)
 - [Ngày 6 — Tài khoản và tài sản khả dụng](./ngay-06-tai-khoan-va-tai-san-kha-dung.md)
 - [Ngày 7 — Demo tuần 1: bảng giá và giao dịch mô phỏng](./ngay-07-demo-tuan-1.md)
+- [Ngày 8 — OMS và vòng đời lệnh](./ngay-08-oms-va-vong-doi-lenh.md)
