@@ -27,6 +27,9 @@ Sau lộ trình 28 ngày, người học có thể:
 | [Ngày 5 — Sổ lệnh và khớp lệnh](./ngay-05-so-lenh-va-khop-lenh.md) | Order book, ưu tiên giá-thời gian, khớp một phần và execution. |
 | [Ngày 6 — Tài khoản và tài sản khả dụng](./ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Số dư tiền, vị thế, khoản giữ và kiểm tra khả năng mua/bán. |
 | [Ngày 7 — Demo tuần 1](./ngay-07-demo-tuan-1.md) | Ghép bảng giá, phiên, sổ lệnh, execution và tài sản thành kịch bản demo. |
+| [Ngày 8 — OMS và vòng đời lệnh](./ngay-08-oms-va-vong-doi-lenh.md) | State machine, lịch sử sự kiện và xử lý yêu cầu hủy. |
+| [Ngày 9 — API đặt lệnh và chống tạo lệnh trùng](./ngay-09-api-dat-lenh-yeu-cau-huy-va-chong-tao-lenh-trung.md) | API đặt, yêu cầu hủy và retry an toàn với idempotency. |
+| [Ngày 10 — Giữ tiền và sổ cái tiền](./ngay-10-giu-tien-va-so-cai-tien.md) | Giữ tiền, xử lý khớp và đối chiếu biến động số dư. |
 | [Ngày 11 — Danh mục, giá vốn và lãi/lỗ](./ngay-11-danh-muc-gia-von-va-lai-lo.md) | Tính giá vốn bình quân từ execution, định giá danh mục và P&L. |
 | [Ngày 12 — Margin, tài sản bảo đảm và sức mua](./ngay-12-margin-tai-san-bao-dam-va-suc-mua.md) | Mô phỏng năng lực vay, kiểm tra tài sản bảo đảm và lý do quyết định. |
 | [Ngày 13 — Thanh toán và đối soát](./ngay-13-thanh-toan-va-doi-soat.md) | Nghĩa vụ T+2, batch thanh toán an toàn khi chạy lại và đối soát. |
