@@ -14,7 +14,7 @@ Bạn sẽ dùng **MySQL thật với nhiều connection**, tái hiện lỗi đ
 |---|---|---|
 | 30 phút nghiệp vụ | Hai lệnh tranh tiền, khớp và hủy cạnh tranh | Hiểu bất biến phải giữ |
 | 30 phút kỹ thuật | Row lock, conditional update, optimistic locking | Chọn đúng cơ chế |
-| 30–60 phút thực hành | Kiểm thử nhiều connection và lỗi transaction | Có bằng chứng không vượt khả dụng |
+| Thực hành, thời lượng theo thực tế | Kiểm thử tranh tiền, tranh chứng khoán và lỗi transaction | Có bằng chứng không vượt khả dụng |
 
 **Sản phẩm cuối buổi:**
 
@@ -490,7 +490,7 @@ Nếu không thể phục hồi sau số lần chờ giới hạn, đưa vào tr
 
 ---
 
-## 10. Bài mở rộng — hai lệnh bán tranh một vị thế
+## 10. Bài thực hành bắt buộc — hai lệnh bán tranh một vị thế
 
 Dùng fixture riêng:
 
@@ -653,7 +653,7 @@ Execution/cancel fixture:
 - Không dùng row lock để giả định đã giải quyết out-of-order.
 - Không tự sửa filled để bù execution thiếu.
 
-Nếu còn thời gian:
+Kiểm thử bắt buộc với fixture riêng:
 - Test giữ bán70 và70 trên vị thế100:
   một thành công, available30.
 - Chỉ Position Reservation Service, chưa cần API SELL end-to-end.
@@ -670,6 +670,7 @@ Sau khi làm:
 **Ngày 19 hoàn thành khi:**
 
 - [ ] Hai ý định khác nhau không dùng vượt cùng khoản tiền.
+- [ ] Hai yêu cầu giữ bán 70 trên vị thế 100 chỉ có một yêu cầu thành công và còn khả dụng 30.
 - [ ] Kiểm thử thực sự dùng nhiều connection.
 - [ ] Số dư, reservation và ledger đồng nhất.
 - [ ] Deadlock và timeout không để transaction dở dang.

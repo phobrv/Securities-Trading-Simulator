@@ -28,9 +28,9 @@ Phân bổ thời gian:
 |---|---|
 | 30 phút | Phân biệt log, audit và ledger |
 | 30 phút | Thiết kế ID liên kết, sự kiện và metrics |
-| 30–60 phút | Triển khai, chạy một luồng lệnh và điều tra lỗi |
+| Thực hành, thời lượng theo thực tế | Triển khai, chạy một luồng lệnh và điều tra lỗi |
 
-Nếu thời gian hạn chế, ưu tiên **log có cấu trúc, audit đúng transaction và tra cứu lịch sử lệnh**.
+Hoàn thành đầy đủ **log có cấu trúc, audit đúng transaction, tra cứu lịch sử lệnh, metrics và kiểm thử điều tra**; dành thêm thời gian nếu cần.
 
 ---
 

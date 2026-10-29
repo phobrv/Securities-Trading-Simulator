@@ -14,7 +14,7 @@ Bạn sẽ nối **ý định trên frontend** với **idempotency của backend
 |---|---|---|
 | 30 phút nghiệp vụ | Ý định giao dịch, kết quả chưa xác định và retry | Biết khi nào được tạo yêu cầu mới |
 | 30 phút kỹ thuật | Lưu intent, khôi phục và tra cứu kết quả | Có luồng xuyên frontend–backend |
-| 30–60 phút thực hành | Timeout sau commit, reload và gửi lại | Một ý định chỉ tạo một lệnh |
+| Thực hành, thời lượng theo thực tế | Timeout sau commit, reload và gửi lại | Một ý định chỉ tạo một lệnh |
 
 **Sản phẩm cuối buổi:**
 
@@ -567,7 +567,7 @@ Trước khi code:
 1. Đọc useSubmitOrder, API client và auth state.
 2. Đọc scope/canonical hash/idempotency ngày9.
 3. Kiểm tra cách lưu order theo version.
-4. Đề xuất phạm vi30–60 phút.
+4. Lập kế hoạch hoàn thành tích hợp và mọi kịch bản timeout, retry, reload; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - BUY LO.

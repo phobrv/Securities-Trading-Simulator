@@ -14,7 +14,7 @@ Bạn sẽ xây **Settlement Service**, lịch ngày làm việc và một bài 
 |---|---|---|
 | 30 phút nghiệp vụ | Ngày giao dịch, ngày thanh toán, nghĩa vụ và đối soát | Hiểu tài sản thay đổi ở bước nào |
 | 30 phút kỹ thuật | Obligation, lịch, batch và transaction | Có thiết kế chạy lại an toàn |
-| 30–60 phút thực hành | Tạo nghĩa vụ, chạy thanh toán, kiểm tra đối soát | Không cộng/trừ tài sản lần hai |
+| Thực hành, thời lượng theo thực tế | Thanh toán BUY và SELL bằng fixture, kiểm tra đối soát | Không cộng/trừ tài sản lần hai |
 
 **Sản phẩm cuối buổi:**
 
@@ -24,7 +24,7 @@ Bạn sẽ xây **Settlement Service**, lịch ngày làm việc và một bài 
 - Chạy lại batch không làm thay đổi kết quả.
 - Báo cáo đối soát chỉ ra dữ liệu thiếu hoặc sai.
 
-Phạm vi bắt buộc là **thanh toán BUY**. Nhánh SELL dùng fixture độc lập hoặc làm mở rộng vì luồng bán tài khoản chưa hoàn chỉnh.
+Thực hành đầy đủ cả **thanh toán BUY và SELL**. Dùng fixture SELL độc lập vì luồng bán tài khoản chưa hoàn chỉnh; đến ngày 24 tích hợp luồng SELL và hồi quy settlement.
 
 ---
 
@@ -663,8 +663,8 @@ Trước khi code:
 1. Đọc execution handler, OMS, cash ledger, positions,
    position movements và Clock.
 2. Xác định transaction hiện tại cập nhật tiền/chứng khoán.
-3. Đề xuất phạm vi 30–60 phút.
-4. Ưu tiên BUY settlement; SELL là fixture/mở rộng.
+3. Lập kế hoạch hoàn thành cả BUY, SELL fixture, đối soát và kiểm thử; báo thời lượng dự kiến thực tế.
+4. Kiểm tra cả hai phía, bao gồm retry và chạy batch lần hai không thay đổi tài sản.
 
 Phạm vi:
 - Nghĩa vụ theo execution/account trong simulator.
@@ -723,7 +723,7 @@ Không đổi totalCost hoặc realizedPnl.
 Không đụng vào reservation đã đóng.
 Validate các thành phần chờ đủ, không để âm.
 
-SELL fixture/mở rộng:
+SELL fixture bắt buộc:
 settledCash += amount.
 pendingReceivable -= amount.
 settledQuantity -= quantity.
@@ -778,6 +778,7 @@ Sau khi làm:
 - [ ] Execution tạo nghĩa vụ cùng transaction.
 - [ ] Tính đúng ngày đến hạn theo lịch và timezone.
 - [ ] Thanh toán chuyển đúng các khoản chờ sang đã thanh toán.
+- [ ] Cả BUY và SELL fixture được thanh toán, đối soát và kiểm thử chạy lại không hạch toán trùng.
 - [ ] Giá vốn và vị thế kinh tế không bị ghi nhận lần hai.
 - [ ] Chạy lại hoặc chạy đồng thời không thanh toán trùng.
 - [ ] Đối soát phát hiện được khác biệt mà không tự sửa tài sản.

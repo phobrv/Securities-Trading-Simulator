@@ -16,7 +16,7 @@ Bạn sẽ lưu **dữ liệu nghiệp vụ và event cần phát trong cùng tr
 |---|---|---|
 | 30 phút nghiệp vụ | Khoảng lỗi giữa commit và phát event | Hiểu Outbox giải quyết vấn đề nào |
 | 30 phút kỹ thuật | Bảng outbox, worker, retry và xác nhận giao | Có thiết kế phục hồi rõ ràng |
-| 30–60 phút thực hành | Dừng worker tại các điểm lỗi | Event không bị bỏ quên, projection không tăng trùng |
+| Thực hành, thời lượng theo thực tế | Dừng worker tại các điểm lỗi | Event không bị bỏ quên, projection không tăng trùng |
 
 **Sản phẩm cuối buổi:**
 
@@ -613,7 +613,7 @@ Trước khi code:
 1. Đọc execution handler, dedup nguồn,
    settlement obligation và consumer projection.
 2. Xác định điểm commit rồi phát event hiện tại.
-3. Đề xuất phạm vi 30–60 phút.
+3. Lập kế hoạch hoàn thành outbox, worker và mọi kịch bản lỗi; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - Event ExecutionApplied schemaVersion1, chỉ BUY.

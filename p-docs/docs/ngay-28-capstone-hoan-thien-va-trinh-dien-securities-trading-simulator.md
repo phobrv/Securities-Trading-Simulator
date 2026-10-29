@@ -27,7 +27,7 @@ Phân bổ 90–120 phút:
 | 40–60 phút | Chạy demo, kiểm tra và xử lý lỗi |
 | 10–20 phút | Viết tổng kết và tự đánh giá |
 
-**Không cần bổ sung nhiều tính năng mới.** Ưu tiên làm cho luồng hiện có chạy đúng, có thể giải thích và có thể kiểm tra lại.
+Hoàn thành toàn bộ luồng và kiểm thử capstone; bổ sung hoặc sửa những phần còn thiếu để hệ thống chạy đúng, có thể giải thích và kiểm tra lại. Không thêm tính năng ngoài phạm vi simulator chỉ để tăng số lượng.
 
 ---
 
@@ -512,7 +512,7 @@ SELL, SELL settlement, portfolio reconciliation và một incident recovery.
 Trước khi sửa:
 1. Đọc code và tài liệu hiện có.
 2. Xác định tính năng đã chạy được, phần còn thiếu và lỗi chặn demo.
-3. Ưu tiên sửa luồng hiện có, tránh refactor lớn.
+3. Hoàn thiện mọi luồng và kiểm thử còn thiếu; refactor khi cần để đảm bảo tính đúng đắn, tránh thay đổi không liên quan.
 4. Không thay đổi công thức tài sản hoặc matching chỉ để khớp fixture.
 
 A. Fixture riêng

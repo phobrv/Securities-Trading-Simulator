@@ -14,7 +14,7 @@ Ngày 10 đã quản lý tiền của lệnh mua. Hôm nay bạn bổ sung phầ
 |---|---|---|
 | 30 phút nghiệp vụ | Giá vốn, giá thị trường, lãi/lỗ đã và chưa thực hiện | Tự tính được ví dụ mua/bán |
 | 30 phút kỹ thuật | Position, lịch sử biến động và định giá | Có công thức, schema và API |
-| 30–60 phút thực hành | Calculator, cập nhật sau mua và Portfolio API | Kết quả tính tay khớp API |
+| Thực hành, thời lượng theo thực tế | Calculator, cập nhật sau mua, Portfolio API và giao diện | Kết quả tính tay khớp API và giao diện |
 
 **Sản phẩm cuối buổi:**
 
@@ -631,7 +631,7 @@ Trước khi code:
 1. Đọc positions, availability calculator và execution handler ngày 10.
 2. Đọc contract Market Data và cách xử lý tiền.
 3. Xác định một nơi chịu trách nhiệm ghi vị thế.
-4. Đề xuất phạm vi 30–60 phút.
+4. Lập kế hoạch hoàn thành toàn bộ thực hành, giao diện và kiểm thử; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - Chỉ sec-001, vị thế long, không short.
@@ -737,7 +737,7 @@ Kiểm thử:
 - Movement failure rollback cả OMS và tiền.
 - Reserved/blocked không bị trừ khỏi lượng định giá.
 
-Nếu còn thời gian:
+Giao diện bắt buộc:
 - PortfolioPanel Vue hiển thị rõ chứng khoán mua chờ nhận,
   số lượng định giá và số lượng có thể bán.
 
@@ -756,5 +756,6 @@ Sau khi làm:
 - [ ] Bán một phần phân bổ đúng giá vốn và P&L.
 - [ ] Thiếu dữ liệu không tạo lãi/lỗ giả.
 - [ ] Execution không làm tiền, vị thế hoặc lịch sử cập nhật dở dang.
+- [ ] PortfolioPanel hiển thị lượng chờ nhận, lượng định giá và lượng có thể bán từ dữ liệu thực tế.
 
 Ngày 12 sẽ học **margin, tài sản bảo đảm và sức mua**, xây calculator riêng với chính sách giả lập, chưa đưa khoản vay vào luồng tiền mặt hiện tại.

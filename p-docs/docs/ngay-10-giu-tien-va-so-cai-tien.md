@@ -16,7 +16,7 @@ Môi trường giữ nguyên: **Node.js + TypeScript, MySQL và OpenCode**.
 |---|---|---|
 | 30 phút nghiệp vụ | Giữ tiền, tiền mua chờ thanh toán, giải phóng phần dư | Tự đối chiếu được số dư |
 | 30 phút kỹ thuật | Reservation, ledger và transaction | Thiết kế được cập nhật nguyên tử |
-| 30–60 phút thực hành | Nối đặt lệnh với giữ tiền; xử lý khớp và hủy | Không tạo khoản giữ hoặc hạch toán trùng |
+| Thực hành, thời lượng theo thực tế | Nối đặt lệnh với giữ tiền; xử lý khớp, hủy và kiểm thử | Không tạo khoản giữ hoặc hạch toán trùng |
 
 **Sản phẩm cuối buổi:**
 
@@ -640,7 +640,7 @@ Trước khi code:
    và các endpoint simulate hiện có.
 2. Vẽ ngắn phạm vi transaction hiện tại.
 3. Xác định đường ghi nào có thể bỏ qua hạch toán tiền.
-4. Đề xuất phạm vi 30–60 phút.
+4. Lập kế hoạch hoàn thành toàn bộ yêu cầu thực hành và kiểm thử của bài; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - BUY LO, VND, sec-001.

@@ -14,7 +14,7 @@ Trọng tâm mới là **giữ chứng khoán cho lệnh bán trong cùng transa
 |---|---|---|
 | 30 phút nghiệp vụ | Kiểm tra giao dịch và giữ tài sản | Hiểu đối xứng mua/bán |
 | 30 phút kỹ thuật | Pipeline Risk, reservation và transaction | Có một luồng kiểm tra thống nhất |
-| 30–60 phút thực hành | Ba tình huống từ chối và cạnh tranh | Không mua hoặc bán vượt khả dụng |
+| Thực hành, thời lượng theo thực tế | Các tình huống từ chối và cạnh tranh cho BUY và SELL | Không mua hoặc bán vượt khả dụng |
 
 **Sản phẩm cuối buổi:**
 
@@ -611,7 +611,7 @@ Trước khi code:
    security_reservations ngày6 và availability calculator.
 2. Đọc cost basis ngày11, settlement ngày13 và locks ngày19.
 3. Tìm các giả định BUY-only.
-4. Đề xuất phạm vi30–60 phút và chỉ rõ phần thiếu.
+4. Lập kế hoạch hoàn thành cả BUY, SELL và mọi kiểm thử; chỉ rõ phần thiếu và thời lượng dự kiến thực tế.
 
 Phạm vi:
 - CASH, LO, sec-001, phí/thuế0.

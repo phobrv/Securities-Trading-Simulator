@@ -14,7 +14,7 @@ Mục tiêu không phải thêm nhiều tính năng, mà chứng minh **lệnh, 
 |---|---|---|
 | 30 phút nghiệp vụ | Tính tay toàn bộ giao dịch | Có bảng kết quả kỳ vọng |
 | 30 phút kỹ thuật | Rà soát luồng OMS, matching, tài sản và settlement | Xác định đúng ranh giới transaction |
-| 30–60 phút thực hành | Chạy kịch bản tích hợp và kiểm tra | Demo tuần 2 có bằng chứng đối chiếu |
+| Thực hành, thời lượng theo thực tế | Chạy tất cả kịch bản tích hợp và kiểm tra | Demo tuần 2 có bằng chứng đối chiếu |
 
 **Sản phẩm cuối buổi:**
 
@@ -489,7 +489,7 @@ Kiểm tra ở từng chặng, không chỉ kết quả cuối.
 | Movement/ledger lỗi | Transaction liên quan rollback |
 | Reload hoặc mở hai tab | Không tự tạo giao dịch |
 
-**Bài mở rộng: khớp thêm trong khi chờ hủy**
+**Kịch bản bắt buộc: khớp thêm trong khi chờ hủy**
 
 Sau khi khớp 40, gửi hủy nhưng trì hoãn phản hồi. Cho B1 khớp thêm 20 tại 25.000 rồi hủy 40 còn lại.
 
@@ -582,7 +582,7 @@ Trước khi code:
 1. Đọc các module thực tế, không mặc định bài trước đã xong.
 2. Liệt kê các liên kết còn thiếu.
 3. Xác định transaction tạo lệnh, execution, cancel và settlement.
-4. Đề xuất phạm vi tối thiểu hoàn thành trong 30–60 phút.
+4. Lập kế hoạch hoàn thành cả kịch bản chính, khớp thêm khi chờ hủy và kiểm thử; báo thời lượng dự kiến thực tế.
 
 Mục tiêu:
 Một kịch bản:
@@ -661,7 +661,7 @@ Kiểm thử:
 - Rerun settlement không cộng chứng khoán lần hai.
 - Ledger và movements đối chiếu được, không chỉ số dư cuối.
 - Reload/hai tab không phát sinh giao dịch.
-- Nếu còn thời gian, kiểm tra khớp thêm20 trong lúc chờ hủy:
+- Kiểm tra khớp thêm20 trong lúc chờ hủy với fixture riêng:
   cuối filled60, canceled40, payable1496000, available8504000.
 
 Dữ liệu:
@@ -693,5 +693,6 @@ Sau khi làm:
 - [ ] Tiền cuối là **9.004.000 đồng**, chứng khoán khả dụng là **40**.
 - [ ] Ledger, movement, timeline và obligation cùng giải thích được kết quả.
 - [ ] Demo lặp lại được với dữ liệu đầu vào xác định.
+- [ ] Fixture riêng chứng minh khớp thêm 20 khi chờ hủy: filled 60, canceled 40 và tài sản được đối chiếu đúng.
 
 Ngày 15 bắt đầu tuần 3: **rà soát kiến trúc tổng thể và quyền sở hữu dữ liệu**, chuẩn bị cho phân quyền, concurrency, sự kiện và khả năng phục hồi.

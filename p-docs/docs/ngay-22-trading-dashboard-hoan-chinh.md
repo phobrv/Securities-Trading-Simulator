@@ -14,7 +14,7 @@ Trọng tâm là giao diện phản ánh đúng backend, có loading và lỗi r
 |---|---|---|
 | 30 phút nghiệp vụ | Thông tin cần trước và sau giao dịch | Hiểu cách trình bày trạng thái |
 | 30 phút kỹ thuật | Component, state và liên kết API | Có cấu trúc frontend rõ ràng |
-| 30–60 phút thực hành | Ghép dashboard và kiểm tra thao tác | Giao dịch được trên một màn hình |
+| Thực hành, thời lượng theo thực tế | Ghép dashboard và kiểm tra thao tác | Giao dịch được trên một màn hình |
 
 **Sản phẩm cuối buổi gồm:**
 
@@ -413,7 +413,7 @@ Trong Vue, dùng `onUnmounted` và cleanup của watcher khi dependency đổi �
 
 ---
 
-## 11. Bài thực hành — 30–60 phút
+## 11. Bài thực hành — hoàn thành đầy đủ
 
 Dùng fixture mới hoặc fixture được xác nhận đang ở trạng thái đầu kỳ:
 
@@ -484,8 +484,7 @@ Trước khi code:
 1. Đọc frontend và API thực tế.
 2. Xác định component/composable có thể dùng lại.
 3. Liệt kê endpoint còn thiếu.
-4. Chọn phạm vi30–60 phút, không đổi stack hoặc thêm
-   thư viện state nếu chưa cần.
+4. Lập kế hoạch hoàn thành dashboard và mọi kiểm thử của bài; báo thời lượng dự kiến thực tế, không đổi stack hoặc thêm thư viện state nếu chưa cần.
 
 Phạm vi:
 - Một dashboard.

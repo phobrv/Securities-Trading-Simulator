@@ -14,7 +14,7 @@ Trọng tâm là **định danh execution, ánh xạ lệnh, thứ tự phản h
 |---|---|---|
 | 30 phút nghiệp vụ | Nhiều lần khớp, giá thực hiện và phần còn lại | Tính đúng toàn bộ giao dịch |
 | 30 phút kỹ thuật | Adapter, execution contract và đối chiếu | Có luồng nhận kết quả rõ ràng |
-| 30–60 phút thực hành | Khớp một phần → khớp thêm → hủy | OMS, tài sản và matching đồng nhất |
+| Thực hành, thời lượng theo thực tế | Khớp một phần → khớp thêm → hủy, đối chiếu UI và phản hồi muộn | OMS, tài sản và matching đồng nhất |
 
 **Sản phẩm cuối buổi:**
 
@@ -458,7 +458,9 @@ Giữ protocol snapshot/delta và cơ chế phục hồi ngày17.
 | 10 phút | Rà mapping và execution contract |
 | 10–15 phút | Lưu execution, liên kết và chống trùng |
 | 15–20 phút | Chạy kịch bản hai lần khớp và hủy |
-| 10–15 phút mở rộng | Đối chiếu UI và phản hồi đến muộn |
+| 10–15 phút dự kiến | Đối chiếu UI và phản hồi đến muộn |
+
+Các khoảng thời gian chỉ để tham khảo; hoàn thành toàn bộ kịch bản và kiểm thử, kể cả khi cần thêm thời gian.
 
 Các bước:
 
@@ -559,7 +561,7 @@ Trước khi code:
    cancel handler và Market Data.
 2. Kiểm tra mapping OMS/simulator ID.
 3. Tìm chỗ còn giả định một order chỉ có một execution.
-4. Đề xuất phạm vi30–60 phút.
+4. Lập kế hoạch hoàn thành adapter, đối chiếu UI và mọi kiểm thử; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - BUY LO sec-001 làm kịch bản chính.
@@ -667,5 +669,6 @@ Sau khi làm:
 - [ ] Hủy xử lý đúng phần còn lại sau lần khớp mới nhất.
 - [ ] Market Data không đếm hai lần một giao dịch.
 - [ ] Tổng execution khớp với filled quantity và tài sản.
+- [ ] UI được đối chiếu với OMS và tài sản; phản hồi đến muộn được kiểm thử.
 
 Ngày 26 sẽ bổ sung **structured logging, audit và metric**, để truy vết một giao dịch từ HTTP request đến order, execution, ledger, outbox và settlement.

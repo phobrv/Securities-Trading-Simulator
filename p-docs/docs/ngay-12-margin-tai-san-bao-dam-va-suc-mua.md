@@ -16,7 +16,7 @@ Toàn bộ tỷ lệ trong bài là **giả lập**. Calculator chưa cấp kho�
 |---|---|---|
 | 30 phút nghiệp vụ | Vốn tự có, khoản vay, tài sản bảo đảm và hạn mức | Hiểu vì sao cùng giá trị danh mục nhưng khác sức mua |
 | 30 phút kỹ thuật | Chính sách, calculator và reason code | Có công thức giải thích được |
-| 30–60 phút thực hành | Hai danh mục đối chiếu, API mô phỏng và kiểm thử | Tính đúng và không làm thay đổi tài sản |
+| Thực hành, thời lượng theo thực tế | Hai danh mục đối chiếu, API, giao diện mô phỏng và kiểm thử | Tính đúng và không làm thay đổi tài sản |
 
 **Sản phẩm cuối buổi:**
 
@@ -509,14 +509,16 @@ Với thiếu cấu hình hoặc dữ liệu định giá cần thiết, trả `
 
 ---
 
-## 9. Thực hành — 30–60 phút
+## 9. Thực hành — hoàn thành đầy đủ
 
 | Thời gian | Công việc |
 |---|---|
 | 10 phút | Định nghĩa input và policy |
 | 15–20 phút | Calculator và kiểm thử |
 | 10–15 phút | Seed scenario và API |
-| 10–15 phút mở rộng | Hiển thị bảng giải thích trên giao diện Vue |
+| 10–15 phút dự kiến | Hiển thị bảng giải thích trên giao diện Vue |
+
+Các khoảng thời gian chỉ để tham khảo; hoàn thành tất cả các bước và kiểm thử, kể cả khi cần thêm thời gian.
 
 Thực hiện theo thứ tự:
 
@@ -600,7 +602,7 @@ Môi trường:
 Trước khi code:
 1. Đọc Accounts, positions, Portfolio và calculator tiền.
 2. Phân biệt giá vốn, giá thị trường và giá định giá bảo đảm.
-3. Đề xuất phạm vi 30–60 phút.
+3. Lập kế hoạch hoàn thành toàn bộ calculator, API, giao diện và kiểm thử; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - Calculator và API mô phỏng độc lập.
@@ -723,7 +725,7 @@ requiredLoan, financingLimit, decision và reasonCodes.
 Không chỉ trả boolean.
 ALLOW chỉ có nghĩa đạt bộ kiểm tra mô phỏng này.
 
-Nếu còn thời gian:
+Giao diện bắt buộc:
 - Giao diện Vue 3 + TypeScript + Tailwind CSS hiển thị so sánh A/B và giải thích từng bước.
 - Không nối vào nút đặt lệnh tiền mặt.
 
@@ -742,5 +744,6 @@ Sau khi làm:
 - [ ] Tách tỷ lệ quy đổi tài sản khỏi tỷ lệ tài trợ lệnh mua.
 - [ ] Kết quả có breakdown và reason code.
 - [ ] Calculator không làm thay đổi tài sản hoặc luồng tiền mặt.
+- [ ] Giao diện so sánh A/B, giải thích breakdown và không nối kết quả vào nút đặt lệnh tiền mặt.
 
 Ngày 13 sẽ xây **thanh toán và đối soát**: chuyển tiền/chứng khoán chờ thanh toán thành trạng thái đã thanh toán, dùng lịch ngày làm việc và bảo đảm chạy lại không hạch toán trùng.

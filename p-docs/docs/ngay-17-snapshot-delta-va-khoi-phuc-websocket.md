@@ -14,7 +14,7 @@ Bạn sẽ bổ sung **sequence, nhận diện luồng dữ liệu, phát hiện
 |---|---|---|
 | 30 phút nghiệp vụ | Dữ liệu đứng yên, mất kết nối và dữ liệu thiếu | Phân biệt các trạng thái |
 | 30 phút kỹ thuật | Snapshot, delta, sequence và đồng bộ | Có giao thức nhất quán |
-| 30–60 phút thực hành | Chủ động bỏ bản tin và reconnect | Client tự khôi phục đúng |
+| Thực hành, thời lượng theo thực tế | Chủ động bỏ bản tin và reconnect | Client tự khôi phục đúng |
 
 **Sản phẩm cuối buổi:**
 
@@ -636,7 +636,7 @@ Trước khi code:
 1. Đọc snapshot Redis, publisher, WebSocket gateway và Vue composable.
 2. Tìm race giữa subscribe và snapshot.
 3. Xác định publisher và connection cleanup hiện tại.
-4. Đề xuất phạm vi 30–60 phút.
+4. Lập kế hoạch hoàn thành mọi kịch bản mất bản tin, reconnect và kiểm thử; báo thời lượng dự kiến thực tế.
 
 Phạm vi:
 - Một backend/publisher cho mỗi chứng khoán trong demo.

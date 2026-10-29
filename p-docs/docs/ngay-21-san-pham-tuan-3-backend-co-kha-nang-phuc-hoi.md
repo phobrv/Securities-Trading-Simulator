@@ -14,7 +14,7 @@ Ngày 21 tập trung vào **bằng chứng thực hành**, không bổ sung côn
 |---|---|---|
 | 30 phút nghiệp vụ | Phân loại lỗi và cách phục hồi | Biết khi nào được retry |
 | 30 phút kỹ thuật | Xác định điểm lỗi và bất biến | Có ma trận kiểm thử |
-| 30–60 phút thực hành | Chạy năm kịch bản | Có kết quả và bằng chứng |
+| Thực hành, thời lượng theo thực tế | Chạy năm kịch bản | Có kết quả và bằng chứng |
 
 **Sản phẩm cuối buổi:**
 
@@ -412,6 +412,8 @@ Không ghi PASS chỉ vì có `try/catch`, Outbox hoặc `FOR UPDATE`.
 ---
 
 ## 12. Phân bổ thực hành
+
+Các khoảng thời gian dưới đây chỉ để tham khảo; phải hoàn thành cả năm kịch bản và báo cáo, kể cả khi cần thêm thời gian.
 
 | Thời gian | Công việc |
 |---|---|

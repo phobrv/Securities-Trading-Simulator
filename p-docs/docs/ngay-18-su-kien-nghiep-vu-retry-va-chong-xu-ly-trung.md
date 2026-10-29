@@ -14,7 +14,7 @@ Bạn sẽ xây một **consumer cập nhật projection danh mục**, với b�
 |---|---|---|
 | 30 phút nghiệp vụ | Sự kiện, giao lại, retry và xác nhận xử lý | Hiểu vì sao trùng là tình huống phải dự kiến |
 | 30 phút kỹ thuật | Event envelope, dedup và transaction | Có cơ chế xử lý lặp an toàn |
-| 30–60 phút thực hành | Consumer, projection và kiểm thử lỗi | Cùng sự kiện không tạo thêm tác động |
+| Thực hành, thời lượng theo thực tế | Consumer, projection và kiểm thử lỗi | Cùng sự kiện không tạo thêm tác động |
 
 **Sản phẩm cuối buổi:**
 
@@ -451,7 +451,7 @@ Hôm nay không phát event trước commit để né khoảng lỗi trên, vì 
 
 ---
 
-## 10. Bài thực hành — 30–60 phút
+## 10. Bài thực hành — hoàn thành đầy đủ
 
 Dùng tài khoản fixture mới `acc-018` và projection ban đầu:
 
@@ -626,7 +626,7 @@ Môi trường:
 Trước khi code:
 1. Đọc execution handler và dedup nghiệp vụ ngày 10–11.
 2. Xác định dữ liệu đã được cập nhật trong transaction nguồn.
-3. Đề xuất phạm vi 30–60 phút.
+3. Lập kế hoạch hoàn thành consumer, projection và mọi kiểm thử lỗi; báo thời lượng dự kiến thực tế.
 4. Không chuyển cập nhật tài sản nguồn sang async hôm nay.
 
 Phạm vi:

@@ -2,7 +2,7 @@
 
 **Mục tiêu:** hiểu nghiệp vụ chứng khoán Việt Nam và có khả năng xây dựng, bảo trì, debug một hệ thống giao dịch mô phỏng.
 
-- Thời lượng: 4 tuần, 90–120 phút/ngày, tổng khoảng 42–56 giờ.
+- Thời lượng: lộ trình 4 tuần; từ ngày 10, thời gian thực hành phụ thuộc phạm vi và trạng thái project, không giới hạn ở 90–120 phút/ngày. Dành thêm thời gian để hoàn thành đầy đủ các bước và kiểm thử.
 - Phương pháp: nghiệp vụ → phân tích hệ thống → API/database → lập trình → debug.
 - Dự án xuyên suốt: **Securities Trading Simulator**.
 - Frontend thực hành: **Vue 3 + TypeScript + Tailwind CSS**.

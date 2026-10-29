@@ -14,13 +14,13 @@ Mục tiêu là làm rõ ranh giới trước khi bổ sung phân quyền, concu
 |---|---|---|
 | 30 phút nghiệp vụ | Trách nhiệm các hệ thống trong luồng chứng khoán | Giải thích được ai làm gì |
 | 30 phút kỹ thuật | Quyền sở hữu bảng, interface và transaction | Có bản đồ kiến trúc rõ ràng |
-| 30–60 phút thực hành | Refactor một luồng truy cập chéo và chạy hồi quy | Giữ nguyên kết quả giao dịch |
+| Thực hành, thời lượng theo thực tế | Rà soát các luồng truy cập chéo, refactor và chạy hồi quy | Giữ nguyên kết quả giao dịch |
 
 **Sản phẩm cuối buổi:**
 
 - Bảng trách nhiệm module và quyền ghi dữ liệu.
 - Sơ đồ luồng tiếp nhận lệnh và xử lý execution.
-- Một luồng được refactor qua service interface.
+- Các luồng vi phạm quyền sở hữu dữ liệu được refactor qua service interface phù hợp.
 - Một quyết định kiến trúc ngắn giải thích vì sao tiếp tục dùng modular monolith.
 
 Ngày 15 không yêu cầu thêm nghiệp vụ hoặc tách thành microservices.
@@ -275,7 +275,9 @@ Portfolio ghép dữ liệu MySQL với quote Redis cũng không tự tạo ra m
 
 ---
 
-## 8. Bài thực hành — refactor một luồng
+## 8. Bài thực hành — rà soát và refactor các luồng
+
+Thực hiện ví dụ dưới đây, sau đó rà soát toàn bộ luồng tạo lệnh, execution, cancel và settlement. Sửa mọi truy cập ghi chéo vi phạm quyền sở hữu; nếu một luồng đã đúng, ghi bằng chứng và kiểm thử hồi quy thay vì viết lại.
 
 **Bước 1 — Tìm một truy cập chéo**
 
@@ -453,12 +455,12 @@ Trước khi sửa:
 1. Đọc cấu trúc module và các đường ghi dữ liệu.
 2. Xác định ai đang ghi từng bảng.
 3. Rà soát transaction tạo lệnh, execution, cancel và settlement.
-4. Tìm một truy cập chéo hoặc ranh giới chưa rõ.
+4. Tìm mọi truy cập chéo hoặc ranh giới chưa rõ trong các luồng được rà soát.
 5. Nếu code đã tốt, ghi nhận và chỉ sửa điểm có lợi ích cụ thể.
 
 Mục tiêu:
 - Tài liệu quyền sở hữu dữ liệu.
-- Refactor một luồng nhỏ qua service interface.
+- Refactor mọi luồng vi phạm qua service interface phù hợp.
 - Giữ nguyên hành vi ngày 14.
 - ADR giải thích modular monolith.
 
@@ -479,7 +481,7 @@ Quyền ghi dự kiến:
 - Idempotency: hạ tầng dùng chung, phối hợp trong transaction thao tác.
 
 Refactor:
-- Chỉ chọn một luồng, ưu tiên execution hoặc cancel confirmation.
+- Xử lý các vi phạm ở execution, cancel confirmation và các luồng khác đã rà soát; ghi rõ luồng đã đúng và bằng chứng.
 - Service điều phối gọi các module.
 - Module sở hữu bảng cung cấp thao tác nghiệp vụ.
 - Không dùng hàm updateTable hoặc setStatus tùy ý
@@ -534,7 +536,7 @@ Sau khi làm:
 
 - [ ] Bạn chỉ ra được module nào được phép ghi từng loại dữ liệu.
 - [ ] Phân biệt luồng nhận yêu cầu với luồng nhận execution.
-- [ ] Một luồng truy cập chéo được đưa về service đúng.
+- [ ] Các luồng đã rà soát không còn truy cập ghi chéo trái quyền; có bằng chứng hoặc kiểm thử cho từng luồng.
 - [ ] Các cập nhật nhiều module vẫn giữ chung transaction.
 - [ ] Kịch bản tuần 2 không đổi kết quả.
 - [ ] Có ADR giải thích lựa chọn kiến trúc và giới hạn.

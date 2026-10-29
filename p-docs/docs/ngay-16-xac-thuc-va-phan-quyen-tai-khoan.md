@@ -14,7 +14,7 @@ Trọng tâm là **backend kiểm tra quyền trên từng tài nguyên**, thay 
 |---|---|---|
 | 30 phút nghiệp vụ | Đăng nhập, quyền tài khoản và xác nhận giao dịch | Phân biệt ba lớp kiểm soát |
 | 30 phút kỹ thuật | JWT, membership, permission và audit | Có cơ chế kiểm tra quyền thống nhất |
-| 30–60 phút thực hành | Hai người dùng, hai tài khoản và kiểm thử truy cập chéo | Chặn đọc và giao dịch trái quyền |
+| Thực hành, thời lượng theo thực tế | Hai người dùng, hai tài khoản, giao diện và kiểm thử truy cập chéo | Chặn đọc và giao dịch trái quyền |
 
 **Sản phẩm cuối buổi:**
 
@@ -506,7 +506,7 @@ Ba loại lịch sử không thay thế nhau.
 
 ---
 
-## 11. Thực hành — 30–60 phút
+## 11. Thực hành — hoàn thành đầy đủ
 
 **Bước 1 — Seed hai người dùng và tài khoản**
 
@@ -632,7 +632,7 @@ Trước khi code:
    reservation, settlement và endpoint mô phỏng.
 2. Xác định requester cố định đang dùng cho idempotency.
 3. Phân biệt Market Clock và Auth Clock.
-4. Đề xuất phạm vi 30–60 phút.
+4. Lập kế hoạch hoàn thành xác thực, phân quyền, giao diện và kiểm thử; báo thời lượng dự kiến thực tế.
 
 Database:
 - users: id, username unique, password_hash, status.
@@ -719,7 +719,7 @@ Kiểm thử:
 - Customer không gọi endpoint vận hành.
 - Các bài transaction và đối chiếu tài sản trước vẫn đúng.
 
-Nếu còn thời gian:
+Giao diện bắt buộc:
 - Trang đăng nhập Vue 3 + TypeScript + Tailwind CSS, token lưu trong bộ nhớ cho demo.
 - Account selector lấy từ /api/me/accounts.
 - Reload có thể yêu cầu login lại; chưa cần refresh token.
@@ -741,5 +741,6 @@ Sau khi làm:
 - [ ] Replay idempotency vẫn phải qua phân quyền.
 - [ ] Endpoint mô phỏng không tạo đường bỏ qua kiểm soát.
 - [ ] Audit ghi được ai làm gì và vì sao bị từ chối.
+- [ ] Trang đăng nhập và bộ chọn tài khoản hoạt động; backend vẫn kiểm tra quyền cho mọi thao tác.
 
 Ngày 17 sẽ xử lý **snapshot, delta và khôi phục WebSocket**, giúp bảng giá đồng bộ đúng khi reconnect, thiếu bản tin hoặc nhận dữ liệu cũ.

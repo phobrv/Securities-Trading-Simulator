@@ -30,9 +30,9 @@ Phân bổ 90–120 phút:
 |---|---|
 | 30 phút | Học cách xác định phạm vi sự cố |
 | 30 phút | Thiết kế điểm gây lỗi và phương án phục hồi |
-| 30–60 phút | Thực hành ba kịch bản chính |
+| Thực hành, thời lượng theo thực tế | Thực hành cả năm kịch bản sự cố |
 
-Ưu tiên thực hành **mất HTTP response, giao lại outbox và rollback execution**. Hai kịch bản realtime và settlement có thể dùng làm bài mở rộng.
+Thực hành đầy đủ **mất HTTP response, giao lại outbox, rollback execution, realtime và settlement**; lưu bằng chứng điều tra và phục hồi cho từng kịch bản.
 
 ---
 
@@ -574,7 +574,7 @@ C. Execution rollback trước commit
 - Sau thành công, gửi duplicate để kiểm tra không có tác động thêm.
 - Nêu rõ chưa hỗ trợ crash recovery đầy đủ cho matching in-memory.
 
-3. Bài mở rộng
+3. Kịch bản realtime và settlement bắt buộc
 - Drop một quote delta, kiểm tra gap và snapshot recovery.
 - Drop delta cuối, kiểm tra heartbeat authoritative head.
 - Settlement lỗi trước commit rồi retry.
