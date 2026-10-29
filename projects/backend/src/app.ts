@@ -1,5 +1,6 @@
 import cors from "cors";
 import express, { type Express } from "express";
+import { randomUUID } from "node:crypto";
 
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
@@ -18,6 +19,8 @@ import { createAccountRouter } from "./modules/accounts/account.routes.js";
 import { AccountService } from "./modules/accounts/account.service.js";
 import { createOmsRouter } from "./modules/oms/oms.routes.js";
 import type { OmsService } from "./modules/oms/oms.service.js";
+import { createOrderApiRouter } from "./modules/oms/order-api.routes.js";
+import type { OrderApiService } from "./modules/oms/order-api.service.js";
 
 export type AppDependencies = {
   systemService: SystemService;
@@ -28,6 +31,7 @@ export type AppDependencies = {
   matchingService?: MatchingService;
   accountService?: AccountService;
   omsService?: OmsService;
+  orderApiService?: OrderApiService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -52,12 +56,14 @@ export function createApp({
   matchingService,
   accountService,
   omsService,
+  orderApiService,
 }: AppDependencies): Express {
   const app = express();
 
   app.disable("x-powered-by");
   app.use(
     cors({
+      exposedHeaders: ["Location", "Idempotency-Replayed", "X-Request-Id"],
       origin(origin, callback) {
         const isAllowedOrigin =
           origin === undefined ||
@@ -68,6 +74,11 @@ export function createApp({
       },
     }),
   );
+  app.use("/api/orders", (_request, response, next) => {
+    response.locals.requestId = randomUUID();
+    response.set("X-Request-Id", response.locals.requestId);
+    next();
+  });
   app.use(express.json());
   app.use(createSystemRouter(systemService));
   app.use(createSecurityRouter(securityService));
@@ -84,6 +95,7 @@ export function createApp({
   if (omsService && env.omsDemoEnabled) {
     app.use(createOmsRouter(omsService));
   }
+  if (orderApiService) app.use(createOrderApiRouter(orderApiService));
   app.use(notFoundHandler);
   app.use(errorHandler);
 

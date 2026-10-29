@@ -10,7 +10,7 @@ type EventRow = RowDataPacket & {
   payload: string | object; occurredAt: Date; recordedAt: Date;
 };
 
-const orderSelect = `SELECT id, account_id AS accountId, security_id AS securityId, side,
+export const orderSelect = `SELECT id, account_id AS accountId, security_id AS securityId, side,
   order_type AS orderType, price, quantity, filled_quantity AS filledQuantity,
   remaining_quantity AS remainingQuantity, canceled_quantity AS canceledQuantity,
   status, cancel_request_status AS cancelRequestStatus, version FROM orders WHERE id = ?`;
@@ -76,7 +76,7 @@ export class MySqlOmsRepository implements OmsRepository {
   }
 }
 
-async function insertEvent(connection: PoolConnection, record: RecordedEvent): Promise<void> {
+export async function insertEvent(connection: PoolConnection, record: RecordedEvent): Promise<void> {
   await connection.execute(`INSERT INTO order_events (id, order_id, event_sequence, event_type,
     from_status, to_status, reason_code, payload, occurred_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   [record.id, record.orderId, record.eventSequence, record.event.type, record.fromStatus, record.toStatus,

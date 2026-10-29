@@ -18,6 +18,8 @@ import { MySqlAccountRepository } from "./modules/accounts/account.repository.js
 import { AccountService } from "./modules/accounts/account.service.js";
 import { MySqlOmsRepository } from "./modules/oms/oms.repository.js";
 import { OmsService } from "./modules/oms/oms.service.js";
+import { OrderApiRepository } from "./modules/oms/order-api.repository.js";
+import { OrderApiService } from "./modules/oms/order-api.service.js";
 
 const database = createDatabase();
 const securityService = new SecurityService(
@@ -64,6 +66,7 @@ const app = createApp({
   matchingService,
   accountService,
   omsService: env.omsDemoEnabled ? new OmsService(new MySqlOmsRepository(database), clock) : undefined,
+  orderApiService: env.omsDemoEnabled ? new OrderApiService(new OrderApiRepository(database, clock), marketSessionService, clock, env.orderDemoRequester) : undefined,
 });
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);

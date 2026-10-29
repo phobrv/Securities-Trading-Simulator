@@ -118,6 +118,7 @@ function parseIsoInstant(value: string): Date | null {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
   omsDemoEnabled: readOmsDemoEnabled(),
+  orderDemoRequester: "local-demo",
   port: readPort(process.env.PORT, 3000),
   corsOrigins: (process.env.CORS_ORIGIN ?? "http://localhost:5173")
     .split(",")
