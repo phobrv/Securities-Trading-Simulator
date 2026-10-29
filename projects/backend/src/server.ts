@@ -16,6 +16,8 @@ import { MatchingService } from "./modules/matching-simulator/matching.service.j
 import { SystemService } from "./modules/system/system.service.js";
 import { MySqlAccountRepository } from "./modules/accounts/account.repository.js";
 import { AccountService } from "./modules/accounts/account.service.js";
+import { MySqlOmsRepository } from "./modules/oms/oms.repository.js";
+import { OmsService } from "./modules/oms/oms.service.js";
 
 const database = createDatabase();
 const securityService = new SecurityService(
@@ -61,6 +63,7 @@ const app = createApp({
   orderSessionValidator,
   matchingService,
   accountService,
+  omsService: env.omsDemoEnabled ? new OmsService(new MySqlOmsRepository(database), clock) : undefined,
 });
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);

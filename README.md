@@ -58,6 +58,21 @@ npm run migration:run
 
 Availability check chỉ đọc dữ liệu, không gửi lệnh, không giữ tài sản và không làm thay đổi số dư. Vì vậy kết quả preview không bảo đảm tài sản vẫn đủ khi có request đồng thời; thao tác kiểm tra và giữ nguyên tử sẽ được bổ sung ở các phần sau.
 
+## OMS demo (Ngày 8)
+
+OMS lưu trạng thái lệnh và timeline MySQL, độc lập với Matching Simulator trong bộ nhớ. Chưa giữ tiền/chứng khoán, settlement, chống sự kiện trùng hay xử lý sự kiện sai thứ tự; không coi transaction MySQL là giao dịch nguyên tử với matching.
+
+Chạy migration từ `projects/backend/` bằng `npm run migration:run`. Chỉ trong môi trường local/demo, đặt `OMS_DEMO_ENABLED=true` trong cấu hình backend (mặc định tắt; chỉ cho phép với `NODE_ENV=development`, `test` hoặc `demo`). Dùng fixture `acc-001`, `sec-001`:
+
+- `POST /api/oms-demo/orders`: `{ "accountId":"acc-001", "securityId":"sec-001", "side":"BUY", "orderType":"LO", "price":25000, "quantity":100 }`.
+- `GET /api/oms-demo/orders/:id`: trạng thái hiện tại; `price` trả về chuỗi nguyên VND/cổ phiếu.
+- `GET /api/oms-demo/orders/:id/events`: timeline theo `eventSequence`.
+- `POST /api/oms-demo/orders/:id/simulate`: lần lượt gửi `{ "type":"OrderAccepted" }`, `{ "type":"ExecutionReceived", "executionId":"exe-1", "quantity":40, "price":24900 }`, `{ "type":"CancelRequested" }`, execution 20 giá 25000, rồi `{ "type":"CancelConfirmed" }`.
+
+Kết quả: `CANCELED`, khớp 60, hủy 40, còn 0, version 6. `PENDING_NEW` chỉ chuyển `NEW` khi được chấp nhận; `CancelRequested` không hủy lệnh, và có thể tiếp tục khớp khi chờ. Nếu khớp hết trong lúc chờ, chỉ có thể nhận `CancelRejected`. `OrderRejected` và `CancelRejected` nhận thêm `reasonCode` và `message`. Từ chối sự kiện không hợp lệ không thay đổi lệnh hoặc timeline.
+
+Kiểm thử transaction thật là tùy chọn, chỉ chạy trên **database test riêng** đã migration và có fixture: từ `projects/backend/` cấu hình `DB_*` trỏ đến database đó rồi chạy `OMS_MYSQL_TEST=true npm test -- --testPathPattern=oms.mysql`. Test tạo và dọn đúng lệnh của nó; bộ test mặc định không cần MySQL.
+
 ## Lộ trình học 4 tuần (28 buổi)
 
 Mỗi tuần gồm 7 buổi. Nội dung đi từ kiến thức nền tảng đến quan sát và mô phỏng một quy trình giao dịch hoàn chỉnh.

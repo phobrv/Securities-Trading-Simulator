@@ -4,6 +4,7 @@ import { CreateSecurityMaster1792800000000 } from "../database/migrations/179280
 import { SeedSecurityMaster1792800001000 } from "../database/migrations/1792800001000-seed-security-master.js";
 import { CreateAccounts1792800002000 } from "../database/migrations/1792800002000-create-accounts.js";
 import { SeedAccounts1792800003000 } from "../database/migrations/1792800003000-seed-accounts.js";
+import { CreateOms1792800004000 } from "../database/migrations/1792800004000-create-oms.js";
 import { env } from "../config/env.js";
 
 const migrationDataSource = new DataSource({
@@ -20,6 +21,7 @@ const migrationDataSource = new DataSource({
     SeedSecurityMaster1792800001000,
     CreateAccounts1792800002000,
     SeedAccounts1792800003000,
+    CreateOms1792800004000,
   ],
 });
 

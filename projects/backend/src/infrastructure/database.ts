@@ -1,6 +1,7 @@
 import mysql, {
   type Pool,
   type PoolOptions,
+  type PoolConnection,
   type RowDataPacket,
 } from "mysql2/promise";
 import type { ExecuteValues } from "mysql2";
@@ -17,6 +18,7 @@ export interface Database extends DatabaseHealthChecker {
     parameters?: ExecuteValues,
   ): Promise<TRow>;
   close(): Promise<void>;
+  transaction<T>(work: (connection: PoolConnection) => Promise<T>): Promise<T>;
 }
 
 export function createDatabase(): Database {
@@ -30,6 +32,7 @@ export function createDatabase(): Database {
     connectionLimit: 10,
     enableKeepAlive: true,
     connectTimeout: env.database.connectTimeoutMs,
+    timezone: "Z",
   };
 
   const pool: Pool = mysql.createPool(options);
@@ -48,6 +51,21 @@ export function createDatabase(): Database {
     },
     async close(): Promise<void> {
       await pool.end();
+    },
+    async transaction<T>(work: (connection: PoolConnection) => Promise<T>): Promise<T> {
+      const connection = await pool.getConnection();
+      try {
+        await connection.query("SET time_zone = '+00:00'");
+        await connection.beginTransaction();
+        const result = await work(connection);
+        await connection.commit();
+        return result;
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
     },
   };
 }

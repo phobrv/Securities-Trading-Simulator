@@ -16,6 +16,8 @@ import { SystemService } from "./modules/system/system.service.js";
 import { createSystemRouter } from "./modules/system/system.routes.js";
 import { createAccountRouter } from "./modules/accounts/account.routes.js";
 import { AccountService } from "./modules/accounts/account.service.js";
+import { createOmsRouter } from "./modules/oms/oms.routes.js";
+import type { OmsService } from "./modules/oms/oms.service.js";
 
 export type AppDependencies = {
   systemService: SystemService;
@@ -25,6 +27,7 @@ export type AppDependencies = {
   orderSessionValidator: OrderSessionValidator;
   matchingService?: MatchingService;
   accountService?: AccountService;
+  omsService?: OmsService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -48,6 +51,7 @@ export function createApp({
   orderSessionValidator,
   matchingService,
   accountService,
+  omsService,
 }: AppDependencies): Express {
   const app = express();
 
@@ -76,6 +80,9 @@ export function createApp({
   }
   if (accountService) {
     app.use(createAccountRouter(accountService));
+  }
+  if (omsService && env.omsDemoEnabled) {
+    app.use(createOmsRouter(omsService));
   }
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -10,6 +10,16 @@ function readPort(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
+function readOmsDemoEnabled(): boolean {
+  const value = process.env.OMS_DEMO_ENABLED ?? "false";
+  if (value !== "true" && value !== "false") throw new Error("OMS_DEMO_ENABLED phải là true hoặc false.");
+  const mode = process.env.NODE_ENV ?? "development";
+  if (value === "true" && !["development", "test", "demo"].includes(mode)) {
+    throw new Error("OMS demo chỉ được bật trong development, test hoặc demo.");
+  }
+  return value === "true";
+}
+
 function readPositiveInteger(
   value: string | undefined,
   fallback: number,
@@ -107,6 +117,7 @@ function parseIsoInstant(value: string): Date | null {
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? "development",
+  omsDemoEnabled: readOmsDemoEnabled(),
   port: readPort(process.env.PORT, 3000),
   corsOrigins: (process.env.CORS_ORIGIN ?? "http://localhost:5173")
     .split(",")

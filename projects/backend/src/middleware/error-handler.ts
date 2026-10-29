@@ -17,6 +17,10 @@ export const errorHandler: ErrorRequestHandler = (
   response,
   _next,
 ) => {
+  if (error instanceof SyntaxError && "status" in error && error.status === 400) {
+    response.status(400).json({ error: { code: "INVALID_JSON", message: "JSON không hợp lệ." } });
+    return;
+  }
   if (error instanceof ApplicationError) {
     response.status(error.statusCode).json({
       error: {
