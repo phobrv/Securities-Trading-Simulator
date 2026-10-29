@@ -46,7 +46,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <div class="mb-5 flex items-center justify-between"><h2 class="section-label">CHỦ ĐỀ</h2><span class="text-xs text-[#a1aea2]">{{ topics.length }} chủ đề</span></div>
           <nav aria-label="Chọn chủ đề" class="flex flex-wrap gap-2 lg:flex-col">
             <button v-for="(item, i) in ['Tất cả', ...topics]" :key="item" type="button" :class="['topic-button', { active: topic === item }]" :aria-pressed="topic === item" @click="topic = item">
-              <span class="topic-symbol">{{ ['◈', '◌', '↗', '⇄', '▣', '◷'][i] }}</span><span class="flex-1 text-left">{{ item }}</span><span class="topic-count">{{ item === 'Tất cả' ? cards.length : cards.filter(card => card.topic === item).length }}</span>
+              <span class="topic-symbol">{{ ['◈', '◌', '↗', '⇄', '▣', '◷', '⚙'][i] }}</span><span class="flex-1 text-left">{{ item }}</span><span class="topic-count">{{ item === 'Tất cả' ? cards.length : cards.filter(card => card.topic === item).length }}</span>
             </button>
           </nav>
           <div class="mt-8 border-t border-[#e8ece4] pt-6">
