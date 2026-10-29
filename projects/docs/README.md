@@ -22,3 +22,4 @@ Khi hoàn thành một ngày mới:
 - [Ngày 8 — OMS và vòng đời lệnh](./ngay-08-oms-va-vong-doi-lenh.md)
 - [Ngày 9 — API đặt lệnh, yêu cầu hủy và idempotency](./ngay-09-api-dat-lenh-idempotency.md)
 - [Ngày 10 — Giữ tiền và sổ cái tiền](./ngay-10-giu-tien-va-so-cai-tien.md)
+- [Ngày 11 — Danh mục, giá vốn bình quân và lãi/lỗ](./ngay-11-danh-muc-gia-von-va-lai-lo.md)

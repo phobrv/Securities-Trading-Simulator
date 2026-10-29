@@ -1,5 +1,7 @@
 # Ngày 10 — Giữ tiền và sổ cái tiền
 
+> **Lưu ý sau ngày 11:** Phần dưới mô tả trạng thái ngày 10. Execution BUY có reservation hiện còn cập nhật position và movement; execution cũ thiếu movement cần xử lý backfill riêng. Xem [triển khai ngày 11](./ngay-11-danh-muc-gia-von-va-lai-lo.md).
+
 ## Phạm vi và trạng thái
 
 Backend bổ sung giữ tiền cho BUY LO `sec-001`, VND, phí và thuế bằng 0. API đặt lệnh và các phản hồi simulate cho lệnh có reservation cập nhật OMS và tiền trong transaction MySQL; không nối Matching Simulator. Chưa có settlement, cập nhật positions, giữ chứng khoán hay kế toán kép. Đây là simulator phục vụ học tập, không dùng cho giao dịch thực.
@@ -8,15 +10,15 @@ Các test MySQL ngày 10 đã chạy thành công trên MySQL 8.0. Bộ integrat
 
 ## Cấu trúc code
 
-| Thành phần | Tệp trong `projects/` | Vai trò |
-| --- | --- | --- |
-| Migration | `backend/src/database/migrations/1792800006000-create-cash-ledger.ts`, `1792800007000-seed-cash-ledger.ts` | Tạo bảng tiền và fixture có ledger đầu kỳ. |
-| Tính toán | `backend/src/modules/cash/cash.calculator.ts` | Tính reserve, payable và phần dư bằng `bigint`, kiểm tra giới hạn tiền. |
-| Ghi tiền | `backend/src/modules/cash/cash.repository.ts` | Khóa số dư, đối chiếu, ghi reservation và ledger bằng connection của transaction. |
-| Đặt lệnh | `backend/src/modules/oms/order-api.service.ts`, `order-api.repository.ts`, `order-api.precheck.ts` | Idempotency, precheck, tạo order/event và giữ tiền. |
-| Xử lý event | `backend/src/modules/oms/oms.service.ts`, `oms.repository.ts`, `oms.reducer.ts` | Áp dụng event OMS và biến động tiền cùng transaction; chống execution trùng cho lệnh có reservation. |
-| API đọc | `backend/src/modules/cash/cash-read.routes.ts`, `cash-read.service.ts`, `cash-read.repository.ts` | Đọc reservation và ledger. API số dư dùng module `accounts` hiện có. |
-| Kiểm thử | `backend/tests/cash/` | Kiểm tra tính toán, HTTP và transaction MySQL opt-in. |
+| Thành phần  | Tệp trong `projects/`                                                                                      | Vai trò                                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Migration   | `backend/src/database/migrations/1792800006000-create-cash-ledger.ts`, `1792800007000-seed-cash-ledger.ts` | Tạo bảng tiền và fixture có ledger đầu kỳ.                                                           |
+| Tính toán   | `backend/src/modules/cash/cash.calculator.ts`                                                              | Tính reserve, payable và phần dư bằng `bigint`, kiểm tra giới hạn tiền.                              |
+| Ghi tiền    | `backend/src/modules/cash/cash.repository.ts`                                                              | Khóa số dư, đối chiếu, ghi reservation và ledger bằng connection của transaction.                    |
+| Đặt lệnh    | `backend/src/modules/oms/order-api.service.ts`, `order-api.repository.ts`, `order-api.precheck.ts`         | Idempotency, precheck, tạo order/event và giữ tiền.                                                  |
+| Xử lý event | `backend/src/modules/oms/oms.service.ts`, `oms.repository.ts`, `oms.reducer.ts`                            | Áp dụng event OMS và biến động tiền cùng transaction; chống execution trùng cho lệnh có reservation. |
+| API đọc     | `backend/src/modules/cash/cash-read.routes.ts`, `cash-read.service.ts`, `cash-read.repository.ts`          | Đọc reservation và ledger. API số dư dùng module `accounts` hiện có.                                 |
+| Kiểm thử    | `backend/tests/cash/`                                                                                      | Kiểm tra tính toán, HTTP và transaction MySQL opt-in.                                                |
 
 ## Dữ liệu và chính sách tiền
 
@@ -110,12 +112,12 @@ curl "http://localhost:3000/api/oms-demo/orders/$ORDER_ID/events"
 
 Với fixture ban đầu chưa dùng: order `CANCELED`, filled 40, canceled 60; balance `settledCash=10000000`, `reservedCash=0`, `buyPayable=996000`, `availableCash=9004000`; reservation `initialAmount=2500000`, `remainingAmount=0`, `consumedAmount=996000`, `releasedAmount=1504000`, `CLOSED`.
 
-| Ledger | Delta settled | Delta reserved | Delta payable |
-| --- | ---: | ---: | ---: |
-| OPENING | +10.000.000 | 0 | 0 |
-| RESERVE | 0 | +2.500.000 | 0 |
-| EXECUTION | 0 | −1.000.000 | +996.000 |
-| RELEASE | 0 | −1.500.000 | 0 |
+| Ledger    | Delta settled | Delta reserved | Delta payable |
+| --------- | ------------: | -------------: | ------------: |
+| OPENING   |   +10.000.000 |              0 |             0 |
+| RESERVE   |             0 |     +2.500.000 |             0 |
+| EXECUTION |             0 |     −1.000.000 |      +996.000 |
+| RELEASE   |             0 |     −1.500.000 |             0 |
 
 Reservation không tồn tại trả `404 CASH_RESERVATION_NOT_FOUND`; order không tồn tại trả `404 ORDER_NOT_FOUND`. Ledger của tài khoản không tồn tại trả `404 ACCOUNT_NOT_FOUND`. API đọc ledger không phân trang trong phiên bản hiện tại. Chưa có giao diện riêng cho reservation/ledger; sử dụng API để đối chiếu.
 

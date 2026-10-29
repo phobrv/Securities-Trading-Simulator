@@ -10,17 +10,18 @@
 
 ## Tài liệu triển khai
 
-| Ngày | Nội dung |
-| --- | --- |
-| [Ngày 2](./docs/ngay-02-security-master.md) | Security Master và migration MySQL |
-| [Ngày 3](./docs/ngay-03-market-data-realtime.md) | Market Data realtime, Redis và WebSocket |
-| [Ngày 4](./docs/ngay-04-market-session.md) | Market Session và kiểm tra phiên lệnh |
-| [Ngày 5](./docs/ngay-05-matching-simulator.md) | Sổ lệnh và Matching Simulator trong bộ nhớ |
-| [Ngày 6](./docs/ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Accounts, tiền và chứng khoán khả dụng |
-| [Ngày 7](./docs/ngay-07-demo-tuan-1.md) | Demo tuần 1: bảng giá và matching simulator |
-| [Ngày 8](./docs/ngay-08-oms-va-vong-doi-lenh.md) | OMS demo, vòng đời lệnh và timeline |
-| [Ngày 9](./docs/ngay-09-api-dat-lenh-idempotency.md) | API đặt lệnh, yêu cầu hủy và idempotency |
-| [Ngày 10](./docs/ngay-10-giu-tien-va-so-cai-tien.md) | Giữ tiền, reservation và sổ cái tiền |
+| Ngày                                                      | Nội dung                                    |
+| --------------------------------------------------------- | ------------------------------------------- |
+| [Ngày 2](./docs/ngay-02-security-master.md)               | Security Master và migration MySQL          |
+| [Ngày 3](./docs/ngay-03-market-data-realtime.md)          | Market Data realtime, Redis và WebSocket    |
+| [Ngày 4](./docs/ngay-04-market-session.md)                | Market Session và kiểm tra phiên lệnh       |
+| [Ngày 5](./docs/ngay-05-matching-simulator.md)            | Sổ lệnh và Matching Simulator trong bộ nhớ  |
+| [Ngày 6](./docs/ngay-06-tai-khoan-va-tai-san-kha-dung.md) | Accounts, tiền và chứng khoán khả dụng      |
+| [Ngày 7](./docs/ngay-07-demo-tuan-1.md)                   | Demo tuần 1: bảng giá và matching simulator |
+| [Ngày 8](./docs/ngay-08-oms-va-vong-doi-lenh.md)          | OMS demo, vòng đời lệnh và timeline         |
+| [Ngày 9](./docs/ngay-09-api-dat-lenh-idempotency.md)      | API đặt lệnh, yêu cầu hủy và idempotency    |
+| [Ngày 10](./docs/ngay-10-giu-tien-va-so-cai-tien.md)      | Giữ tiền, reservation và sổ cái tiền        |
+| [Ngày 11](./docs/ngay-11-danh-muc-gia-von-va-lai-lo.md)   | Danh mục, giá vốn bình quân và lãi/lỗ       |
 
 Xem [chỉ mục tài liệu](./docs/README.md) để biết quy ước cập nhật cho các ngày tiếp theo.
 
@@ -33,7 +34,7 @@ Sau `npm run migration:run --prefix backend`, fixture `acc-003` có 10.000.000 V
 - `POST /api/orders/:id/cancel`: yêu cầu hủy, chưa giải phóng tiền.
 - `GET /api/accounts/:id/balances`, `GET /api/orders/:id/cash-reservation`, `GET /api/accounts/:id/cash-ledger`: đọc số dư, khoản giữ và lịch sử.
 
-Ví dụ dùng BUY 100 @25000, simulate accepted, execution 40 @24900, yêu cầu hủy rồi simulate cancel confirmed: `settledCash=10000000`, `reservedCash=0`, `buyPayable=996000`, `availableCash=9004000`. Execution chuyển tiền giữ sang nghĩa vụ mua, **không giảm `settledCash`**: nếu giảm đồng thời `settledCash` và tăng `buyPayable`, tiền khả dụng bị trừ hai lần. Tiền và ledger delta trả dưới dạng chuỗi; ledger chỉ là lịch sử biến động, chưa phải kế toán kép. Chưa có settlement, cập nhật positions hay nối matching.
+Ví dụ dùng BUY 100 @25000, simulate accepted, execution 40 @24900, yêu cầu hủy rồi simulate cancel confirmed: `settledCash=10000000`, `reservedCash=0`, `buyPayable=996000`, `availableCash=9004000`. Execution chuyển tiền giữ sang nghĩa vụ mua, **không giảm `settledCash`**: nếu giảm đồng thời `settledCash` và tăng `buyPayable`, tiền khả dụng bị trừ hai lần. Tiền và ledger delta trả dưới dạng chuỗi; ledger chỉ là lịch sử biến động, chưa phải kế toán kép. Từ ngày 11, BUY có reservation còn cập nhật positions; chưa có settlement hay nối matching.
 
 Khi replay cùng execution, API trả trạng thái lệnh hiện tại mà không ghi lại; cùng ID nhưng nội dung khác trả 409. Không sửa hoặc xóa ledger để điều chỉnh số dư. Migration ledger không hỗ trợ tự động revert vì có thể xóa lịch sử tài chính; MySQL DDL có implicit commit, nếu migration schema lỗi giữa chừng cần kiểm tra thủ công trước khi chạy lại.
 
