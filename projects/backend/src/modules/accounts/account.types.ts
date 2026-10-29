@@ -29,6 +29,8 @@ export type Position = {
   pendingSellQuantity: number;
   reservedQuantity: number;
   blockedQuantity: number;
+  totalCost?: bigint | null;
+  realizedPnl?: bigint | null;
 };
 
 export interface AccountRepository {

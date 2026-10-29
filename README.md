@@ -58,6 +58,16 @@ npm run migration:run
 
 Availability check chỉ đọc dữ liệu, không gửi lệnh, không giữ tài sản và không làm thay đổi số dư. Vì vậy kết quả preview không bảo đảm tài sản vẫn đủ khi có request đồng thời; thao tác kiểm tra và giữ nguyên tử sẽ được bổ sung ở các phần sau.
 
+## Danh mục và giá vốn (Ngày 11)
+
+Chạy `npm run migration:run` trong `projects/backend/` để tạo `acc-004` với 10.000.000 VND và ledger `OPENING`. Dùng `POST /api/orders` và phản hồi execution qua OMS demo như luồng ngày 10; xem `GET /api/accounts/acc-004/portfolio` hoặc chọn tài khoản trên giao diện. Hai lệnh BUY 100 khớp lần lượt 25.000 và 27.000 cho giá vốn 5.200.000, bình quân 26.000. Nếu giá khớp cuối của Market Data là 27.000, giá trị là 5.400.000 và lãi chưa thực hiện 200.000.
+
+Giá vốn lấy từ giá execution, lưu tổng bằng đồng nguyên; phép tính dùng `bigint`. Giá vốn bình quân chỉ để hiển thị, làm tròn half-up đến 6 chữ số thập phân. Khi bán trong calculator, giá vốn phân bổ được làm tròn half-up đến đồng; bán hết phân bổ toàn bộ phần còn lại. Trường tiền trong Portfolio API là chuỗi. Vị thế cũ không có giá vốn được đánh dấu `MISSING`; không ước tính P&L từ giá vốn bằng 0.
+
+200 cổ phiếu mua chờ nhận vẫn được định giá như vị thế kinh tế, nhưng lượng bán được là 0 cho đến khi thanh toán. Không có settlement hoặc luồng bán tài khoản hoàn chỉnh trong ngày này. Execution lịch sử ngày 10 không được tự replay; nếu còn execution cash ledger chưa có movement, execution mới cho cùng tài khoản/mã sẽ bị từ chối với `POSITION_HISTORY_INCOMPLETE` cho đến khi có backfill riêng. OMS demo cũ và Matching Simulator vẫn độc lập với luồng tài khoản có giữ tiền.
+
+Không có giá khớp hoặc Market Data không khả dụng thì không định giá bằng 0. `STALE` nghĩa là timestamp cập nhật quote quá 5 phút theo đồng hồ simulator; timestamp này là thời gian cập nhật quote, không nhất thiết là thời gian giao dịch cuối. Có thể chạy kiểm thử transaction tùy chọn trên database test riêng đã migration bằng `CASH_MYSQL_TEST=true npm test -- --testPathPattern=cash.mysql`.
+
 ## OMS demo (Ngày 8)
 
 OMS demo cũ trên `acc-001` lưu trạng thái và timeline mà không giữ tài sản. Luồng BUY có giữ tiền ngày 10 dùng `acc-003` và `POST /api/orders`; xem [hướng dẫn ngày 10](projects/README.md#giữ-tiền-và-sổ-cái-ngày-10). Cả hai luồng độc lập với Matching Simulator và chưa settlement.

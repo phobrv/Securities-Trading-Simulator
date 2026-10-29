@@ -10,6 +10,7 @@ import QuoteBoard from "@/components/QuoteBoard.vue";
 import SimulatorExecutionsPanel from "@/components/SimulatorExecutionsPanel.vue";
 import SimulatorOrderBookPanel from "@/components/SimulatorOrderBookPanel.vue";
 import OmsDemoPanel from "@/features/oms/OmsDemoPanel.vue";
+import PortfolioPanel from "@/features/portfolio/PortfolioPanel.vue";
 import { useAccountOverview } from "@/composables/useAccountOverview";
 import { useMarketData } from "@/composables/useMarketData";
 import { useMarketSession } from "@/composables/useMarketSession";
@@ -56,6 +57,8 @@ const {
 const accountOptions = [
   { id: "acc-001", label: "Tài khoản mô phỏng A" },
   { id: "acc-002", label: "Tài khoản mô phỏng B" },
+  { id: "acc-003", label: "Tài khoản tiền ngày 10" },
+  { id: "acc-004", label: "Tài khoản danh mục ngày 11" },
 ];
 
 function changeAccount(): void {
@@ -88,12 +91,12 @@ onUnmounted(() => {
       <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
         Securities Trading Simulator
       </h1>
-        <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-          Dữ liệu mô phỏng kết hợp bảng giá, trạng thái phiên và tài sản khả dụng.
-        </p>
-        <p class="mt-3 text-sm font-medium text-amber-200">
-          Dữ liệu mô phỏng. Số dư tài khoản chưa cập nhật theo matching.
-        </p>
+      <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+        Dữ liệu mô phỏng kết hợp bảng giá, trạng thái phiên và tài sản khả dụng.
+      </p>
+      <p class="mt-3 text-sm font-medium text-amber-200">
+        Matching Simulator độc lập với luồng lệnh tài khoản.
+      </p>
 
       <div class="mt-10">
         <MarketSessionPanel
@@ -106,20 +109,40 @@ onUnmounted(() => {
         <section class="mb-10" aria-labelledby="account-overview-title">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 id="account-overview-title" class="text-lg font-semibold">Tài sản tài khoản</h2>
-              <p class="mt-1 text-sm text-slate-400">Số dư fixture, chỉ dùng để đọc và kiểm tra thử.</p>
+              <h2 id="account-overview-title" class="text-lg font-semibold">
+                Tài sản tài khoản
+              </h2>
+              <p class="mt-1 text-sm text-slate-400">
+                Số dư fixture, chỉ dùng để đọc và kiểm tra thử.
+              </p>
             </div>
             <label class="grid gap-1 text-sm font-medium text-slate-200">
               Chọn tài khoản
-              <select v-model="selectedAccountId" class="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100" @change="changeAccount">
-                <option v-for="account in accountOptions" :key="account.id" :value="account.id">
+              <select
+                v-model="selectedAccountId"
+                class="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
+                @change="changeAccount"
+              >
+                <option
+                  v-for="account in accountOptions"
+                  :key="account.id"
+                  :value="account.id"
+                >
                   {{ account.label }}
                 </option>
               </select>
             </label>
           </div>
           <div class="mt-5 grid gap-5 xl:grid-cols-2">
-            <AccountBalancePanel :balance="balance" :loading="accountLoading" :error-message="accountErrorMessage" />
+            <PortfolioPanel
+              class="xl:col-span-2"
+              :account-id="selectedAccountId"
+            />
+            <AccountBalancePanel
+              :balance="balance"
+              :loading="accountLoading"
+              :error-message="accountErrorMessage"
+            />
             <AvailabilityCheckForm
               :securities="securities"
               :loading="previewLoading"

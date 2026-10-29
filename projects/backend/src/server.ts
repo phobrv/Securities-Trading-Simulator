@@ -22,6 +22,7 @@ import { OrderApiRepository } from "./modules/oms/order-api.repository.js";
 import { OrderApiService } from "./modules/oms/order-api.service.js";
 import { CashReadRepository } from "./modules/cash/cash-read.repository.js";
 import { CashReadService } from "./modules/cash/cash-read.service.js";
+import { PortfolioService } from "./modules/portfolio/portfolio.service.js";
 
 const database = createDatabase();
 const securityService = new SecurityService(
@@ -67,9 +68,23 @@ const app = createApp({
   orderSessionValidator,
   matchingService,
   accountService,
-  omsService: env.omsDemoEnabled ? new OmsService(new MySqlOmsRepository(database), clock) : undefined,
-  orderApiService: env.omsDemoEnabled ? new OrderApiService(new OrderApiRepository(database, clock), marketSessionService, clock, env.orderDemoRequester) : undefined,
+  omsService: env.omsDemoEnabled
+    ? new OmsService(new MySqlOmsRepository(database), clock)
+    : undefined,
+  orderApiService: env.omsDemoEnabled
+    ? new OrderApiService(
+        new OrderApiRepository(database, clock),
+        marketSessionService,
+        clock,
+        env.orderDemoRequester,
+      )
+    : undefined,
   cashReadService: new CashReadService(new CashReadRepository(database)),
+  portfolioService: new PortfolioService(
+    new MySqlAccountRepository(database),
+    marketDataService,
+    () => clock.now(),
+  ),
 });
 const server = app.listen(env.port, () => {
   console.info(`Backend đang lắng nghe tại http://localhost:${env.port}`);

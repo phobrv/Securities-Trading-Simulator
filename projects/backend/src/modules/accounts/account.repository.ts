@@ -36,6 +36,8 @@ type PositionRow = RowDataPacket & {
   pendingSellQuantity: number | string;
   reservedQuantity: number | string;
   blockedQuantity: number | string;
+  totalCost: string | null;
+  realizedPnl: string | null;
 };
 
 export class MySqlAccountRepository implements AccountRepository {
@@ -83,7 +85,9 @@ export class MySqlAccountRepository implements AccountRepository {
          p.pending_buy_quantity AS pendingBuyQuantity,
          p.pending_sell_quantity AS pendingSellQuantity,
          COALESCE(reservations.reservedQuantity, 0) AS reservedQuantity,
-         p.blocked_quantity AS blockedQuantity
+         p.blocked_quantity AS blockedQuantity,
+         p.total_cost AS totalCost,
+         p.realized_pnl AS realizedPnl
        FROM positions AS p
        INNER JOIN securities AS s ON s.id = p.security_id
        LEFT JOIN (
@@ -133,7 +137,16 @@ function toPosition(row: PositionRow): Position {
     pendingSellQuantity: parseQuantity(row.pendingSellQuantity),
     reservedQuantity: parseQuantity(row.reservedQuantity),
     blockedQuantity: parseQuantity(row.blockedQuantity),
+    totalCost: row.totalCost == null ? null : parseMoney(row.totalCost),
+    realizedPnl:
+      row.realizedPnl == null ? null : parseSignedMoney(row.realizedPnl),
   };
+}
+
+function parseSignedMoney(value: string): bigint {
+  if (!/^-?\d+$/.test(value))
+    throw new AccountRepositoryDataError("Lãi/lỗ không hợp lệ.");
+  return BigInt(value);
 }
 
 function parseMoney(value: string): bigint {
@@ -147,11 +160,7 @@ function parseMoney(value: string): bigint {
 function parseQuantity(value: number | string): number {
   const parsed = typeof value === "number" ? value : Number(value);
 
-  if (
-    !Number.isSafeInteger(parsed) ||
-    parsed < 0 ||
-    parsed > 4_294_967_295
-  ) {
+  if (!Number.isSafeInteger(parsed) || parsed < 0 || parsed > 4_294_967_295) {
     throw new AccountRepositoryDataError("Số lượng chứng khoán không hợp lệ.");
   }
 

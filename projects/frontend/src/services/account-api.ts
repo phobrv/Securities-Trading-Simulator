@@ -4,15 +4,24 @@ import type {
   AvailabilityCheckRequest,
   AvailabilityCheckResult,
 } from "@/types/account";
+import type { Portfolio } from "@/features/portfolio/portfolio.types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
 type DataResponse<T> = { data: T };
 
+export async function fetchPortfolio(accountId: string): Promise<Portfolio> {
+  return fetchData<Portfolio>(
+    `/api/accounts/${encodeURIComponent(accountId)}/portfolio`,
+  );
+}
+
 export async function fetchAccountBalance(
   accountId: string,
 ): Promise<AccountBalance> {
-  return fetchData<AccountBalance>(`/api/accounts/${encodeURIComponent(accountId)}/balances`);
+  return fetchData<AccountBalance>(
+    `/api/accounts/${encodeURIComponent(accountId)}/balances`,
+  );
 }
 
 export async function fetchAccountPositions(
@@ -40,7 +49,8 @@ export async function previewAccountAvailability(
     throw new Error(await readErrorMessage(response));
   }
 
-  return ((await response.json()) as DataResponse<AvailabilityCheckResult>).data;
+  return ((await response.json()) as DataResponse<AvailabilityCheckResult>)
+    .data;
 }
 
 async function fetchData<T>(path: string): Promise<T> {

@@ -23,6 +23,8 @@ import { createOrderApiRouter } from "./modules/oms/order-api.routes.js";
 import type { OrderApiService } from "./modules/oms/order-api.service.js";
 import { createCashReadRouter } from "./modules/cash/cash-read.routes.js";
 import type { CashReadService } from "./modules/cash/cash-read.service.js";
+import { createPortfolioRouter } from "./modules/portfolio/portfolio.routes.js";
+import type { PortfolioService } from "./modules/portfolio/portfolio.service.js";
 
 export type AppDependencies = {
   systemService: SystemService;
@@ -35,6 +37,7 @@ export type AppDependencies = {
   omsService?: OmsService;
   orderApiService?: OrderApiService;
   cashReadService?: CashReadService;
+  portfolioService?: PortfolioService;
 };
 
 function isLocalDevelopmentOrigin(origin: string): boolean {
@@ -61,6 +64,7 @@ export function createApp({
   omsService,
   orderApiService,
   cashReadService,
+  portfolioService,
 }: AppDependencies): Express {
   const app = express();
 
@@ -101,6 +105,7 @@ export function createApp({
   }
   if (orderApiService) app.use(createOrderApiRouter(orderApiService));
   if (cashReadService) app.use(createCashReadRouter(cashReadService));
+  if (portfolioService) app.use(createPortfolioRouter(portfolioService));
   app.use(notFoundHandler);
   app.use(errorHandler);
 
