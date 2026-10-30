@@ -1,6 +1,6 @@
-# Securities Trading Simulator Docs
+# Nghiệp vụ chứng khoán cho dev fullstack
 
-Website tài liệu học tập cho dự án **Securities Trading Simulator**, được xây dựng với Vue 3, TypeScript và Vite.
+Website tài liệu học nghiệp vụ chứng khoán dành cho developer fullstack, xây dựng bằng Vue 3, TypeScript và Vite. Lộ trình chính tập trung vào phân tích nghiệp vụ và hệ thống, không yêu cầu viết code.
 
 > Đây là dự án mô phỏng phục vụ học tập, không dùng cho giao dịch chứng khoán thực tế.
 
@@ -61,15 +61,15 @@ npm run preview
 
 ## Cập nhật tài liệu
 
-- Các bài viết Markdown nằm trong thư mục [`docs/`](./docs/).
-- Mỗi tệp `.md` trong thư mục này sẽ tự động xuất hiện trong danh mục website.
-- [`docs/README.md`](./docs/README.md) là trang mặc định.
+- Trang mặc định là [`docs/README.md`](./docs/README.md); lộ trình chính là [`docs/lo-trinh-nghiep-vu-fullstack.md`](./docs/lo-trinh-nghiep-vu-fullstack.md).
+- Các bài học chính không cần code nằm trực tiếp trong [`docs/`](./docs/), theo thứ tự đã khai báo trong [`src/App.vue`](./src/App.vue).
+- Bộ tài liệu 28 ngày về xây simulator nằm trong [`archive/lo-trinh-28-ngay/`](./archive/lo-trinh-28-ngay/) và được hiển thị ở khu vực tham khảo.
 - Có thể dùng sơ đồ Mermaid trong các code block `mermaid`.
 
-Ví dụ tạo bài mới tại `docs/ngay-02.md`:
+Ví dụ tạo bài mới tại `docs/13-chu-de-moi.md`, rồi thêm đường dẫn vào `courseOrder` và điều chỉnh nhóm tương ứng để nó xuất hiện trong luồng học chính:
 
 ````md
-# Ngày 2 — Tiêu đề bài học
+# Buổi 13 — Tiêu đề bài học
 
 Nội dung bài học.
 

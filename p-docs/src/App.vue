@@ -16,7 +16,12 @@ type TableOfContentsItem = {
   level: number
 }
 
-const modules = import.meta.glob('../docs/**/*.md', {
+type NavigationGroup = {
+  label: string
+  documents: DocumentItem[]
+}
+
+const modules = import.meta.glob(['../docs/**/*.md', '../archive/lo-trinh-28-ngay/**/*.md'], {
   eager: true,
   import: 'default',
   query: '?raw',
@@ -24,8 +29,8 @@ const modules = import.meta.glob('../docs/**/*.md', {
 
 const documents = Object.entries(modules)
   .map(([file, source]) => {
-    const path = file.replace('../docs/', '')
-    const id = path.replace(/\.md$/, '')
+    const path = file.replace('../', '')
+    const id = path.replace(/^docs\//, '').replace(/\.md$/, '')
     const firstHeading = source.match(/^#\s+(.+)$/m)?.[1]
 
     return {
@@ -36,11 +41,11 @@ const documents = Object.entries(modules)
     }
   })
   .sort((first, second) => {
-    if (first.path === 'README.md') return -1
-    if (second.path === 'README.md') return 1
+    if (first.path === 'docs/README.md') return -1
+    if (second.path === 'docs/README.md') return 1
 
-    const firstDay = Number(first.path.match(/^ngay-(\d+)-/)?.[1])
-    const secondDay = Number(second.path.match(/^ngay-(\d+)-/)?.[1])
+    const firstDay = Number(first.path.match(/\/ngay-(\d+)-/)?.[1])
+    const secondDay = Number(second.path.match(/\/ngay-(\d+)-/)?.[1])
     const hasFirstDay = Number.isFinite(firstDay)
     const hasSecondDay = Number.isFinite(secondDay)
 
@@ -51,7 +56,36 @@ const documents = Object.entries(modules)
     return first.title.localeCompare(second.title, 'vi')
   })
 
-const defaultDocument = documents.find((document) => document.path === 'README.md') ?? documents[0]
+const defaultDocument = documents.find((document) => document.path === 'docs/README.md') ?? documents[0]
+const mainRoadmapDocument = documents.find((document) => document.path === 'docs/lo-trinh-nghiep-vu-fullstack.md')
+const courseOrder = [
+  'docs/01-buc-tranh-thi-truong-va-hanh-trinh-giao-dich.md',
+  'docs/02-chung-khoan-va-du-lieu-danh-muc.md',
+  'docs/03-bang-gia-va-du-lieu-thi-truong.md',
+  'docs/04-phien-giao-dich-va-loai-lenh.md',
+  'docs/05-so-lenh-va-khop-lenh.md',
+  'docs/06-tai-khoan-va-tai-san-kha-dung.md',
+  'docs/07-oms-va-vong-doi-lenh.md',
+  'docs/08-tu-giao-dien-den-xu-ly-lenh.md',
+  'docs/09-giu-tai-san-danh-muc-va-suc-mua.md',
+  'docs/09-bo-sung-danh-muc-gia-von-va-margin.md',
+  'docs/10-thanh-toan-va-doi-soat.md',
+  'docs/11-ranh-gioi-he-thong-va-kha-nang-phuc-hoi.md',
+  'docs/11-bo-sung-nhat-quan-va-phuc-hoi-he-thong.md',
+  'docs/12-truy-vet-va-dieu-tra-su-co.md',
+  'docs/on-tap-va-tinh-huong-cong-viec.md',
+]
+const courseDocuments = courseOrder.flatMap((path) => {
+  const document = documents.find((item) => item.path === path)
+  return document ? [document] : []
+})
+const courseGroups: NavigationGroup[] = [
+  { label: 'PHẦN 1 · NỀN TẢNG', documents: courseDocuments.slice(0, 6) },
+  { label: 'PHẦN 2 · GIAO DỊCH & TÀI SẢN', documents: courseDocuments.slice(6, 11) },
+  { label: 'PHẦN 3 · ĐỘ TIN CẬY', documents: courseDocuments.slice(11, 14) },
+  { label: 'ÔN TẬP', documents: courseDocuments.slice(14) },
+]
+const referenceDocuments = documents.filter((document) => document.path.startsWith('archive/lo-trinh-28-ngay/'))
 const selectedId = ref(readDocumentId())
 const isNavigationOpen = ref(false)
 const contentElement = ref<HTMLElement>()
@@ -67,7 +101,12 @@ const renderedContent = computed(() => {
 })
 
 function readDocumentId() {
-  const documentId = new URLSearchParams(window.location.search).get('doc')
+  const requestedId = new URLSearchParams(window.location.search).get('doc')
+  let documentId = requestedId
+  if (requestedId?.startsWith('khoa-hoc/')) documentId = requestedId.slice('khoa-hoc/'.length)
+  if (requestedId && /^(ngay-\d+-|lo-trinh-28-ngay$|kien-truc-va-quy-uoc$)/.test(requestedId)) {
+    documentId = `archive/lo-trinh-28-ngay/${requestedId}`
+  }
   return documents.some((document) => document.id === documentId)
     ? documentId!
     : defaultDocument?.id ?? ''
@@ -179,8 +218,8 @@ onMounted(() => {
       <a class="brand" href="?doc=README" @click.prevent="selectDocument(defaultDocument?.id ?? '')">
         <span class="brand-mark">ST</span>
         <span>
-          <strong>Securities Trading Simulator</strong>
-          <small>Tài liệu học tập</small>
+          <strong>Nghiệp vụ chứng khoán</strong>
+          <small>Dành cho dev fullstack</small>
         </span>
       </a>
       <button
@@ -195,10 +234,42 @@ onMounted(() => {
     </header>
 
     <aside id="document-navigation" class="navigation" :class="{ 'is-open': isNavigationOpen }">
-      <p class="navigation-label">TÀI LIỆU</p>
       <nav aria-label="Danh sách tài liệu">
+        <p class="navigation-label">BẮT ĐẦU</p>
         <button
-          v-for="documentItem in documents"
+          v-if="defaultDocument"
+          class="document-link"
+          :class="{ active: defaultDocument.id === currentDocument?.id }"
+          type="button"
+          @click="selectDocument(defaultDocument.id)"
+        >
+          {{ defaultDocument.title }}
+        </button>
+        <button
+          v-if="mainRoadmapDocument"
+          class="document-link"
+          :class="{ active: mainRoadmapDocument.id === currentDocument?.id }"
+          type="button"
+          @click="selectDocument(mainRoadmapDocument.id)"
+        >
+          {{ mainRoadmapDocument.title }}
+        </button>
+        <template v-for="group in courseGroups" :key="group.label">
+          <p class="navigation-label navigation-section">{{ group.label }}</p>
+          <button
+            v-for="documentItem in group.documents"
+            :key="documentItem.id"
+            class="document-link"
+            :class="{ active: documentItem.id === currentDocument?.id }"
+            type="button"
+            @click="selectDocument(documentItem.id)"
+          >
+            {{ documentItem.title }}
+          </button>
+        </template>
+        <p class="navigation-label navigation-section">THAM KHẢO · 28 NGÀY</p>
+        <button
+          v-for="documentItem in referenceDocuments"
           :key="documentItem.id"
           class="document-link"
           :class="{ active: documentItem.id === currentDocument?.id }"
