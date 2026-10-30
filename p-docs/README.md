@@ -97,9 +97,9 @@ Python lưu SQLite tại `~/.local/share/securities-learning/practice.sqlite3` h
 
 Lưu ý: đây là quy trình tương tác do AI thực hiện, không phải giao diện chấm độc lập; cần cho phép OpenCode chạy CLI và kiểm tra thông báo lỗi nếu thao tác lưu không thành công. Không ghi nhận hoàn thành chỉ vì đã trả lời đủ câu.
 
-### Xem các lượt luyện tập trên website
+### Làm bài luyện tập trên website
 
-Chạy API chỉ đọc trong một terminal tại `p-docs`:
+Chạy API cục bộ trong một terminal tại `p-docs`:
 
 ```bash
 python3 practice/server.py
@@ -107,7 +107,9 @@ python3 practice/server.py
 
 Trong terminal khác chạy `npm run dev` (hoặc `npm run build` rồi `npm run preview`), mở website bằng địa chỉ `http://localhost:5173` hoặc địa chỉ localhost do Vite hiển thị, và chọn **Bài luyện tập**. API nghe trên `127.0.0.1:8765`; Vite chuyển tiếp yêu cầu chỉ từ máy cục bộ. Cần chạy cả API lẫn Vite và dùng cùng biến `SECURITIES_PRACTICE_DB`/`XDG_DATA_HOME` với OpenCode nếu đã tùy chỉnh đường dẫn SQLite.
 
-Danh sách và chi tiết chỉ đọc, không lộ đáp án hoặc các câu chưa mở khi bài đang làm. Dùng nút sao chép lệnh để tiếp tục/chấm trong OpenCode. Không dùng `--host` để chia sẻ trang luyện tập qua mạng; website tĩnh không kết nối được API này nếu không có máy chủ cục bộ.
+Trên website, bắt đầu lượt buổi 01, trả lời lần lượt, lưu hoặc sửa câu trả lời, rồi xác nhận nộp bài. Sau khi nộp không thể chỉnh sửa. Sao chép lệnh `/practice-grade ID` trên web và chạy trong phiên OpenCode tại `p-docs`; làm mới trang để xem kết quả. Có thể tiếp tục bài đang làm bằng web hoặc `/practice-resume ID` trong OpenCode. Đáp án tham khảo, rubric và các câu chưa mở không được gửi tới trình duyệt khi làm bài.
+
+Không dùng `--host` để chia sẻ trang luyện tập qua mạng; website tĩnh không kết nối được API này nếu không có máy chủ cục bộ. API có quyền ghi dữ liệu luyện tập, vì vậy chỉ chạy trên máy tin cậy và không công khai cổng API.
 
 ## Scripts
 

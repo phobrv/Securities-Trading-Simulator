@@ -119,7 +119,7 @@ def validate_evaluation(value, test):
     return grader.strip(), all(item["score"] == 2 for item in items)
 
 
-def run(args, db):
+def run(args, db, input_value=None):
     if args.action == "start":
         if args.test_id != "01":
             fail("Bản thử nghiệm hiện chỉ hỗ trợ buổi 01.")
@@ -134,7 +134,7 @@ def run(args, db):
     if args.action == "next":
         return public_progress(db, row, test)
     if args.action == "answer":
-        value = read_json_input()
+        value = read_json_input() if input_value is None else input_value
         answer, qid = value.get("answer"), value.get("question_id")
         if not isinstance(answer, str) or not answer.strip():
             fail("Câu trả lời không được để trống.")
@@ -143,7 +143,7 @@ def run(args, db):
             current, test = attempt(db, args.attempt_id)
             if current["status"] != "in_progress":
                 fail("Bài đã nộp, không thể sửa câu trả lời.")
-            if qid not in {q["id"] for q in test["questions"]}:
+            if not isinstance(qid, str) or qid not in {q["id"] for q in test["questions"]}:
                 fail("Câu hỏi không thuộc bài này.")
             existing = response_map(db, args.attempt_id)
             missing = [q["id"] for q in test["questions"] if q["id"] not in existing]
@@ -171,7 +171,7 @@ def run(args, db):
         return grade_input(db, row, test)
     if args.action == "save-grade":
         grade_input(db, row, test)
-        value = read_json_input()
+        value = read_json_input() if input_value is None else input_value
         grader, passed = validate_evaluation(value, test)
         with db:
             cursor = db.execute("INSERT INTO evaluations(attempt_id, grader, result_json, passed) VALUES (?, ?, ?, ?)",

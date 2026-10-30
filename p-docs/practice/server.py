@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only local HTTP view of the practice database."""
+"""Local HTTP interface for answering practice questions; grading stays in OpenCode."""
 
 import argparse
 from contextlib import closing
@@ -9,6 +9,7 @@ import re
 import sqlite3
 from urllib.parse import urlsplit
 
+import cli
 from cli import DB_PATH
 
 
@@ -42,11 +43,12 @@ def serialize(db, row, detail=False):
               "created_at": row["created_at"], "updated_at": latest_update,
               "submitted_at": row["submitted_at"], "evaluations_count": len(evaluations)}
     if detail:
-        # Only expose already answered questions during a live attempt.
+        # Expose answered questions and the next unanswered question, never the rubric.
         result["scenario"] = test["scenario"]
+        next_id = next((q["id"] for q in test["questions"] if q["id"] not in responses), None)
         result["questions"] = [
             {"id": q["id"], "number": i + 1,
-             "prompt": q["prompt"] if row["status"] == "submitted" or q["id"] in responses else None,
+             "prompt": q["prompt"] if row["status"] == "submitted" or q["id"] in responses or q["id"] == next_id else None,
              "answer": responses[q["id"]]["answer"] if q["id"] in responses else None,
              "updated_at": responses[q["id"]]["updated_at"] if q["id"] in responses else None}
             for i, q in enumerate(test["questions"])]
@@ -55,6 +57,15 @@ def serialize(db, row, detail=False):
 
 
 class Handler(BaseHTTPRequestHandler):
+    def allowed(self):
+        origin = self.headers.get("Origin")
+        if origin:
+            parsed = urlsplit(origin)
+            if parsed.scheme not in ("http", "https") or parsed.hostname not in ("localhost", "127.0.0.1"):
+                return False
+        return (self.headers.get("Host") == f"127.0.0.1:{self.server.server_port}"
+                and self.headers.get("X-Practice-Client") == "p-docs")
+
     def reply(self, code, data):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
@@ -67,7 +78,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         # Vite forwards a fixed local Host. Do not permit DNS rebinding or simple cross-origin requests.
-        if self.headers.get("Host") != f"127.0.0.1:{self.server.server_port}" or self.headers.get("X-Practice-Client") != "p-docs":
+        if not self.allowed():
             return self.reply(403, {"error": "Yêu cầu không được phép."})
         path = urlsplit(self.path).path
         if path != "/api/practice/attempts" and not re.fullmatch(r"/api/practice/attempts/[1-9][0-9]*", path):
@@ -86,16 +97,44 @@ class Handler(BaseHTTPRequestHandler):
         except (sqlite3.Error, ValueError, KeyError):
             return self.reply(500, {"error": "Không thể đọc dữ liệu luyện tập. Kiểm tra database và quyền truy cập."})
 
+    def do_POST(self):
+        if not self.allowed():
+            return self.reply(403, {"error": "Yêu cầu không được phép."})
+        path = urlsplit(self.path).path
+        match = re.fullmatch(r"/api/practice/attempts/([1-9][0-9]*)/(answer|submit)", path)
+        if path != "/api/practice/attempts" and not match:
+            return self.reply(404, {"error": "Không tìm thấy đường dẫn."})
+        try:
+            if self.headers.get_content_type() != "application/json":
+                return self.reply(415, {"error": "Yêu cầu phải dùng JSON."})
+            length = int(self.headers.get("Content-Length", "0"))
+            if length < 1 or length > 1024 * 1024:
+                return self.reply(400, {"error": "Dữ liệu không hợp lệ hoặc quá lớn."})
+            value = json.loads(self.rfile.read(length).decode("utf-8"))
+            if not isinstance(value, dict):
+                raise ValueError("Dữ liệu phải là JSON object.")
+            if match:
+                args = argparse.Namespace(action=match.group(2), attempt_id=int(match.group(1)))
+            else:
+                args = argparse.Namespace(action="start", test_id=value.get("test_id"))
+            with closing(cli.connect()) as db:
+                result = cli.run(args, db, input_value=value)
+            return self.reply(200, result)
+        except (ValueError, UnicodeDecodeError) as exc:
+            return self.reply(400, {"error": str(exc)})
+        except (sqlite3.Error, OSError):
+            return self.reply(500, {"error": "Không thể lưu dữ liệu luyện tập. Kiểm tra database và quyền truy cập."})
+
     def log_message(self, format, *args):
         pass
 
 
 def main():
-    parser = argparse.ArgumentParser(description="API chỉ đọc cho bài luyện tập")
+    parser = argparse.ArgumentParser(description="API cục bộ cho bài luyện tập")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
     with ThreadingHTTPServer(("127.0.0.1", args.port), Handler) as server:
-        print(f"API chỉ đọc tại http://127.0.0.1:{server.server_port}", flush=True)
+        print(f"API luyện tập tại http://127.0.0.1:{server.server_port}", flush=True)
         server.serve_forever()
 
 
