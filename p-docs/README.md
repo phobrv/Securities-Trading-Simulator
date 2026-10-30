@@ -87,6 +87,7 @@ Mở OpenCode tại thư mục `p-docs`, sau đó dùng các custom command tron
 | Lệnh | Mục đích |
 | --- | --- |
 | `/practice 01` | Tạo lượt mới, hỏi từng câu; xác nhận trước khi nộp. |
+| `/practice 01-long` | Tạo lượt mới cho bài dài buổi 1 (10 câu). |
 | `/practice-resume ID` | Tiếp tục lượt chưa nộp sau khi gián đoạn. |
 | `/practice-grade ID` | Chấm bài đã nộp theo rubric và lưu kết quả. |
 | `/practice-result ID` | Xem kết quả và lịch sử chấm. |
@@ -107,7 +108,7 @@ python3 practice/server.py
 
 Trong terminal khác chạy `npm run dev` (hoặc `npm run build` rồi `npm run preview`), mở website bằng địa chỉ `http://localhost:5173` hoặc địa chỉ localhost do Vite hiển thị, và chọn **Bài luyện tập**. API nghe trên `127.0.0.1:8765`; Vite chuyển tiếp yêu cầu chỉ từ máy cục bộ. Cần chạy cả API lẫn Vite và dùng cùng biến `SECURITIES_PRACTICE_DB` với OpenCode nếu đã tùy chỉnh đường dẫn SQLite. Khởi động lại API nếu đang chạy từ trước khi đổi đường dẫn.
 
-Trên website, bắt đầu lượt buổi 01, trả lời lần lượt, lưu hoặc sửa câu trả lời, rồi xác nhận nộp bài. Sau khi nộp không thể chỉnh sửa. Sao chép lệnh `/practice-grade ID` trên web và chạy trong phiên OpenCode tại `p-docs`; làm mới trang để xem kết quả. Có thể tiếp tục bài đang làm bằng web hoặc `/practice-resume ID` trong OpenCode. Đáp án tham khảo, rubric và các câu chưa mở không được gửi tới trình duyệt khi làm bài.
+Trên website, chọn bài ngắn hoặc bài dài buổi 01, trả lời lần lượt, lưu hoặc sửa câu trả lời, rồi xác nhận nộp bài. Sau khi nộp không thể chỉnh sửa. Sao chép lệnh `/practice-grade ID` trên web và chạy trong phiên OpenCode tại `p-docs`; làm mới trang để xem kết quả. Có thể tiếp tục bài đang làm bằng web hoặc `/practice-resume ID` trong OpenCode. Đáp án tham khảo, rubric và các câu chưa mở không được gửi tới trình duyệt khi làm bài.
 
 Không dùng `--host` để chia sẻ trang luyện tập qua mạng; website tĩnh không kết nối được API này nếu không có máy chủ cục bộ. API có quyền ghi dữ liệu luyện tập, vì vậy chỉ chạy trên máy tin cậy và không công khai cổng API.
 

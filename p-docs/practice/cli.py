@@ -121,9 +121,10 @@ def validate_evaluation(value, test):
 
 def run(args, db, input_value=None):
     if args.action == "start":
-        if args.test_id != "01":
-            fail("Bản thử nghiệm hiện chỉ hỗ trợ buổi 01.")
-        test = json.loads((ROOT / "tests/01-v1.json").read_text(encoding="utf-8"))
+        test_files = {"01": "01-v1.json", "01-long": "01-long-v1.json"}
+        if args.test_id not in test_files:
+            fail("Bài test không hợp lệ. Chọn 01 hoặc 01-long.")
+        test = json.loads((ROOT / "tests" / test_files[args.test_id]).read_text(encoding="utf-8"))
         with db:
             cursor = db.execute("INSERT INTO attempts(test_id, version, test_snapshot) VALUES (?, ?, ?)",
                                 (test["test_id"], test["version"], json.dumps(test, ensure_ascii=False)))

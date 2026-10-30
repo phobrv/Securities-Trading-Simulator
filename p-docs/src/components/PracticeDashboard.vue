@@ -71,10 +71,10 @@ async function mutate(path: string, body: object, attemptId?: number) {
   } finally { busy.value = false }
 }
 
-async function start() {
+async function start(testId: string) {
   drafts.value = {}
   editing.value = null
-  await mutate('/api/practice/attempts', { test_id: '01' })
+  await mutate('/api/practice/attempts', { test_id: testId })
 }
 
 async function saveAnswer(question: Detail['questions'][number]) {
@@ -120,7 +120,10 @@ onUnmounted(() => document.removeEventListener('visibilitychange', onVisible))
     <p v-if="copied" role="status" class="mb-5 text-sm text-emerald-700">{{ copied }}</p>
 
     <template v-if="!detail">
-      <button class="mb-5 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50" :disabled="busy" @click="start">Bắt đầu bài luyện tập buổi 01</button>
+      <div class="mb-5 flex flex-wrap gap-3">
+        <button class="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50" :disabled="busy" @click="start('01')">Bắt đầu bài buổi 01 · 3 câu</button>
+        <button class="rounded-lg border border-emerald-700 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50" :disabled="busy" @click="start('01-long')">Bắt đầu bài dài buổi 01 · 10 câu</button>
+      </div>
       <div class="mb-5 flex flex-wrap gap-3">
         <label class="text-sm text-slate-600">Tìm ID <input v-model="search" class="ml-2 w-28 rounded-lg border border-slate-300 px-3 py-2" inputmode="numeric" placeholder="Ví dụ: 12" /></label>
         <label class="text-sm text-slate-600">Trạng thái <select v-model="status" class="ml-2 rounded-lg border border-slate-300 bg-white px-3 py-2"><option value="all">Tất cả</option><option v-for="(label, key) in labels" :key="key" :value="key">{{ label }}</option></select></label>

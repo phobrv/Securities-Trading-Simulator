@@ -74,7 +74,28 @@ class PracticeCLITest(unittest.TestCase):
 
     def test_unknown_attempt_and_test(self):
         self.call("start", "02", ok=False)
+        self.call("start", "../01", ok=False)
         self.call("next", 999, ok=False)
+
+    def test_long_test_is_saved_and_can_be_submitted(self):
+        progress = self.call("start", "01-long")
+        attempt = progress["attempt_id"]
+        self.assertEqual(progress["total"], 10)
+        self.assertEqual(progress["test_id"], "01-long")
+        self.assertNotIn("reference", json.dumps(progress))
+        with sqlite3.connect(self.db) as db:
+            snapshot = json.loads(db.execute("SELECT test_snapshot FROM attempts WHERE id = ?", (attempt,)).fetchone()[0])
+        self.assertEqual(len(snapshot["questions"]), 10)
+        for question in snapshot["questions"]:
+            self.answer(attempt, question["id"], "Trả lời thử")
+        self.call("submit", attempt)
+        payload = self.call("grade-input", attempt)
+        self.assertEqual(len(payload["questions"]), 10)
+        grade = {"grader": "test", "summary": "Đánh giá thử", "criteria": [
+            {"question_id": q["id"], "score": 2, "evidence": "trích dẫn", "feedback": "nhận xét"}
+            for q in snapshot["questions"]
+        ]}
+        self.assertTrue(self.call("save-grade", attempt, data=grade)["passed"])
 
     def test_default_database_path_and_override(self):
         env = {**os.environ, "XDG_DATA_HOME": self.temp.name}
