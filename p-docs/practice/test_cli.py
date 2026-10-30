@@ -76,6 +76,16 @@ class PracticeCLITest(unittest.TestCase):
         self.call("start", "02", ok=False)
         self.call("next", 999, ok=False)
 
+    def test_default_database_path_and_override(self):
+        env = {**os.environ, "XDG_DATA_HOME": self.temp.name}
+        env.pop("SECURITIES_PRACTICE_DB", None)
+        code = "import sys; sys.path.insert(0, sys.argv[1]); import cli; print(cli.DB_PATH)"
+        default = subprocess.check_output([sys.executable, "-c", code, str(CLI.parent)], env=env, text=True).strip()
+        self.assertEqual(Path(default), CLI.parent / "practice.sqlite3")
+        env["SECURITIES_PRACTICE_DB"] = str(self.db)
+        override = subprocess.check_output([sys.executable, "-c", code, str(CLI.parent)], env=env, text=True).strip()
+        self.assertEqual(Path(override), self.db)
+
 
 if __name__ == "__main__":
     unittest.main()

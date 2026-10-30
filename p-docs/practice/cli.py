@@ -9,7 +9,7 @@ import sqlite3
 import sys
 
 ROOT = Path(__file__).resolve().parent
-DEFAULT_DB = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "securities-learning" / "practice.sqlite3"
+DEFAULT_DB = ROOT / "practice.sqlite3"
 DB_PATH = Path(os.environ.get("SECURITIES_PRACTICE_DB", DEFAULT_DB)).expanduser()
 
 
