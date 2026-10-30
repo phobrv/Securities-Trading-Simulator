@@ -1,12 +1,16 @@
 # Buổi 10 — Thanh toán và đối soát
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
 - Khớp lệnh xác lập giao dịch; thanh toán thực hiện nghĩa vụ sau đó.
 - Tài sản chờ và tài sản khả dụng có thể cùng tồn tại trong một khoảng thời gian.
 - Đối soát là tìm và giải thích chênh lệch, không chỉ là so hai con số.
 
-## Ba mốc phải tách
+**Các mục sẽ học:** nghĩa vụ và thanh toán; lịch; đối soát.
+
+## 2. Kiến thức theo từng phần
+
+### Ba mốc phải tách
 
 | Mốc | Điều đã xảy ra |
 | --- | --- |
@@ -16,11 +20,11 @@
 
 Ví dụ khớp mua 40 AAA giá 24.900 tạo nghĩa vụ trả 996.000 VND và nhận 40 AAA. Không vì vậy mà kết luận ngay 40 AAA đã có thể bán; cần xem trạng thái thanh toán/chính sách sản phẩm.
 
-## Lịch và tính đúng hạn
+### Lịch và tính đúng hạn
 
 Ngày giao dịch, ngày thanh toán dự kiến và thời điểm xử lý không phải một trường. Chu kỳ được mô tả bằng ngày làm việc và lịch có thể có ngoại lệ; không đơn giản là cộng số giờ cố định. Trong công việc, dùng lịch do nghiệp vụ/vận hành cung cấp thay vì tự mã hóa suy đoán.
 
-## Đối soát bằng biến động
+### Đối soát bằng biến động
 
 Với một execution, lập bảng kiểm:
 
@@ -34,16 +38,27 @@ Với một execution, lập bảng kiểm:
 
 Nếu batch thanh toán được chạy lại sau lỗi, hệ thống phải nhận biết nghĩa vụ nào đã hoàn tất để không chuyển tiền/chứng khoán lần hai. Đây là yêu cầu về idempotency ở cấp xử lý hậu giao dịch.
 
-## Tình huống sai lệch
+### Ví dụ sai lệch
 
 Báo cáo cho biết 40 AAA đã thanh toán, nhưng danh mục chỉ tăng 20. Đừng kết luận ngay “frontend hiển thị sai”. Hãy kiểm tra theo thứ tự: định danh tài khoản/tiểu khoản, execution và nghĩa vụ, trạng thái từng phần của settlement, biến động chứng khoán, thời điểm dữ liệu báo cáo và các sự kiện điều chỉnh nếu có.
 
-## Tự kiểm tra
+## 3. Liên hệ fullstack
+
+- **Frontend:** phân biệt tài sản chờ và đã thanh toán.
+- **Backend:** xử lý nghĩa vụ và tránh thanh toán trùng khi chạy lại.
+- **Dữ liệu:** liên kết lệnh, execution, nghĩa vụ và bút toán.
+- **Trạng thái:** đến hạn không có nghĩa đã thanh toán thành công.
+
+## 4. Tình huống vận dụng
+
+Một lệnh mua 100 AAA khớp 40 rồi hủy phần còn lại. Lô xử lý thanh toán bị ngắt giữa chừng và cần chạy lại. Chọn điểm còn vướng; khi học tương tác, chờ câu trả lời trước khi phản hồi.
 
 1. Một lệnh hủy sau khi khớp 40 có còn tạo thanh toán không?
 2. Vì sao chạy lại batch không được mặc định là vô hại?
 3. Ba định danh nào hữu ích để nối một chênh lệch từ lệnh đến thanh toán?
 
-**Đáp án ngắn:** Có, cho 40 đã khớp. Vì có thể ghi nhận biến động lần hai. Ví dụ `orderId`, `executionId`, `settlement/obligationId`.
+## 5. Tổng kết và tiến độ
+
+Nội dung chính: nghĩa vụ, tài sản chờ và đối soát. Ghi **đã trao đổi:** …; **còn vướng:** …; **đã được ghi nhận hoàn thành:** … . Không mặc định hoàn thành vì đã đọc. Tiếp theo: [Buổi 11](./11-ranh-gioi-he-thong-va-kha-nang-phuc-hoi.md).
 
 **Tham khảo tùy chọn:** [Ngày 13 — Thanh toán và đối soát](../archive/lo-trinh-28-ngay/ngay-13-thanh-toan-va-doi-soat.md).

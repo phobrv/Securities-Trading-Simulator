@@ -1,12 +1,16 @@
 # Buổi 2 — Chứng khoán và dữ liệu danh mục
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
 - Phân biệt loại chứng khoán, mã giao dịch và định danh ổn định.
 - Biết dữ liệu nào thuộc danh mục chứng khoán, dữ liệu nào là giá thị trường hoặc tài sản khách hàng.
 - Đọc một vị thế mà không nhầm mã, số lượng và giá trị.
 
-## Ba lớp thông tin
+**Các mục sẽ học:** ba lớp dữ liệu; loại tài sản; đọc dữ liệu vị thế.
+
+## 2. Kiến thức theo từng phần
+
+### Ba lớp thông tin
 
 | Lớp | Ví dụ | Thay đổi khi nào? |
 | --- | --- | --- |
@@ -16,7 +20,7 @@
 
 `AAA` dễ nhớ cho con người, nhưng không nên mặc định nó là khóa bất biến cho mọi hệ thống. Một định danh nội bộ ổn định giúp liên kết dữ liệu khi mã hoặc thông tin niêm yết thay đổi.
 
-## Loại tài sản trong phạm vi học
+### Loại tài sản trong phạm vi học
 
 | Loại | Mô tả ngắn | Điểm cần hỏi khi làm sản phẩm |
 | --- | --- | --- |
@@ -26,7 +30,7 @@
 
 Không tự áp dụng quy tắc của cổ phiếu sang mọi loại tài sản. Nếu yêu cầu chỉ ghi “chứng khoán”, hãy hỏi loại sản phẩm nào đang được hỗ trợ.
 
-## Ví dụ đọc dữ liệu
+### Ví dụ đọc dữ liệu
 
 | Trường | Giá trị | Diễn giải |
 | --- | --- | --- |
@@ -38,19 +42,23 @@ Không tự áp dụng quy tắc của cổ phiếu sang mọi loại tài sản
 
 Giá thị trường là dữ liệu dùng để định giá tại một thời điểm. Giá vốn là dữ liệu riêng của tài khoản, hình thành từ các giao dịch của tài khoản đó.
 
-## Góc nhìn fullstack
+## 3. Liên hệ fullstack
 
 - **Frontend:** dùng mã để nhận diện nhanh, nhưng hiển thị rõ loại tài sản, trạng thái giao dịch và thời điểm giá.
 - **Backend:** tách dữ liệu danh mục dùng chung khỏi vị thế riêng của từng tài khoản.
 - **Dữ liệu:** quy định đơn vị và độ chính xác cho giá, tiền, khối lượng; không suy đoán từ chuỗi hiển thị.
 - **Trạng thái:** “đang giao dịch” của mã khác với “có thể bán” của vị thế khách hàng.
 
-## Tự kiểm tra
+## 4. Tình huống vận dụng
+
+Với vị thế Lan trong ví dụ trên, chọn điểm còn vướng để trao đổi; khi học tương tác, chờ câu trả lời trước khi phản hồi.
 
 1. Vì sao giá khớp gần nhất 24.900 không nói Lan đã mua với giá nào?
 2. Nếu mã hiển thị đổi, dữ liệu lịch sử nên liên kết bằng gì?
 3. Nêu một câu hỏi phải hỏi trước khi dùng chung form đặt lệnh cho cổ phiếu và trái phiếu.
 
-**Đáp án ngắn:** Giá khớp là dữ liệu thị trường; Lan có thể có nhiều lần mua khác giá. Dùng định danh ổn định. Hỏi quy tắc đơn vị, phiên, lô và loại lệnh có giống nhau không.
+## 5. Tổng kết và tiến độ
+
+Nội dung chính: loại tài sản, định danh, giá thị trường và vị thế. Ghi riêng **đã trao đổi:** …; **còn vướng:** …; **đã được ghi nhận hoàn thành:** … . Không mặc định hoàn thành vì đã đọc. Tiếp theo: [Buổi 3](./03-bang-gia-va-du-lieu-thi-truong.md).
 
 **Tham khảo tùy chọn:** [Ngày 2 — Security Master](../archive/lo-trinh-28-ngay/ngay-02-security-master.md).

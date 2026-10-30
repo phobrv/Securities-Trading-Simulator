@@ -1,58 +1,71 @@
 # Buổi 1 — Bức tranh thị trường và hành trình giao dịch
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
-- Ai làm gì trong một giao dịch chứng khoán trên thị trường thứ cấp.
-- Khác biệt giữa **lệnh**, **lần khớp** và **thanh toán**.
-- Một màn hình Mua/Bán không đồng nghĩa giao dịch đã hoàn tất.
+Sau buổi này, bạn có thể giải thích vai trò các bên trong giao dịch cổ phiếu thứ cấp và các bước chính từ đặt lệnh đến thanh toán.
 
-## Bản đồ tối giản
+Hai mục kiến thức của buổi học:
 
-| Bên tham gia | Vai trò trong tình huống học | Câu hỏi fullstack cần đặt |
-| --- | --- | --- |
-| Nhà đầu tư | Đưa ý định mua/bán qua ứng dụng | UI đã phản hồi đúng ý định và trạng thái chưa? |
-| Công ty chứng khoán | Quản lý tài khoản, kiểm tra điều kiện, quản lý lệnh | Hệ thống nào là nguồn sự thật cho lệnh và tài sản? |
-| Sở giao dịch | Nhận lệnh, tổ chức khớp theo quy tắc thị trường | Phản hồi thị trường đã về hay còn đang chờ? |
-| Lưu ký/bù trừ/thanh toán | Xử lý nghĩa vụ sau giao dịch | Khi nào tiền và chứng khoán thực sự đổi trạng thái? |
-| Tổ chức phát hành | Phát hành chứng khoán | Thông tin chứng khoán được quản lý ra sao? |
+1. Các bên tham gia và thị trường thứ cấp.
+2. Phân biệt lệnh, lần khớp và thanh toán trong một giao dịch.
 
-Trong lộ trình này, ta học **thị trường thứ cấp**: nhà đầu tư mua/bán lại chứng khoán đã phát hành. Chi tiết quy định thực tế có thể khác theo thị trường và chính sách sản phẩm.
+Bạn có thể dừng lại hỏi ở bất kỳ phần nào; không cần viết code.
 
-## Ba thực thể không được gộp làm một
+## 2. Kiến thức theo từng phần
 
-| Khái niệm | Ý nghĩa | Ví dụ |
-| --- | --- | --- |
-| Lệnh (`order`) | Yêu cầu mua/bán có khối lượng, giá và điều kiện | Mua 100 AAA, giá giới hạn 25.000 |
-| Lần khớp (`execution`) | Một kết quả khớp cụ thể của lệnh | Khớp 40 AAA tại 24.900 |
-| Thanh toán (`settlement`) | Thực hiện nghĩa vụ tiền và chứng khoán của phần đã khớp | Trả tiền, nhận chứng khoán theo chu kỳ áp dụng |
+### 2.1. Các bên tham gia
 
-Một lệnh có thể có nhiều lần khớp. Một lệnh hủy vẫn có thể đã khớp một phần. Vì vậy, không dùng một nhãn “thành công” để thay cho toàn bộ hành trình.
+| Bên | Vai trò cần nắm |
+| --- | --- |
+| Nhà đầu tư | Đưa ra yêu cầu mua hoặc bán chứng khoán. |
+| Công ty phát hành | Phát hành chứng khoán; không mặc nhiên là bên bán trong mọi giao dịch cổ phiếu của mình. |
+| Công ty chứng khoán | Cung cấp dịch vụ cho nhà đầu tư, tiếp nhận và xử lý yêu cầu giao dịch. |
+| Sở giao dịch chứng khoán | Tổ chức giao dịch và thực hiện khớp lệnh theo cơ chế áp dụng. |
+| VSDC và các bên liên quan | Tham gia lưu ký, bù trừ và thanh toán theo vai trò của từng bên. |
 
-## Tình huống xuyên suốt
+### 2.2. Thị trường thứ cấp và ranh giới vai trò
 
-Giả sử Lan có 10.000.000 VND khả dụng, gửi lệnh mua 100 AAA giá 25.000. Sau khi công ty chứng khoán chấp nhận, hệ thống giữ tối đa 2.500.000 VND. Thị trường khớp 40 cổ phiếu ở giá 24.900, rồi Lan hủy phần còn lại.
+Phát hành chứng khoán khác với việc mua bán lại chứng khoán đã phát hành trên **thị trường thứ cấp**. Trong giao dịch thứ cấp thông thường, nhà đầu tư bán cho nhà đầu tư khác; công ty chứng khoán cung cấp dịch vụ trung gian, không mặc nhiên là bên mua hoặc bên bán.
 
-| Thời điểm | Sự kiện | Điều chắc chắn đúng |
-| --- | --- | --- |
-| T0 | Lan bấm Mua | Mới có ý định trên giao diện. |
-| T1 | Công ty chứng khoán chấp nhận lệnh | Có lệnh đang hoạt động và tiền cần được giữ theo chính sách. |
-| T2 | Khớp 40 tại 24.900 | Phát sinh giao dịch 996.000 VND và nghĩa vụ hậu giao dịch cho 40 cổ phiếu. |
-| T3 | Hủy phần còn lại được xác nhận | Chỉ phần chưa khớp được giải phóng/đóng. |
-| T4 | Thanh toán đến hạn | Nghĩa vụ của 40 cổ phiếu được thực hiện. |
+Ví dụ đơn giản hóa: Bình bán cổ phiếu công ty An Phát đang nắm giữ; Chi mua số cổ phiếu đó. Bình là bên bán và nhận tiền bán sau thanh toán; An Phát không nhận tiền chỉ vì là công ty phát hành. Trên thực tế, Bình và Chi không nhất thiết biết danh tính hoặc trực tiếp lựa chọn nhau.
 
-## Góc nhìn fullstack
+Sở giao dịch xử lý việc khớp theo cơ chế áp dụng. Sau khớp, các nghĩa vụ tiền và chứng khoán còn phải đi qua quá trình bù trừ, thanh toán với các bên liên quan. **Đã khớp không đồng nghĩa thanh toán đã hoàn tất.**
 
-- **Frontend:** phân biệt “đã gửi”, “đã tiếp nhận”, “đã khớp” và “đã hủy”; không tự suy ra kết quả chỉ từ việc người dùng bấm nút.
-- **Backend:** lưu được lệnh và các sự kiện riêng; xử lý phản hồi từ thị trường không theo giả định một lần là xong.
-- **Dữ liệu:** định danh lệnh, lần khớp và nghĩa vụ cần khác nhau; giá/tiền/khối lượng có đơn vị rõ ràng.
-- **Trạng thái:** một trạng thái tổng quan của lệnh không thay thế được lịch sử các sự kiện.
+### 2.3. Hành trình và ba khái niệm
 
-## Tự kiểm tra
+> Nhà đầu tư gửi yêu cầu → Công ty chứng khoán tiếp nhận và xử lý → Lệnh đi vào quy trình giao dịch → Có thể phát sinh một hoặc nhiều lần khớp → Bù trừ và thanh toán nghĩa vụ.
 
-1. Khi Lan nhận thông báo “hủy thành công”, có thể kết luận giao dịch bằng 0 không? Vì sao?
-2. Giá trị tối đa giữ ban đầu là bao nhiêu? Giá trị phần đã khớp là bao nhiêu?
-3. Liệt kê một thông tin frontend nên hiển thị là “đang chờ xác nhận”.
+Đây là sơ đồ học tập; chi tiết phụ thuộc thị trường và hệ thống. Trạng thái lệnh và tài sản có thể được cập nhật ở nhiều bước liên quan, không chỉ sau thanh toán.
 
-**Đáp án ngắn:** Không; 40 cổ phiếu đã khớp vẫn tồn tại. Số tiền là 2.500.000 VND và 996.000 VND. Ví dụ đang chờ là kết quả tiếp nhận/hủy từ hệ thống phía sau.
+| Khái niệm | Câu hỏi cần trả lời |
+| --- | --- |
+| Lệnh | Nhà đầu tư yêu cầu mua hoặc bán gì, với điều kiện nào? |
+| Lần khớp | Bao nhiêu chứng khoán đã khớp và tại mức giá nào? |
+| Thanh toán | Nghĩa vụ chuyển tiền và chứng khoán sau giao dịch đã được xử lý đến đâu? |
+
+Ví dụ: một lệnh mua 100 cổ phiếu mới khớp 40. Lệnh mua ban đầu, lần khớp 40 và trạng thái thanh toán của phần đã khớp là những thông tin cần theo dõi riêng.
+
+## 3. Liên hệ fullstack
+
+- **Frontend:** phân biệt yêu cầu đã gửi với kết quả được hệ thống xác nhận; hiển thị rõ trạng thái lệnh và tài sản.
+- **Backend:** tiếp nhận, xử lý và cập nhật sự kiện giao dịch theo trách nhiệm của hệ thống.
+- **Dữ liệu:** không gộp lệnh, các lần khớp và thanh toán thành một thông tin duy nhất.
+- **Trạng thái:** “đã gửi”, “đã khớp” và “đã thanh toán” biểu thị các bước khác nhau.
+
+Chi tiết OMS, API, retry và đối soát sẽ học ở những buổi sau.
+
+## 4. Tình huống vận dụng
+
+Trở lại ví dụ Bình bán cổ phiếu An Phát và Chi mua. Sau khi hai lệnh được khớp, hệ thống thông báo giao dịch đang chờ thanh toán.
+
+Hãy giải thích ai là bên bán, ai là bên mua và ai nhận tiền bán; sau đó nêu vì sao thông báo “đã khớp” chưa có nghĩa các nghĩa vụ đã được thanh toán. Khi học tương tác, người hướng dẫn chọn điểm bạn còn vướng, đặt câu hỏi và **chờ bạn trả lời** trước khi phản hồi; không cần hỏi lại cùng một ý nhiều lần.
+
+## 5. Tổng kết và tiến độ
+
+- **Nội dung buổi học:** các bên và thị trường thứ cấp; lệnh, lần khớp và thanh toán.
+- **Đã trao đổi:** ghi những mục thực sự đã thảo luận: …
+- **Còn vướng:** ghi câu hỏi hoặc ví dụ cần xem lại: …
+- **Đã được ghi nhận hoàn thành:** chỉ ghi sau khi đã giải thích và được xác nhận, không mặc định hoàn thành vì đã đọc: …
+- **Tiếp theo:** [Buổi 2 — Chứng khoán và dữ liệu danh mục](./02-chung-khoan-va-du-lieu-danh-muc.md).
 
 **Tham khảo tùy chọn:** [Ngày 1 — Nền móng](../archive/lo-trinh-28-ngay/ngay-01-nen-mong.md).

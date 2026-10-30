@@ -23,12 +23,15 @@ Kết thúc lộ trình, bạn có thể đọc một yêu cầu nghiệp vụ, 
 
 ## Cách học không cần code
 
-Mỗi buổi, dùng 60–90 phút để làm theo bốn bước:
+Mỗi buổi theo khung linh hoạt; thời lượng từng buổi chưa được ấn định:
 
-1. Đọc khái niệm và tự nói lại bằng một ví dụ.
-2. Lập bảng: **ý định người dùng → trạng thái UI → sự kiện hệ thống → dữ liệu thay đổi**.
-3. Làm tình huống trên giấy hoặc bảng tính; ghi rõ giả định trước khi tính.
-4. Đối chiếu đáp án, nêu điểm chưa chắc chắn và dữ liệu cần hỏi thêm.
+1. **Mục tiêu và tiến độ:** xác định điều cần giải thích hoặc làm được và các mục sẽ học.
+2. **Kiến thức theo từng phần:** đọc từng phần ngắn, xem ví dụ hoặc sơ đồ và dừng hỏi bất kỳ lúc nào.
+3. **Liên hệ fullstack:** xem nghiệp vụ liên quan đến giao diện, backend, dữ liệu và trạng thái hệ thống.
+4. **Tình huống vận dụng:** suy nghĩ và trả lời trước; khi học tương tác, người hướng dẫn chờ câu trả lời rồi mới phản hồi hoặc giải thích thêm.
+5. **Tổng kết và tiến độ:** ghi riêng nội dung đã trao đổi, còn vướng, đã được ghi nhận hoàn thành và mục tiếp theo.
+
+Không bắt buộc kiểm tra sau mỗi mục; chọn câu hỏi theo điểm còn vướng và tránh lặp lại cùng một ý. Tài liệu tĩnh không tự lưu tiến độ: người học hoặc người hướng dẫn tự ghi nhận, và không mặc định hoàn thành chỉ vì đã đọc.
 
 Không cần thuộc tên bảng, framework hay giao thức. Các thuật ngữ như API, idempotency, transaction, outbox và realtime được học để hiểu **hành vi hệ thống**, không phải để triển khai.
 

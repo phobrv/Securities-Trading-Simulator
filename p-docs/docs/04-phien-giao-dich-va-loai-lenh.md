@@ -1,12 +1,16 @@
 # Buổi 4 — Phiên giao dịch và loại lệnh
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
 - Ý nghĩa của phiên liên tục và phiên định kỳ trong tình huống học.
 - Khác biệt cơ bản giữa LO, ATO và ATC.
 - Một yêu cầu đặt lệnh phải qua những điều kiện nào trước khi được tiếp nhận.
 
-## Phiên là một phần của điều kiện nghiệp vụ
+**Các mục sẽ học:** phiên; LO/ATO/ATC; điều kiện tiếp nhận.
+
+## 2. Kiến thức theo từng phần
+
+### Phiên là một phần của điều kiện nghiệp vụ
 
 | Phiên | Mô tả đơn giản | Ví dụ điều cần làm rõ |
 | --- | --- | --- |
@@ -17,7 +21,7 @@
 
 Lịch, ngày nghỉ, giờ cắt và loại sản phẩm cần do nguồn cấu hình/chính sách đáng tin cậy quyết định. Không nên tự suy ra từ giờ trên thiết bị người dùng.
 
-## Ba loại lệnh cần nhận diện
+### Ba loại lệnh cần nhận diện
 
 | Loại | Ý nghĩa ở mức khái niệm | Điều không nên tự giả định |
 | --- | --- | --- |
@@ -25,7 +29,7 @@ Lịch, ngày nghỉ, giờ cắt và loại sản phẩm cần do nguồn cấu
 | ATO | Lệnh dùng trong giai đoạn xác định giá mở cửa | Giá cụ thể hoặc điều kiện áp dụng giống mọi thị trường. |
 | ATC | Lệnh dùng trong giai đoạn xác định giá đóng cửa | Có thể gửi bất cứ lúc nào. |
 
-## Kiểm tra tiếp nhận: đọc theo lớp
+### Kiểm tra tiếp nhận: đọc theo lớp
 
 1. Người dùng có quyền dùng tài khoản/tiểu khoản này không?
 2. Chứng khoán và loại lệnh có đang được phép giao dịch ở phiên này không?
@@ -35,7 +39,14 @@ Lịch, ngày nghỉ, giờ cắt và loại sản phẩm cần do nguồn cấu
 
 Một yêu cầu qua các kiểm tra trên chỉ cho biết hệ thống công ty chứng khoán **tiếp nhận** nó. Đây chưa phải kết quả khớp lệnh.
 
-## Bài tập tình huống
+## 3. Liên hệ fullstack
+
+- **Frontend:** cho biết điều kiện phiên và chờ kết quả tiếp nhận.
+- **Backend:** kiểm tra quyền, phiên, loại lệnh và tài sản theo chính sách.
+- **Dữ liệu:** dùng lịch giao dịch và thời điểm đáng tin cậy.
+- **Trạng thái:** lệnh được tiếp nhận không đồng nghĩa đã khớp.
+
+## 4. Tình huống vận dụng
 
 Ứng dụng hiển thị 14:29:59, nhưng backend đánh giá lệnh lúc 14:30:01 và phiên đã đóng. Người dùng nói “tôi đã bấm trước giờ”. Hãy ghi:
 
@@ -43,6 +54,10 @@ Một yêu cầu qua các kiểm tra trên chỉ cho biết hệ thống công t
 - UI nên hiển thị điều gì khi chờ phản hồi;
 - kết quả nghiệp vụ không được suy ra chỉ từ timestamp phía trình duyệt.
 
-**Gợi ý đáp án:** dùng thời điểm nhận/đánh giá theo nguồn thời gian đáng tin cậy của hệ thống và quy tắc đã công bố; UI chỉ xác nhận “đã gửi” trước khi có kết quả; lưu định danh yêu cầu để truy vết.
+Khi học tương tác, chọn điểm còn vướng và chờ bạn trả lời trước khi phản hồi.
+
+## 5. Tổng kết và tiến độ
+
+Nội dung chính: phiên, loại lệnh và kiểm tra tiếp nhận. Ghi **đã trao đổi:** …; **còn vướng:** …; **đã được ghi nhận hoàn thành:** … . Không mặc định hoàn thành vì đã đọc. Tiếp theo: [Buổi 5](./05-so-lenh-va-khop-lenh.md).
 
 **Tham khảo tùy chọn:** [Ngày 4 — Phiên giao dịch](../archive/lo-trinh-28-ngay/ngay-04-phien-giao-dich.md).

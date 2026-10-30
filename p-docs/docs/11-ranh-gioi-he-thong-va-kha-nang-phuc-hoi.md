@@ -1,12 +1,16 @@
 # Buổi 11 — Ranh giới hệ thống và khả năng phục hồi
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
 - Mỗi dữ liệu cần có một chủ sở hữu và ranh giới ghi rõ ràng.
 - Transaction nội bộ không tự giải quyết mọi lỗi giữa nhiều hệ thống.
 - Sự kiện trùng, request đồng thời và dữ liệu realtime cũ là trạng thái bình thường cần thiết kế trước.
 
-## Bản đồ trách nhiệm
+**Các mục sẽ học:** ranh giới module; xử lý trùng và đồng thời; outbox; realtime.
+
+## 2. Kiến thức theo từng phần
+
+### Bản đồ trách nhiệm
 
 | Module/miền | Sở hữu chính | Không nên tự quyết thay |
 | --- | --- | --- |
@@ -18,7 +22,7 @@
 
 Ranh giới không có nghĩa các module không giao tiếp. Nó giúp trả lời: **ai được quyền ghi**, ai chỉ đọc bản sao, và khi dữ liệu lệch thì truy về đâu.
 
-## Ba dạng “đúng một lần” cần phân biệt
+### Ba dạng “đúng một lần” cần phân biệt
 
 | Vấn đề | Ví dụ | Biện pháp ở mức khái niệm |
 | --- | --- | --- |
@@ -28,29 +32,33 @@ Ranh giới không có nghĩa các module không giao tiếp. Nó giúp trả l�
 
 Không có một cờ “deduplicated” chung xử lý cả ba. Mỗi loại có định danh, thời điểm và chủ sở hữu khác nhau.
 
-## Transactional outbox
+### Transactional outbox
 
 Tình huống: hệ thống đã lưu execution và cập nhật tài sản, nhưng gặp lỗi trước khi gửi thông báo cho Portfolio. Nếu chỉ “lưu xong rồi gửi” theo hai bước độc lập, có thể mất thông báo. Transactional outbox là cách lưu bản ghi nghiệp vụ và một mục cần gửi trong cùng một giao dịch nội bộ; một tiến trình sau đó gửi lại mục chưa hoàn tất.
 
 Outbox giảm nguy cơ **bỏ quên sự kiện**, không bảo đảm người nhận chỉ thấy một lần. Consumer vẫn cần chống xử lý trùng.
 
-## Realtime: snapshot, delta và dữ liệu cũ
+### Realtime: snapshot, delta và dữ liệu cũ
 
 Một client nhận snapshot có sequence 100, sau đó cần áp delta 101, 102… Nếu nhận 103 trước 102, hoặc reconnect sau thời gian mất mạng, nó không nên tự ghép dữ liệu bằng suy đoán. Hành vi an toàn thường là phát hiện khoảng trống, đánh dấu dữ liệu chưa đồng bộ và lấy snapshot mới theo hợp đồng.
 
-## Góc nhìn fullstack
+## 3. Liên hệ fullstack
 
 - **Frontend:** cho người dùng thấy “đang đồng bộ” hoặc thời điểm dữ liệu khi tính mới không được bảo đảm.
 - **Backend:** bảo toàn bất biến như “khả dụng không âm” dù request đến đồng thời.
 - **Dữ liệu:** mang định danh lệnh, execution, event, phiên bản/thứ tự dữ liệu để truy vết và chống trùng.
 - **Vận hành:** retry có thể xảy ra bất cứ lúc nào; đánh giá kết quả bằng dữ liệu cuối cùng và audit, không chỉ log “đã gọi”.
 
-## Tự kiểm tra
+## 4. Tình huống vận dụng
+
+Hai lệnh cùng muốn giữ 8 triệu trong tài khoản có 10 triệu; đồng thời một execution được giao lại. Chọn điểm còn vướng và chờ câu trả lời trước khi phản hồi.
 
 1. Outbox có làm consumer không cần chống event trùng không?
 2. Hai lệnh cùng nhìn thấy 10 triệu khả dụng rồi cùng muốn giữ 8 triệu: bất biến nào đang bị đe dọa?
 3. Khi thiếu delta 102, client có nên áp 103 ngay không?
 
-**Đáp án ngắn:** Không. Tổng phần giữ có thể vượt tiền và làm khả dụng âm. Không; cần cơ chế resync/đánh dấu chưa tin cậy theo hợp đồng.
+## 5. Tổng kết và tiến độ
+
+Nội dung chính: ownership, cạnh tranh, sự kiện và realtime. Ghi **đã trao đổi:** …; **còn vướng:** …; **đã được ghi nhận hoàn thành:** … . Không mặc định hoàn thành vì đã đọc. Tiếp theo: [Buổi 11 bổ sung](./11-bo-sung-nhat-quan-va-phuc-hoi-he-thong.md).
 
 **Tham khảo tùy chọn:** [Ngày 15 — Kiến trúc](../archive/lo-trinh-28-ngay/ngay-15-kien-truc-tong-the-va-quyen-so-huu-du-lieu.md), [Ngày 17 — Snapshot và delta](../archive/lo-trinh-28-ngay/ngay-17-snapshot-delta-va-khoi-phuc-websocket.md), [Ngày 18 — Sự kiện](../archive/lo-trinh-28-ngay/ngay-18-su-kien-nghiep-vu-retry-va-chong-xu-ly-trung.md), [Ngày 19 — Concurrency](../archive/lo-trinh-28-ngay/ngay-19-concurrency-va-chong-su-dung-tai-san-vuot-muc.md) và [Ngày 20 — Transactional outbox](../archive/lo-trinh-28-ngay/ngay-20-transactional-outbox-khong-bo-quen-su-kien-sau-khi-commit.md).

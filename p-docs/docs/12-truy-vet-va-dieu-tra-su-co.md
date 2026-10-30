@@ -1,12 +1,16 @@
 # Buổi 12 — Truy vết và điều tra sự cố
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
 - Bắt đầu từ sự kiện quan sát được, không vội kết luận nguyên nhân.
 - Dùng timeline và định danh để nối UI, API, lệnh, execution, tài sản và thanh toán.
 - Phân biệt log vận hành, audit nghiệp vụ và dữ liệu trạng thái.
 
-## Bộ định danh cần biết
+**Các mục sẽ học:** định danh; bằng chứng; timeline và kiểm chứng giả thuyết.
+
+## 2. Kiến thức theo từng phần
+
+### Bộ định danh cần biết
 
 | Định danh | Dùng để trả lời |
 | --- | --- |
@@ -19,7 +23,7 @@
 
 Không phải hệ thống nào cũng dùng đúng các tên này, nhưng phải có cách liên kết tương đương. Không đưa định danh nhạy cảm hoặc dữ liệu cá nhân không cần thiết vào màn hình/log công khai.
 
-## Ba loại bằng chứng
+### Ba loại bằng chứng
 
 | Nguồn | Trả lời tốt nhất | Hạn chế |
 | --- | --- | --- |
@@ -29,7 +33,7 @@ Không phải hệ thống nào cũng dùng đúng các tên này, nhưng phải
 
 Không dùng một dòng log “success” làm bằng chứng duy nhất cho một giao dịch.
 
-## Phương pháp điều tra sáu bước
+### Phương pháp điều tra sáu bước
 
 1. **Ghi nhận triệu chứng:** ai thấy gì, tại thời điểm nào, trên tài khoản/thiết bị nào.
 2. **Khoanh phạm vi:** một lệnh, một người dùng, một phiên bản hay toàn hệ thống?
@@ -38,7 +42,7 @@ Không dùng một dòng log “success” làm bằng chứng duy nhất cho m�
 5. **Đối chiếu bằng chứng:** liên kết ID, audit, bút toán, trạng thái và log; tìm cả bằng chứng phản bác.
 6. **Khắc phục và kiểm chứng:** sửa nguyên nhân, kiểm tra bất biến, thêm test/giám sát để tránh tái diễn.
 
-## Tình huống điều tra
+### Ví dụ điều tra
 
 Khách hàng báo “Tôi bấm Mua một lần nhưng bị giữ tiền hai lần.” Các giả thuyết ban đầu có thể là: UI gửi lại sau timeout bằng khóa mới; backend không deduplicate request; hai lệnh khác nhau thật sự được tạo; hoặc chỉ màn hình đang cộng trùng dữ liệu hiển thị.
 
@@ -51,12 +55,23 @@ Khách hàng báo “Tôi bấm Mua một lần nhưng bị giữ tiền hai l�
 
 Chỉ sau khi có câu trả lời mới chọn sửa UI, quy tắc idempotency, quy trình giải phóng tiền hay dữ liệu hiển thị.
 
-## Tự kiểm tra
+## 3. Liên hệ fullstack
+
+- **Frontend:** ghi nhận trải nghiệm, phiên bản và trạng thái hiển thị.
+- **Backend:** cung cấp log theo chuỗi xử lý và bảo vệ dữ liệu nhạy cảm.
+- **Dữ liệu:** nối request, lệnh, execution và bút toán.
+- **Trạng thái:** so timeline sự kiện với trạng thái cuối, không chỉ dựa vào một log.
+
+## 4. Tình huống vận dụng
+
+Dựa vào báo cáo “bấm một lần nhưng giữ tiền hai lần” ở trên, chọn điểm còn vướng; khi học tương tác, chờ câu trả lời trước khi phản hồi.
 
 1. Vì sao một timestamp từ máy người dùng chưa đủ để kết luận server xử lý chậm?
 2. Log và audit khác nhau thế nào trong tranh chấp tiền?
 3. Một bản sửa được coi là chưa hoàn chỉnh khi thiếu điều gì?
 
-**Đáp án ngắn:** đồng hồ/mạng khác nhau và request có thể chưa tới server. Log cho đường đi kỹ thuật; audit cho thay đổi nghiệp vụ. Thiếu kiểm chứng dữ liệu/bất biến và biện pháp ngăn lỗi lặp lại.
+## 5. Tổng kết và tiến độ
+
+Nội dung chính: timeline, bằng chứng và kiểm chứng giả thuyết. Ghi **đã trao đổi:** …; **còn vướng:** …; **đã được ghi nhận hoàn thành:** … . Không mặc định hoàn thành vì đã đọc. Tiếp theo: [Ôn tập và tình huống công việc](./on-tap-va-tinh-huong-cong-viec.md).
 
 **Tham khảo tùy chọn:** [Ngày 26 — Logging và audit](../archive/lo-trinh-28-ngay/ngay-26-structured-logging-audit-trail-va-metrics-theo-doi-mot-lenh-tu-api-den-khop-lenh.md) và [Ngày 27 — Incident Lab](../archive/lo-trinh-28-ngay/ngay-27-incident-lab-gay-loi-co-kiem-soat-dieu-tra-va-phuc-hoi-he-thong.md).

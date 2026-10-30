@@ -1,12 +1,16 @@
 # Buổi 7 — OMS và vòng đời lệnh
 
-## Cần hiểu sau buổi học
+## 1. Mục tiêu và tiến độ
 
 - OMS trả lời “lệnh khách hàng đang ở đâu?”, khác với nơi tổ chức khớp.
 - Trạng thái tổng quan và lịch sử sự kiện cùng cần thiết.
 - Yêu cầu hủy là một quá trình; lệnh vẫn có thể khớp trong lúc chờ hủy.
 
-## OMS nằm ở đâu?
+**Các mục sẽ học:** trách nhiệm OMS; trạng thái lệnh; khớp trong khi chờ hủy.
+
+## 2. Kiến thức theo từng phần
+
+### OMS nằm ở đâu?
 
 | Thành phần | Câu hỏi nó chịu trách nhiệm |
 | --- | --- |
@@ -17,7 +21,7 @@
 
 OMS có thể đã lưu một yêu cầu nhưng chưa có xác nhận từ thị trường. Vì vậy “đã có bản ghi lệnh” không đồng nghĩa “lệnh đang giao dịch”.
 
-## Một state machine tối giản
+### Một state machine tối giản
 
 | Trạng thái lệnh | Ý nghĩa |
 | --- | --- |
@@ -30,7 +34,7 @@ OMS có thể đã lưu một yêu cầu nhưng chưa có xác nhận từ thị
 
 Trạng thái lệnh không đủ để mô tả mọi thứ. Ví dụ, việc người dùng vừa gửi yêu cầu hủy có thể là trạng thái phụ `cancelPending`; kết quả cuối vẫn chưa biết.
 
-## Tình huống “hủy nhưng vẫn khớp”
+### Ví dụ “hủy nhưng vẫn khớp”
 
 | Thời điểm | Sự kiện | Đã khớp | Còn lại | Cách nói đúng trên UI |
 | --- | --- | ---: | ---: | --- |
@@ -42,19 +46,23 @@ Trạng thái lệnh không đủ để mô tả mọi thứ. Ví dụ, việc n
 
 Kết quả cuối là 60 đã khớp và 40 đã hủy. Không được sửa lịch sử để biến 60 đã khớp thành 40 chỉ vì người dùng đã từng muốn hủy 60.
 
-## Góc nhìn fullstack
+## 3. Liên hệ fullstack
 
 - **Frontend:** tách nút “đã gửi hủy” khỏi nhãn “đã hủy”; hiển thị đã khớp/còn lại không chỉ trạng thái cuối.
 - **Backend:** duy trì chuyển trạng thái hợp lệ và ghi sự kiện theo thứ tự/timestamp nhận được.
 - **Dữ liệu:** `quantity`, `filledQuantity`, `canceledQuantity` cần đối chiếu được; số còn lại không âm.
 - **Trạng thái:** trạng thái tổng hợp có thể được tính từ sự kiện, nhưng sự kiện là bằng chứng để giải thích tranh chấp.
 
-## Tự kiểm tra
+## 4. Tình huống vận dụng
+
+Dựa vào timeline khớp và hủy ở trên, chọn điểm còn vướng; khi học tương tác, chờ câu trả lời trước khi phản hồi.
 
 1. Lệnh `CANCELED` có thể có `filledQuantity > 0` không?
 2. Khi nào frontend được đổi nhãn từ “đang hủy” thành “đã hủy”?
 3. Hai dữ liệu nào cần xem trước khi kết luận lệnh hủy sai?
 
-**Đáp án ngắn:** Có. Khi có xác nhận hủy từ nguồn sự thật. Xem timeline sự kiện của lệnh và các execution liên quan.
+## 5. Tổng kết và tiến độ
+
+Nội dung chính: trạng thái lệnh, sự kiện khớp và hủy. Ghi **đã trao đổi:** …; **còn vướng:** …; **đã được ghi nhận hoàn thành:** … . Không mặc định hoàn thành vì đã đọc. Tiếp theo: [Buổi 8](./08-tu-giao-dien-den-xu-ly-lenh.md).
 
 **Tham khảo tùy chọn:** [Ngày 8 — OMS và vòng đời lệnh](../archive/lo-trinh-28-ngay/ngay-08-oms-va-vong-doi-lenh.md).

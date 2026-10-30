@@ -38,13 +38,14 @@ Khóa học gồm 12 buổi chính và 2 buổi bổ sung. Mỗi buổi độc l
 
 ## Nhịp học gợi ý
 
-- Học 4–5 buổi mỗi tuần, nghỉ khi cần để tự giải lại các tình huống.
-- Buổi bổ sung chỉ nên học sau khi đã tự làm được bài tập của buổi chính tương ứng.
+- Khoảng 20 ngày là ước tính chung; thời lượng mỗi buổi chưa ấn định. Điều chỉnh nhịp học theo tiến độ và những điểm còn vướng.
+- Buổi bổ sung nên học sau khi đã trao đổi nội dung của buổi chính tương ứng; quay lại buổi chính nếu còn vướng.
+- Mỗi buổi theo [khung học năm phần](./README.md), không cần viết code. Khi học tương tác, người hướng dẫn chờ bạn trả lời tình huống trước khi phản hồi.
 - Không cố suy luận quy tắc thị trường thực tế từ tình huống đơn giản hóa. Khi vào việc, luôn kiểm tra chính sách sản phẩm, quy định hiện hành và nguồn dữ liệu chính thức của công ty.
 
 ## Bằng chứng hoàn thành
 
-Bạn hoàn thành tốt khi có thể, không cần code:
+Không mặc định một mục đã hoàn thành chỉ vì đã đọc hoặc được trình bày. Sau khi trao đổi, ghi riêng nội dung đã trao đổi, còn vướng và những mục đã được người học/người hướng dẫn xác nhận hoàn thành. Có thể dùng các năng lực sau làm bằng chứng, không cần code:
 
 1. Vẽ timeline và bảng trạng thái của một lệnh khớp một phần rồi hủy.
 2. Giải thích vì sao tổng tài sản, tài sản khả dụng và tài sản chờ không giống nhau.
