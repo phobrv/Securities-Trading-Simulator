@@ -68,4 +68,6 @@ Hãy giải thích ai là bên bán, ai là bên mua và ai nhận tiền bán; 
 - **Đã được ghi nhận hoàn thành:** chỉ ghi sau khi đã giải thích và được xác nhận, không mặc định hoàn thành vì đã đọc: …
 - **Tiếp theo:** [Buổi 2 — Chứng khoán và dữ liệu danh mục](./02-chung-khoan-va-du-lieu-danh-muc.md).
 
+**Kiểm tra thử:** mở OpenCode tại `p-docs`, chạy `/practice 01`, trả lời từng câu và xác nhận nộp. Sau đó chạy `/practice-grade ID` với mã lượt được hiển thị để chấm và lưu kết quả; `/practice-result ID` xem lại. Đây là bài đánh giá có AI hỗ trợ, có thể cần chấm lại nếu nhận xét chưa chính xác.
+
 **Tham khảo tùy chọn:** [Ngày 1 — Nền móng](../archive/lo-trinh-28-ngay/ngay-01-nen-mong.md).

@@ -1,0 +1,112 @@
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+
+type Status = 'in_progress' | 'ready' | 'awaiting_grade' | 'passed' | 'needs_review'
+type Attempt = {
+  id: number; title: string; version: number; status: Status; answered: number; total: number
+  created_at: string; updated_at: string; submitted_at: string | null; evaluations_count: number
+}
+type Criterion = { question_id: string; score: number; evidence: string; feedback: string }
+type Detail = Attempt & {
+  scenario: string
+  questions: { id: string; number: number; prompt: string | null; answer: string | null; updated_at: string | null }[]
+  evaluations: { id: number; grader: string; passed: boolean; created_at: string; result: { summary: string; criteria: Criterion[] } }[]
+}
+
+const labels: Record<Status, string> = {
+  in_progress: 'Đang làm dở', ready: 'Đủ câu, chưa nộp', awaiting_grade: 'Đã nộp, chờ chấm',
+  passed: 'Đã chấm · Đạt', needs_review: 'Đã chấm · Cần củng cố',
+}
+const attempts = ref<Attempt[]>([])
+const detail = ref<Detail | null>(null)
+const status = ref('all')
+const search = ref('')
+const loading = ref(false)
+const error = ref('')
+const copied = ref('')
+const filtered = computed(() => attempts.value.filter((item) =>
+  (status.value === 'all' || item.status === status.value) && String(item.id).includes(search.value.trim()),
+))
+
+async function request<T>(path: string): Promise<T> {
+  const response = await fetch(path, { headers: { 'X-Practice-Client': 'p-docs' }, cache: 'no-store' })
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(data?.error ?? 'Không thể kết nối API luyện tập. Hãy khởi động API cục bộ.')
+  return data as T
+}
+
+async function refresh() {
+  loading.value = true
+  error.value = ''
+  try {
+    const result = await request<{ attempts: Attempt[] }>('/api/practice/attempts')
+    attempts.value = result.attempts
+    if (detail.value) detail.value = await request<Detail>(`/api/practice/attempts/${detail.value.id}`)
+  } catch (cause) {
+    error.value = cause instanceof Error && cause.message !== 'Failed to fetch' ? cause.message : 'Không kết nối được API luyện tập. Hãy chạy python3 practice/server.py và làm mới.'
+  } finally { loading.value = false }
+}
+
+async function open(item: Attempt) {
+  error.value = ''
+  try { detail.value = await request<Detail>(`/api/practice/attempts/${item.id}`) }
+  catch (cause) { error.value = cause instanceof Error ? cause.message : 'Không thể tải lượt luyện tập.' }
+}
+
+async function copy(value: string) {
+  try {
+    await navigator.clipboard.writeText(value)
+    copied.value = `Đã sao chép ${value}`
+  } catch { copied.value = `Không thể sao chép tự động. Hãy sao chép: ${value}` }
+}
+
+function formatDate(value: string | null) {
+  if (!value) return '—'
+  const date = new Date(value.replace(' ', 'T') + 'Z')
+  return Number.isNaN(date.valueOf()) ? value : date.toLocaleString('vi-VN')
+}
+function onVisible() { if (document.visibilityState === 'visible') void refresh() }
+onMounted(() => { void refresh(); document.addEventListener('visibilitychange', onVisible) })
+onUnmounted(() => document.removeEventListener('visibilitychange', onVisible))
+</script>
+
+<template>
+  <section class="mx-auto max-w-4xl text-slate-800">
+    <header class="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <div><p class="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-700">Tiến độ học tập</p><h1 class="text-3xl font-bold tracking-tight text-slate-900">Bài luyện tập</h1><p class="mt-2 text-sm text-slate-500">Xem các lượt làm bài từ SQLite. Trả lời và chấm bài trong OpenCode.</p></div>
+      <button class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50" :disabled="loading" @click="refresh">{{ loading ? 'Đang tải…' : 'Làm mới' }}</button>
+    </header>
+
+    <p v-if="error" role="alert" class="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{{ error }}</p>
+    <p v-if="copied" role="status" class="mb-5 text-sm text-emerald-700">{{ copied }}</p>
+
+    <template v-if="!detail">
+      <div class="mb-5 flex flex-wrap gap-3">
+        <label class="text-sm text-slate-600">Tìm ID <input v-model="search" class="ml-2 w-28 rounded-lg border border-slate-300 px-3 py-2" inputmode="numeric" placeholder="Ví dụ: 12" /></label>
+        <label class="text-sm text-slate-600">Trạng thái <select v-model="status" class="ml-2 rounded-lg border border-slate-300 bg-white px-3 py-2"><option value="all">Tất cả</option><option v-for="(label, key) in labels" :key="key" :value="key">{{ label }}</option></select></label>
+      </div>
+      <div v-if="!loading && !error && !attempts.length" class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">Chưa có lượt luyện tập. Trong OpenCode, chạy <code>/practice 01</code> để bắt đầu.</div>
+      <p v-else-if="!loading && !error && !filtered.length" class="py-8 text-center text-sm text-slate-500">Không có lượt phù hợp với bộ lọc.</p>
+      <div v-else class="grid gap-3">
+        <button v-for="item in filtered" :key="item.id" class="w-full rounded-xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-emerald-400 hover:shadow-md" @click="open(item)">
+          <div class="flex flex-wrap items-start justify-between gap-3"><div><span class="text-xs font-bold text-emerald-700">LƯỢT #{{ item.id }}</span><h2 class="mt-1 font-semibold text-slate-900">{{ item.title }}</h2></div><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{{ labels[item.status] }}</span></div>
+          <div class="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-500"><span>{{ item.answered }}/{{ item.total }} câu</span><span>Đề v{{ item.version }}</span><span>Cập nhật {{ formatDate(item.updated_at) }}</span><span>{{ item.evaluations_count }} lần chấm</span></div>
+        </button>
+      </div>
+    </template>
+
+    <template v-else>
+      <button class="mb-5 text-sm font-semibold text-emerald-700 hover:underline" @click="detail = null; copied = ''">← Danh sách lượt luyện tập</button>
+      <div class="rounded-xl border border-slate-200 p-5"><div class="flex flex-wrap justify-between gap-3"><div><p class="text-xs font-bold text-emerald-700">LƯỢT #{{ detail.id }} · ĐỀ V{{ detail.version }}</p><h2 class="mt-1 text-xl font-bold">{{ detail.title }}</h2></div><span class="h-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{{ labels[detail.status] }}</span></div>
+        <p class="mt-3 text-sm text-slate-500">{{ detail.answered }}/{{ detail.total }} câu · Bắt đầu {{ formatDate(detail.created_at) }} · Cập nhật {{ formatDate(detail.updated_at) }}</p>
+        <p class="mt-4 whitespace-pre-wrap text-sm leading-6">{{ detail.scenario }}</p>
+        <div class="mt-4 flex flex-wrap gap-2"><button v-if="detail.status === 'in_progress' || detail.status === 'ready'" class="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800" @click="copy(`/practice-resume ${detail.id}`)">Sao chép lệnh tiếp tục</button><button v-else-if="detail.status === 'awaiting_grade'" class="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800" @click="copy(`/practice-grade ${detail.id}`)">Sao chép lệnh chấm</button><button v-else class="rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800" @click="copy(`/practice-result ${detail.id}`)">Sao chép lệnh xem kết quả</button></div>
+      </div>
+      <h3 class="mb-3 mt-8 text-lg font-bold">Câu hỏi và câu trả lời</h3>
+      <div class="grid gap-3"><article v-for="question in detail.questions" :key="question.id" class="rounded-xl border border-slate-200 p-5"><p class="text-xs font-bold text-slate-500">CÂU {{ question.number }}</p><p v-if="question.prompt" class="mt-2 font-semibold leading-6">{{ question.prompt }}</p><p v-else class="mt-2 text-sm italic text-slate-400">Câu hỏi chưa được mở trong lượt này.</p><div v-if="question.answer !== null" class="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-6">{{ question.answer }}</div><p v-else class="mt-3 text-sm text-slate-400">Chưa trả lời</p><p v-if="question.updated_at" class="mt-2 text-xs text-slate-400">Đã lưu {{ formatDate(question.updated_at) }}</p></article></div>
+      <h3 class="mb-3 mt-8 text-lg font-bold">Lịch sử chấm</h3>
+      <p v-if="!detail.evaluations.length" class="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-500">Chưa có kết quả chấm.</p>
+      <article v-for="evaluation in detail.evaluations" :key="evaluation.id" class="mb-3 rounded-xl border border-slate-200 p-5"><div class="flex flex-wrap justify-between gap-2"><strong>{{ evaluation.passed ? 'Đạt' : 'Cần củng cố' }} · {{ evaluation.result.criteria.reduce((sum, item) => sum + item.score, 0) }}/{{ evaluation.result.criteria.length * 2 }}</strong><span class="text-xs text-slate-500">{{ formatDate(evaluation.created_at) }} · {{ evaluation.grader }}</span></div><p class="mt-3 whitespace-pre-wrap text-sm">{{ evaluation.result.summary }}</p><div v-for="criterion in evaluation.result.criteria" :key="criterion.question_id" class="mt-4 border-t border-slate-100 pt-3 text-sm"><strong>{{ criterion.question_id }} · {{ criterion.score }}/2</strong><p class="mt-1 whitespace-pre-wrap">{{ criterion.feedback }}</p><p class="mt-1 whitespace-pre-wrap text-slate-500">Bằng chứng: {{ criterion.evidence }}</p></div></article>
+    </template>
+  </section>
+</template>

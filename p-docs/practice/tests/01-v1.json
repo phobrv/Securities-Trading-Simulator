@@ -1,0 +1,26 @@
+{
+  "test_id": "01",
+  "version": 1,
+  "title": "Buổi 1 — Bức tranh thị trường và hành trình giao dịch",
+  "scenario": "Minh bán 100 cổ phiếu công ty Hoa Nam đang nắm giữ. Hà đặt lệnh mua 100 cổ phiếu, mới khớp 40 cổ phiếu từ lệnh bán của Minh; phần đã khớp đang chờ thanh toán. Đây là tình huống đơn giản hóa.",
+  "questions": [
+    {
+      "id": "roles",
+      "prompt": "Ai là bên mua, bên bán và ai nhận tiền bán? Công ty Hoa Nam có nhận khoản tiền đó chỉ vì là công ty phát hành không? Giải thích vai trò của công ty chứng khoán.",
+      "reference": "Hà mua, Minh bán và nhận tiền bán sau thanh toán; Hoa Nam không nhận khoản tiền chỉ vì phát hành. Công ty chứng khoán cung cấp dịch vụ, tiếp nhận và xử lý yêu cầu; không mặc nhiên là bên mua hay bán.",
+      "criterion": "Xác định đúng bên mua, bên bán, dòng tiền và phân biệt vai trò tổ chức phát hành với công ty chứng khoán."
+    },
+    {
+      "id": "lifecycle",
+      "prompt": "Hãy phân biệt lệnh mua, lần khớp và trạng thái thanh toán trong tình huống. Điều gì đã xảy ra và điều gì chưa thể khẳng định?",
+      "reference": "Lệnh là yêu cầu mua 100; lần khớp là giao dịch 40; thanh toán phần đã khớp còn đang chờ. Không thể khẳng định đã thanh toán hoặc đã mua khớp đủ 100.",
+      "criterion": "Phân biệt lệnh 100, lần khớp 40 và thanh toán đang chờ; không khẳng định đã khớp đủ hoặc thanh toán xong."
+    },
+    {
+      "id": "ui",
+      "prompt": "Một developer đề xuất hiển thị ‘Mua thành công 100 cổ phiếu’ ngay khi ứng dụng gửi yêu cầu. Bạn đồng ý không? Hãy đề xuất thông tin giao diện phù hợp với tình huống và giải thích.",
+      "reference": "Không đồng ý: gửi yêu cầu không chứng minh đã được tiếp nhận, khớp hay thanh toán. Trong tình huống đã biết, hiển thị lệnh mua 100, đã khớp 40 và phần khớp đang chờ thanh toán; không suy ra trạng thái phần còn lại ngoài dữ kiện.",
+      "criterion": "Không khẳng định kết quả chỉ từ việc gửi yêu cầu; đề xuất trạng thái phù hợp với 100 đặt, 40 khớp và thanh toán đang chờ, không suy diễn phần còn lại."
+    }
+  ]
+}

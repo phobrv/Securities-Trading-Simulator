@@ -2,6 +2,7 @@
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import PracticeDashboard from './components/PracticeDashboard.vue'
 
 type DocumentItem = {
   id: string
@@ -87,6 +88,7 @@ const courseGroups: NavigationGroup[] = [
 ]
 const referenceDocuments = documents.filter((document) => document.path.startsWith('archive/lo-trinh-28-ngay/'))
 const selectedId = ref(readDocumentId())
+const isPracticeView = ref(new URLSearchParams(window.location.search).get('view') === 'practice')
 const isNavigationOpen = ref(false)
 const contentElement = ref<HTMLElement>()
 const tableOfContents = ref<TableOfContentsItem[]>([])
@@ -114,9 +116,21 @@ function readDocumentId() {
 
 function selectDocument(id: string) {
   selectedId.value = id
+  isPracticeView.value = false
   isNavigationOpen.value = false
   const url = new URL(window.location.href)
   url.searchParams.set('doc', id)
+  url.searchParams.delete('view')
+  url.hash = ''
+  window.history.pushState({}, '', url)
+}
+
+function selectPractice() {
+  isPracticeView.value = true
+  isNavigationOpen.value = false
+  const url = new URL(window.location.href)
+  url.searchParams.delete('doc')
+  url.searchParams.set('view', 'practice')
   url.hash = ''
   window.history.pushState({}, '', url)
 }
@@ -203,10 +217,12 @@ function scrollToSection(id: string) {
 }
 
 watch(renderedContent, prepareContent, { flush: 'post' })
+watch(isPracticeView, (practice) => { if (!practice) void prepareContent() }, { flush: 'post' })
 
 onMounted(() => {
   prepareContent()
   window.addEventListener('popstate', () => {
+    isPracticeView.value = new URLSearchParams(window.location.search).get('view') === 'practice'
     selectedId.value = readDocumentId()
   })
 })
@@ -239,7 +255,7 @@ onMounted(() => {
         <button
           v-if="defaultDocument"
           class="document-link"
-          :class="{ active: defaultDocument.id === currentDocument?.id }"
+          :class="{ active: !isPracticeView && defaultDocument.id === currentDocument?.id }"
           type="button"
           @click="selectDocument(defaultDocument.id)"
         >
@@ -248,19 +264,20 @@ onMounted(() => {
         <button
           v-if="mainRoadmapDocument"
           class="document-link"
-          :class="{ active: mainRoadmapDocument.id === currentDocument?.id }"
+          :class="{ active: !isPracticeView && mainRoadmapDocument.id === currentDocument?.id }"
           type="button"
           @click="selectDocument(mainRoadmapDocument.id)"
         >
           {{ mainRoadmapDocument.title }}
         </button>
+        <button class="document-link" :class="{ active: isPracticeView }" type="button" @click="selectPractice">Bài luyện tập</button>
         <template v-for="group in courseGroups" :key="group.label">
           <p class="navigation-label navigation-section">{{ group.label }}</p>
           <button
             v-for="documentItem in group.documents"
             :key="documentItem.id"
             class="document-link"
-            :class="{ active: documentItem.id === currentDocument?.id }"
+            :class="{ active: !isPracticeView && documentItem.id === currentDocument?.id }"
             type="button"
             @click="selectDocument(documentItem.id)"
           >
@@ -272,7 +289,7 @@ onMounted(() => {
           v-for="documentItem in referenceDocuments"
           :key="documentItem.id"
           class="document-link"
-          :class="{ active: documentItem.id === currentDocument?.id }"
+          :class="{ active: !isPracticeView && documentItem.id === currentDocument?.id }"
           type="button"
           @click="selectDocument(documentItem.id)"
         >
@@ -282,14 +299,15 @@ onMounted(() => {
     </aside>
 
     <main class="main-content">
-      <article v-if="currentDocument" ref="contentElement" class="prose" v-html="renderedContent" />
+      <PracticeDashboard v-if="isPracticeView" />
+      <article v-else-if="currentDocument" ref="contentElement" class="prose" v-html="renderedContent" />
       <section v-else class="empty-state">
         <h1>Chưa có tài liệu</h1>
         <p>Thêm các tệp <code>.md</code> vào thư mục <code>docs</code> để bắt đầu.</p>
       </section>
     </main>
 
-    <aside v-if="tableOfContents.length" class="table-of-contents" aria-label="Mục lục trang">
+    <aside v-if="!isPracticeView && tableOfContents.length" class="table-of-contents" aria-label="Mục lục trang">
       <p class="navigation-label">TRONG TÀI LIỆU</p>
       <button
         v-for="item in tableOfContents"

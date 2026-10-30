@@ -8,6 +8,7 @@ Website tài liệu học nghiệp vụ chứng khoán dành cho developer fulls
 
 - [Node.js](https://nodejs.org/) phiên bản 20 trở lên
 - npm (được cài kèm Node.js)
+- Python 3.9 trở lên (chỉ cần cho bài kiểm tra OpenCode; dùng SQLite có sẵn trong thư viện chuẩn)
 
 Kiểm tra phiên bản đã cài:
 
@@ -78,6 +79,35 @@ flowchart LR
   A[Bắt đầu] --> B[Kết thúc]
 ```
 ````
+
+## Kiểm tra tự luận với OpenCode — bản thử buổi 1
+
+Mở OpenCode tại thư mục `p-docs`, sau đó dùng các custom command trong phiên tương tác:
+
+| Lệnh | Mục đích |
+| --- | --- |
+| `/practice 01` | Tạo lượt mới, hỏi từng câu; xác nhận trước khi nộp. |
+| `/practice-resume ID` | Tiếp tục lượt chưa nộp sau khi gián đoạn. |
+| `/practice-grade ID` | Chấm bài đã nộp theo rubric và lưu kết quả. |
+| `/practice-result ID` | Xem kết quả và lịch sử chấm. |
+
+Thay `ID` bằng mã số OpenCode hiển thị khi bắt đầu. Bài thi gồm câu hỏi, đáp án tham khảo và tiêu chí chấm có phiên bản; đáp án không hiển thị trong lúc làm bài. Mỗi tiêu chí chấm 0–2; chỉ khi tất cả đạt 2 mới ghi nhận đạt. AI hỗ trợ đánh giá có thể sai; bạn có thể yêu cầu chấm lại, kết quả cũ vẫn được giữ. Muốn làm lại sau khi nộp, bắt đầu lượt mới.
+
+Python lưu SQLite tại `~/.local/share/securities-learning/practice.sqlite3` hoặc `$XDG_DATA_HOME/securities-learning/practice.sqlite3` nếu biến môi trường này được đặt; đặt `SECURITIES_PRACTICE_DB` để chọn đường dẫn khác. Dữ liệu chứa câu trả lời và nhận xét cá nhân, không nằm trong repo; sao lưu file SQLite nếu cần. Khi gọi chấm, bài làm và rubric được gửi tới model OpenCode đang sử dụng theo cấu hình provider của bạn.
+
+Lưu ý: đây là quy trình tương tác do AI thực hiện, không phải giao diện chấm độc lập; cần cho phép OpenCode chạy CLI và kiểm tra thông báo lỗi nếu thao tác lưu không thành công. Không ghi nhận hoàn thành chỉ vì đã trả lời đủ câu.
+
+### Xem các lượt luyện tập trên website
+
+Chạy API chỉ đọc trong một terminal tại `p-docs`:
+
+```bash
+python3 practice/server.py
+```
+
+Trong terminal khác chạy `npm run dev` (hoặc `npm run build` rồi `npm run preview`), mở website bằng địa chỉ `http://localhost:5173` hoặc địa chỉ localhost do Vite hiển thị, và chọn **Bài luyện tập**. API nghe trên `127.0.0.1:8765`; Vite chuyển tiếp yêu cầu chỉ từ máy cục bộ. Cần chạy cả API lẫn Vite và dùng cùng biến `SECURITIES_PRACTICE_DB`/`XDG_DATA_HOME` với OpenCode nếu đã tùy chỉnh đường dẫn SQLite.
+
+Danh sách và chi tiết chỉ đọc, không lộ đáp án hoặc các câu chưa mở khi bài đang làm. Dùng nút sao chép lệnh để tiếp tục/chấm trong OpenCode. Không dùng `--host` để chia sẻ trang luyện tập qua mạng; website tĩnh không kết nối được API này nếu không có máy chủ cục bộ.
 
 ## Scripts
 
