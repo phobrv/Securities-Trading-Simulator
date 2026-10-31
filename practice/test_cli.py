@@ -84,6 +84,26 @@ class PracticeCLITest(unittest.TestCase):
         self.assertEqual(progress["next_question"]["id"], "classification")
         self.assertNotIn("reference", json.dumps(progress))
 
+    def test_markdown_versions_and_legacy_snapshots(self):
+        tests = CLI.parent / "tests"
+        for test_id in ("01", "01-long", "02"):
+            new = json.loads((tests / f"{test_id}-v2.json").read_text(encoding="utf-8"))
+            self.assertEqual(new["version"], 2)
+            for question in new["questions"]:
+                self.assertIn("**", question["prompt"])
+            progress = self.call("start", test_id)
+            self.assertEqual(progress["version"], 2)
+            self.assertEqual(progress["next_question"]["prompt"], new["questions"][0]["prompt"])
+            old = json.loads(json.dumps(new, ensure_ascii=False))
+            old["version"] = 1
+            old["questions"][0]["prompt"] = "Câu hỏi cũ đã lưu trong lượt làm bài."
+            with sqlite3.connect(self.db) as db:
+                db.execute("UPDATE attempts SET version = ?, test_snapshot = ? WHERE id = ?",
+                           (old["version"], json.dumps(old, ensure_ascii=False), progress["attempt_id"]))
+            resumed = self.call("next", progress["attempt_id"])
+            self.assertEqual(resumed["version"], 1)
+            self.assertEqual(resumed["next_question"]["prompt"], old["questions"][0]["prompt"])
+
     def test_long_test_is_saved_and_can_be_submitted(self):
         progress = self.call("start", "01-long")
         attempt = progress["attempt_id"]

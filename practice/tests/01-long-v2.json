@@ -1,66 +1,66 @@
 {
   "test_id": "01-long",
-  "version": 1,
+  "version": 2,
   "title": "Buổi 1 — Bài test dài: Hành trình giao dịch",
   "scenario": "Tình huống đơn giản hóa: Lan đặt lệnh mua 300 cổ phiếu của công ty Bình Minh qua công ty chứng khoán. Lệnh được xác nhận tiếp nhận. Sau đó có hai lần khớp: 100 cổ phiếu với nhà đầu tư An và 80 cổ phiếu với nhà đầu tư Bình. Cả hai phần đã khớp đang chờ thanh toán. Chưa có thông tin khác về phần còn lại, phí, giá hoặc trạng thái tài sản.",
   "questions": [
     {
       "id": "roles",
-      "prompt": "Xác định bên mua, các bên bán và vai trò của công ty Bình Minh, công ty chứng khoán, sở giao dịch và VSDC trong tình huống này.",
+      "prompt": "**Vai trò các bên**\n\nXác định bên mua, các bên bán và vai trò của công ty Bình Minh, công ty chứng khoán, sở giao dịch và VSDC trong tình huống này.",
       "reference": "Lan là bên mua; An và Bình là các bên bán. Bình Minh là công ty phát hành, không mặc nhiên tham gia bán. Công ty chứng khoán cung cấp dịch vụ, tiếp nhận và xử lý yêu cầu; sở tổ chức giao dịch và khớp lệnh theo cơ chế áp dụng; VSDC và các bên liên quan tham gia lưu ký, bù trừ và thanh toán theo vai trò.",
       "criterion": "Xác định đúng các bên mua bán và phân biệt vai trò của công ty phát hành, công ty chứng khoán, sở và VSDC."
     },
     {
       "id": "money",
-      "prompt": "Trong giao dịch thứ cấp này, ai là người nhận tiền bán sau thanh toán? Bình Minh có nhận tiền chỉ vì là công ty phát hành không? Vì sao?",
+      "prompt": "**Dòng tiền**\n\nTrong giao dịch thứ cấp này:\n\n- Ai là người nhận tiền bán sau thanh toán?\n- Bình Minh có nhận tiền chỉ vì là công ty phát hành không? Vì sao?",
       "reference": "An và Bình nhận tiền bán tương ứng phần bán sau thanh toán; Bình Minh không nhận tiền chỉ vì phát hành. Đây là mua bán lại cổ phiếu giữa các nhà đầu tư, khác với phát hành.",
       "criterion": "Nêu đúng người nhận tiền và giải thích sự khác nhau giữa giao dịch thứ cấp và phát hành."
     },
     {
       "id": "timeline",
-      "prompt": "Hãy lập dòng thời gian từ yêu cầu mua đến trạng thái mới nhất trong tình huống. Nêu bước nào còn chưa hoàn tất.",
+      "prompt": "**Dòng thời gian**\n\nHãy lập dòng thời gian từ yêu cầu mua đến trạng thái mới nhất trong tình huống. Nêu bước nào còn chưa hoàn tất.",
       "reference": "Lan gửi yêu cầu; công ty chứng khoán tiếp nhận và xử lý, lệnh được xác nhận tiếp nhận; phát sinh hai lần khớp 100 và 80; cả hai phần khớp đang chờ thanh toán. Không khẳng định thanh toán đã hoàn tất.",
       "criterion": "Sắp xếp đúng các bước đã biết và nêu rõ thanh toán hai phần khớp vẫn đang chờ."
     },
     {
       "id": "order_fills",
-      "prompt": "Phân biệt lệnh mua của Lan với hai lần khớp. Hãy nêu số lượng của từng đối tượng.",
+      "prompt": "**Lệnh và lần khớp**\n\nPhân biệt lệnh mua của Lan với hai lần khớp. Hãy nêu số lượng của từng đối tượng.",
       "reference": "Lệnh là yêu cầu mua 300 cổ phiếu; hai lần khớp riêng là 100 và 80 cổ phiếu. Một lệnh có thể phát sinh nhiều lần khớp; không gộp chúng thành chính lệnh ban đầu.",
       "criterion": "Phân biệt đúng lệnh 300 với hai lần khớp riêng 100 và 80."
     },
     {
       "id": "quantities",
-      "prompt": "Tính tổng số cổ phiếu đã khớp và số lượng thuộc lệnh chưa khớp theo dữ kiện. Có thể khẳng định trạng thái xử lý của phần chưa khớp không?",
+      "prompt": "**Số lượng**\n\nTính tổng số cổ phiếu đã khớp và số lượng thuộc lệnh chưa khớp theo dữ kiện. Có thể khẳng định trạng thái xử lý của phần chưa khớp không?",
       "reference": "Đã khớp 180; 120 trong số 300 chưa khớp theo dữ kiện. Không đủ thông tin để khẳng định phần này còn hiệu lực, đã hủy hay trạng thái xử lý khác.",
       "criterion": "Tính đúng 180 và 120, đồng thời không suy diễn trạng thái xử lý phần chưa khớp."
     },
     {
       "id": "settlement",
-      "prompt": "Vì sao không thể nói hai lần khớp đã thanh toán xong? Hãy phân biệt kết quả khớp với nghĩa vụ sau giao dịch.",
+      "prompt": "**Thanh toán**\n\nVì sao không thể nói hai lần khớp đã thanh toán xong? Hãy phân biệt kết quả khớp với nghĩa vụ sau giao dịch.",
       "reference": "Khớp xác định giao dịch và số lượng đã khớp; bù trừ, thanh toán xử lý nghĩa vụ tiền và chứng khoán sau giao dịch. Dữ kiện nói cả hai phần đang chờ thanh toán nên chưa hoàn tất.",
       "criterion": "Phân biệt khớp và thanh toán, áp dụng đúng trạng thái chờ cho cả hai lần khớp."
     },
     {
       "id": "known_unknown",
-      "prompt": "Nêu ít nhất ba điều đã biết và ba điều chưa thể kết luận từ tình huống về giao dịch hoặc tài sản.",
+      "prompt": "**Điều đã biết và chưa biết**\n\nNêu ít nhất ba điều đã biết và ba điều chưa thể kết luận từ tình huống về giao dịch hoặc tài sản.",
       "reference": "Đã biết: lệnh 300 được tiếp nhận, khớp 100 và 80, cả hai phần chờ thanh toán. Chưa biết: giá, phí, trạng thái xử lý phần chưa khớp, số tiền thanh toán, trạng thái tài sản hoặc thời điểm thanh toán.",
       "criterion": "Nêu ít nhất ba dữ kiện đúng và ba điểm chưa thể kết luận, không biến điều chưa biết thành khẳng định."
     },
     {
       "id": "claims",
-      "prompt": "Đánh giá hai nhận định: (a) 'Lệnh đã được tiếp nhận nên Lan đã mua đủ 300 cổ phiếu'; (b) 'Đã khớp 180 nên thanh toán đã hoàn tất'. Giải thích và sửa từng nhận định.",
+      "prompt": "**Đánh giá nhận định**\n\nĐánh giá hai nhận định sau, giải thích và sửa từng nhận định:\n\n1. ‘Lệnh đã được tiếp nhận nên Lan đã mua đủ 300 cổ phiếu’.\n2. ‘Đã khớp 180 nên thanh toán đã hoàn tất’.",
       "reference": "Cả hai sai: tiếp nhận không đồng nghĩa khớp đủ; chỉ biết khớp 180. Khớp không đồng nghĩa thanh toán xong; cả hai phần đang chờ thanh toán.",
       "criterion": "Bác bỏ và sửa đúng cả hai nhận định, phân biệt tiếp nhận, khớp và thanh toán."
     },
     {
       "id": "ui",
-      "prompt": "Đề xuất nội dung giao diện để Lan theo dõi lệnh và thanh toán, tránh khẳng định điều chưa được xác nhận.",
+      "prompt": "**Thiết kế giao diện**\n\nĐề xuất nội dung giao diện để Lan theo dõi lệnh và thanh toán, tránh khẳng định điều chưa được xác nhận.",
       "reference": "Hiển thị lệnh mua 300 đã tiếp nhận, hai lần khớp 100 và 80, tổng khớp 180, 120 chưa khớp theo dữ kiện và hai phần khớp chờ thanh toán. Không khẳng định trạng thái xử lý phần còn lại hay tài sản khả dụng khi chưa có dữ liệu.",
       "criterion": "Đề xuất hiển thị tách biệt lệnh, số lượng khớp và thanh toán; không suy diễn trạng thái chưa biết."
     },
     {
       "id": "summary",
-      "prompt": "Lập bảng tóm tắt cho Lan gồm lệnh, từng lần khớp và thanh toán; sau đó giải thích ngắn gọn vì sao cần theo dõi các thông tin này riêng.",
+      "prompt": "**Bảng tóm tắt**\n\nLập bảng tóm tắt cho Lan gồm lệnh, từng lần khớp và thanh toán; sau đó giải thích ngắn gọn vì sao cần theo dõi các thông tin này riêng.",
       "reference": "Bảng có lệnh mua 300 đã tiếp nhận; lần khớp 100 và lần khớp 80, mỗi phần đang chờ thanh toán. Lệnh mô tả yêu cầu, lần khớp mô tả kết quả từng phần, thanh toán phản ánh việc xử lý nghĩa vụ; chúng không cùng nghĩa.",
       "criterion": "Bảng nêu đúng lệnh, hai lần khớp và trạng thái thanh toán; giải thích được lý do phân biệt các thông tin."
     }

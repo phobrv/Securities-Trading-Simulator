@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { renderPracticeMarkdown } from "../practiceMarkdown.js";
 
 type Status =
   "in_progress" | "ready" | "awaiting_grade" | "passed" | "needs_review";
@@ -475,9 +476,11 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           <p class="text-xs font-bold text-slate-500">
             CÂU {{ question.number }}
           </p>
-          <p v-if="question.prompt" class="mt-2 font-semibold leading-6">
-            {{ question.prompt }}
-          </p>
+          <div
+            v-if="question.prompt"
+            class="practice-question mt-2 leading-6"
+            v-html="renderPracticeMarkdown(question.prompt)"
+          ></div>
           <p v-else class="mt-2 text-sm italic text-slate-400">
             Câu hỏi chưa được mở trong lượt này.
           </p>
@@ -592,3 +595,47 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
     </template>
   </section>
 </template>
+
+<style scoped>
+.practice-question :deep(p),
+.practice-question :deep(ul),
+.practice-question :deep(ol),
+.practice-question :deep(blockquote) {
+  margin-block: 0.5rem;
+}
+.practice-question :deep(ul),
+.practice-question :deep(ol) {
+  padding-left: 1.5rem;
+}
+.practice-question :deep(ul) {
+  list-style: disc;
+}
+.practice-question :deep(ol) {
+  list-style: decimal;
+}
+.practice-question :deep(h1),
+.practice-question :deep(h2),
+.practice-question :deep(h3),
+.practice-question :deep(h4),
+.practice-question :deep(h5),
+.practice-question :deep(h6) {
+  font-weight: 700;
+  margin-top: 0.75rem;
+}
+.practice-question :deep(code) {
+  background: #f1f5f9;
+  border-radius: 0.2rem;
+  padding: 0.1rem 0.2rem;
+}
+.practice-question :deep(pre) {
+  overflow-x: auto;
+}
+.practice-question :deep(blockquote) {
+  border-left: 3px solid #94a3b8;
+  padding-left: 0.75rem;
+}
+.practice-question :deep(a) {
+  color: #047857;
+  text-decoration: underline;
+}
+</style>

@@ -121,7 +121,7 @@ def validate_evaluation(value, test):
 
 def run(args, db, input_value=None):
     if args.action == "start":
-        test_files = {"01": "01-v1.json", "01-long": "01-long-v1.json", "02": "02-v1.json"}
+        test_files = {"01": "01-v2.json", "01-long": "01-long-v2.json", "02": "02-v2.json"}
         if args.test_id not in test_files:
             fail("Bài test không hợp lệ. Chọn 01, 01-long hoặc 02.")
         test = json.loads((ROOT / "tests" / test_files[args.test_id]).read_text(encoding="utf-8"))
