@@ -203,20 +203,10 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
 
 <template>
   <section class="mx-auto max-w-screen-2xl text-slate-800">
-    <header class="mb-8 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <p
-          class="mb-2 text-xs font-bold uppercase tracking-widest text-emerald-700"
-        >
-          Tiến độ học tập
-        </p>
-        <h1 class="text-3xl font-bold tracking-tight text-slate-900">
-          Bài luyện tập
-        </h1>
-        <p class="mt-2 text-sm text-slate-500">
-          Làm bài trên web; chấm bài trong CLI OpenCode.
-        </p>
-      </div>
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900">
+        Bài luyện tập
+      </h1>
       <button
         class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50"
         :disabled="loading"
