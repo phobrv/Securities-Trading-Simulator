@@ -1,0 +1,38 @@
+{
+  "test_id": "02",
+  "version": 1,
+  "title": "Buổi 2 — Chứng khoán và dữ liệu danh mục",
+  "scenario": "Các tình huống sau sử dụng dữ liệu chứng khoán và vị thế giả định. Hãy dựa vào dữ kiện được cung cấp, không suy đoán thông tin còn thiếu.",
+  "questions": [
+    {
+      "id": "classification",
+      "prompt": "Bài 1 — Phân loại dữ liệu. Hệ thống có: (1) securityId: sec-001; (2) mã hiển thị: AAA; (3) loại tài sản: cổ phiếu; (4) giá khớp gần nhất: 24.900 VND; (5) số lượng đã thanh toán của Lan: 200 cổ phiếu; (6) trạng thái giao dịch của mã: đang giao dịch. a) Thông tin nào thuộc Security Master, thông tin niêm yết/giao dịch, dữ liệu thị trường hoặc vị thế của tài khoản? b) Đâu là dữ liệu dùng chung và đâu là dữ liệu riêng của Lan?",
+      "reference": "Security Master: 1 và 3; niêm yết/giao dịch: 2 và 6; dữ liệu thị trường: 4; vị thế của Lan: 5. Các mục 1, 2, 3, 4, 6 dùng chung; mục 5 riêng của Lan.",
+      "criterion": "Phân loại đúng cả sáu thông tin và phân biệt dữ liệu dùng chung với vị thế riêng của Lan."
+    },
+    {
+      "id": "symbol-change",
+      "prompt": "Bài 2 — Đổi mã hiển thị. Một chứng khoán có securityId = sec-001 và mã AAA. Sau một thay đổi về niêm yết, mã trở thành AAB, còn định danh nội bộ vẫn là sec-001. a) Hệ thống nên dùng thông tin nào để liên kết dữ liệu lịch sử với chứng khoán này? Vì sao? b) Nếu một màn hình chỉ lưu mã AAA để tìm lịch sử, vấn đề gì có thể xảy ra?",
+      "reference": "Dùng securityId ổn định để liên kết lịch sử vì mã hiển thị có thể thay đổi. Chỉ lưu AAA có thể khiến không tìm thấy hoặc không liên kết được lịch sử khi tìm bằng AAB; cần quản lý lịch sử mã khi cần tra cứu theo mã.",
+      "criterion": "Chọn định danh ổn định và giải thích được rủi ro khi chỉ dùng mã cũ để liên kết hoặc tra cứu."
+    },
+    {
+      "id": "position-price",
+      "prompt": "Bài 3 — Đọc vị thế và giá. Lan có 200 cổ phiếu AAA đã thanh toán. Giá khớp gần nhất là 24.900 VND/cổ phiếu. Giá vốn của Lan chưa được cung cấp. a) Nếu dùng giá khớp gần nhất để tham khảo, giá trị của 200 cổ phiếu là bao nhiêu? b) Có thể kết luận Lan đang lãi hay lỗ không? Cần thêm thông tin gì? c) Giá khớp gần nhất có chứng minh Lan có thể bán toàn bộ 200 cổ phiếu ngay lúc này không? Vì sao?",
+      "reference": "Giá trị tham khảo là 200 × 24.900 = 4.980.000 VND, không phải tiền bán thực nhận. Chưa thể kết luận lãi/lỗ nếu thiếu giá vốn; khi tính kết quả thực tế cần xem phí, thuế và cách tính áp dụng. Giá khớp gần nhất không chứng minh số lượng có thể bán hay có người mua đủ tại giá đó; cần dữ liệu quyền/số lượng có thể bán và điều kiện thị trường.",
+      "criterion": "Tính đúng giá trị tham khảo, yêu cầu giá vốn để xét lãi/lỗ và không suy ra khả năng bán toàn bộ từ giá khớp gần nhất."
+    },
+    {
+      "id": "asset-types",
+      "prompt": "Bài 4 — Một form cho nhiều loại tài sản. Nhóm sản phẩm muốn dùng chung form đặt lệnh cho cổ phiếu, trái phiếu và ETF. Một đồng nghiệp đề xuất áp dụng toàn bộ cách nhập số lượng và cách hiển thị giá của cổ phiếu cho cả ba loại. a) Bạn có đồng ý áp dụng ngay không? Vì sao? b) Hãy nêu ít nhất hai câu hỏi cần làm rõ với nhóm sản phẩm trước khi thiết kế form.",
+      "reference": "Không áp dụng mặc định vì mỗi loại tài sản có thể có đơn vị, cách hiển thị giá và quy tắc giao dịch khác nhau. Cần hỏi chẳng hạn sản phẩm nào được hỗ trợ, đơn vị và bước nhập số lượng/giá là gì, quy tắc lô và điều kiện giao dịch ra sao, trái phiếu cần hiển thị lãi và đáo hạn thế nào.",
+      "criterion": "Không mặc định dùng quy tắc cổ phiếu và nêu ít nhất hai câu hỏi phù hợp về yêu cầu hoặc quy tắc của các loại tài sản."
+    },
+    {
+      "id": "portfolio-ui",
+      "prompt": "Bài 5 — Kiểm tra màn hình danh mục. Frontend hiển thị: ‘AAA — Đang giao dịch — 200 — 24.900 — Có thể bán’. Backend trả về: mã đang ở trạng thái giao dịch, số lượng đã thanh toán là 200 và giá khớp gần nhất là 24.900 VND. Không có trường nào cho biết số lượng có thể bán. a) Dòng hiển thị có điểm nào dễ gây hiểu nhầm hoặc chưa đủ căn cứ? b) Bạn sẽ bổ sung nhãn hoặc thông tin nào để người dùng đọc rõ hơn? c) Backend cần cung cấp thêm dữ liệu gì trước khi frontend hiển thị ‘Có thể bán’?",
+      "reference": "Không thể suy ra khả năng bán từ trạng thái giao dịch của mã hoặc số lượng đã thanh toán; các số thiếu nhãn, đơn vị và thời điểm giá. Hiển thị rõ loại tài sản nếu có, trạng thái mã, số lượng đã thanh toán, giá khớp gần nhất, đơn vị và thời điểm giá. Backend cần cung cấp số lượng có thể bán và trạng thái/điều kiện quyền bán đáng tin cậy của vị thế, không tự suy đoán từ dữ liệu đã có.",
+      "criterion": "Phát hiện kết luận có thể bán thiếu căn cứ, đề xuất nhãn và thời điểm giá rõ ràng, yêu cầu dữ liệu khả năng bán của vị thế từ backend."
+    }
+  ]
+}

@@ -73,9 +73,16 @@ class PracticeCLITest(unittest.TestCase):
         self.assertEqual(self.call("result", attempt)["completion"], "chưa được chấm")
 
     def test_unknown_attempt_and_test(self):
-        self.call("start", "02", ok=False)
+        self.call("start", "03", ok=False)
         self.call("start", "../01", ok=False)
         self.call("next", 999, ok=False)
+
+    def test_session_two_can_be_started(self):
+        progress = self.call("start", "02")
+        self.assertEqual(progress["test_id"], "02")
+        self.assertEqual(progress["total"], 5)
+        self.assertEqual(progress["next_question"]["id"], "classification")
+        self.assertNotIn("reference", json.dumps(progress))
 
     def test_long_test_is_saved_and_can_be_submitted(self):
         progress = self.call("start", "01-long")

@@ -4,7 +4,7 @@
 
 ## Bắt đầu và tiếp tục
 
-1. Bắt đầu bằng `python3 practice/cli.py start 01` (bài ngắn) hoặc `python3 practice/cli.py start 01-long` (bài dài), theo lựa chọn của người học; hoặc tiếp tục bằng `python3 practice/cli.py next ID` với ID nguyên dương do người dùng cung cấp. Không tạo lượt mới khi đang tiếp tục.
+1. Bắt đầu bằng `python3 practice/cli.py start 01` (bài ngắn buổi 1), `python3 practice/cli.py start 01-long` (bài dài buổi 1) hoặc `python3 practice/cli.py start 02` (buổi 2), theo lựa chọn của người học; hoặc tiếp tục bằng `python3 practice/cli.py next ID` với ID nguyên dương do người dùng cung cấp. Không tạo lượt mới khi đang tiếp tục.
 2. Nếu có lỗi, báo lỗi và dừng; không nói dữ liệu đã được lưu. Lưu ý ID lượt cho người học. Nếu `status` là `submitted`, thông báo bài đã nộp và hướng dẫn `/practice-grade ID`.
 3. Đọc `next_question` từ JSON. Hiển thị `scenario` và **duy nhất câu hỏi đó**, số thứ tự và ID lượt, rồi kết thúc phản hồi để chờ người học nhập văn bản trong hội thoại. Không đọc file đề, không xem đáp án/rubric, không đưa gợi ý hoặc nhận xét đúng sai.
 4. Khi người học trả lời, ghi **nguyên văn** qua `python3 practice/cli.py answer ID`, truyền JSON object `{"question_id":"...","answer":"..."}` qua stdin. Dùng cơ chế stdin an toàn: ví dụ heredoc được trích dẫn, JSON được escape đúng; chọn delimiter không có trong nội dung. Không nội suy câu trả lời thành mã shell hoặc câu SQL. Không dùng file tạm trong repo để lưu bài làm. Nếu người dùng muốn dừng hoặc hỏi cách làm, không lưu chỉ dẫn đó thành câu trả lời.
@@ -21,9 +21,24 @@
 {
   "grader": "OpenCode (model không xác định)",
   "criteria": [
-    {"question_id": "roles", "score": 2, "evidence": "Trích câu trả lời", "feedback": "Nhận xét"},
-    {"question_id": "lifecycle", "score": 1, "evidence": "Trích câu trả lời", "feedback": "Nhận xét"},
-    {"question_id": "ui", "score": 0, "evidence": "Không có bằng chứng", "feedback": "Nhận xét"}
+    {
+      "question_id": "roles",
+      "score": 2,
+      "evidence": "Trích câu trả lời",
+      "feedback": "Nhận xét"
+    },
+    {
+      "question_id": "lifecycle",
+      "score": 1,
+      "evidence": "Trích câu trả lời",
+      "feedback": "Nhận xét"
+    },
+    {
+      "question_id": "ui",
+      "score": 0,
+      "evidence": "Không có bằng chứng",
+      "feedback": "Nhận xét"
+    }
   ],
   "summary": "Tổng kết và nội dung cần ôn tập"
 }
