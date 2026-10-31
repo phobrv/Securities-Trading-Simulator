@@ -41,7 +41,9 @@ def serialize(db, row, detail=False):
     result = {"id": row["id"], "test_id": row["test_id"], "version": row["version"],
               "title": test["title"], "status": status, "answered": answered, "total": total,
               "created_at": row["created_at"], "updated_at": latest_update,
-              "submitted_at": row["submitted_at"], "evaluations_count": len(evaluations)}
+              "submitted_at": row["submitted_at"], "evaluations_count": len(evaluations),
+              "score": sum(item["score"] for item in evaluations[0]["result"]["criteria"]) if evaluations else None,
+              "max_score": total * 2}
     if detail:
         # Expose answered questions and the next unanswered question, never the rubric.
         result["scenario"] = test["scenario"]

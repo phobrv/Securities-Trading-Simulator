@@ -57,6 +57,8 @@ class PracticeServerTest(PracticeCLITest):
         code, listing = self.get('/api/practice/attempts')
         self.assertEqual(code, 200)
         self.assertEqual(listing['attempts'][0]['status'], 'in_progress')
+        self.assertIsNone(listing['attempts'][0]['score'])
+        self.assertEqual(listing['attempts'][0]['max_score'], 6)
         code, detail = self.get(f'/api/practice/attempts/{attempt}')
         self.assertEqual(code, 200)
         self.assertEqual(detail['questions'][0]['answer'], 'Trả lời của tôi')
@@ -75,9 +77,11 @@ class PracticeServerTest(PracticeCLITest):
         ]}
         self.call('save-grade', attempt, data=grade)
         self.assertEqual(self.get('/api/practice/attempts')[1]['attempts'][0]['status'], 'needs_review')
+        self.assertEqual(self.get('/api/practice/attempts')[1]['attempts'][0]['score'], 5)
         grade['criteria'][1]['score'] = 2
         self.call('save-grade', attempt, data=grade)
         self.assertEqual(self.get('/api/practice/attempts')[1]['attempts'][0]['status'], 'passed')
+        self.assertEqual(self.get('/api/practice/attempts')[1]['attempts'][0]['score'], 6)
         self.assertEqual(len(self.get(f'/api/practice/attempts/{attempt}')[1]['evaluations']), 2)
         self.assertEqual(self.get('/api/practice/attempts/999')[0], 404)
 

@@ -15,6 +15,8 @@ type Attempt = {
   updated_at: string;
   submitted_at: string | null;
   evaluations_count: number;
+  score: number | null;
+  max_score: number;
 };
 type Criterion = {
   question_id: string;
@@ -363,6 +365,7 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
                   <th scope="col" class="px-4 py-3">Bài luyện tập</th>
                   <th scope="col" class="px-4 py-3">Trạng thái</th>
                   <th scope="col" class="px-4 py-3">Tiến độ</th>
+                  <th scope="col" class="px-4 py-3">Tổng điểm / Điểm tối đa</th>
                   <th scope="col" class="px-4 py-3">Đề</th>
                   <th scope="col" class="px-4 py-3">Cập nhật</th>
                   <th scope="col" class="px-4 py-3">Lần chấm</th>
@@ -392,6 +395,9 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
                   <td class="px-4 py-3">{{ labels[item.status] }}</td>
                   <td class="whitespace-nowrap px-4 py-3">
                     {{ item.answered }}/{{ item.total }}
+                  </td>
+                  <td class="whitespace-nowrap px-4 py-3">
+                    {{ item.score ?? "—" }} / {{ item.max_score }}
                   </td>
                   <td class="whitespace-nowrap px-4 py-3">
                     v{{ item.version }}
