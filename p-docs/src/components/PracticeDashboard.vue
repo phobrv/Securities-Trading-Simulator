@@ -99,7 +99,7 @@ async function refresh() {
     error.value =
       cause instanceof Error && cause.message !== "Failed to fetch"
         ? cause.message
-        : "Không kết nối được API luyện tập. Hãy chạy python3 practice/server.py và làm mới.";
+        : "Không kết nối được API luyện tập. Từ thư mục p-docs, hãy chạy python3 ../practice/server.py và làm mới.";
   } finally {
     loading.value = false;
   }

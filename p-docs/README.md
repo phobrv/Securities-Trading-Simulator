@@ -95,7 +95,7 @@ Mở OpenCode tại thư mục `p-docs`, sau đó dùng các custom command tron
 
 Thay `ID` bằng mã số OpenCode hiển thị khi bắt đầu. Bài thi gồm câu hỏi, đáp án tham khảo và tiêu chí chấm có phiên bản; đáp án không hiển thị trong lúc làm bài. Mỗi tiêu chí chấm 0–2; chỉ khi tất cả đạt 2 mới ghi nhận đạt. AI hỗ trợ đánh giá có thể sai; bạn có thể yêu cầu chấm lại, kết quả cũ vẫn được giữ. Muốn làm lại sau khi nộp, bắt đầu lượt mới.
 
-Python mặc định lưu SQLite tại `practice/practice.sqlite3`; đặt `SECURITIES_PRACTICE_DB` để chọn đường dẫn khác. `XDG_DATA_HOME` không còn ảnh hưởng đến vị trí database. File chứa câu trả lời và nhận xét cá nhân, được Git bỏ qua; sao lưu file SQLite nếu cần. Khi gọi chấm, bài làm và rubric được gửi tới model OpenCode đang sử dụng theo cấu hình provider của bạn.
+Python mặc định lưu SQLite tại `practice/practice.sqlite3` ở root dự án (tức `../practice/practice.sqlite3` từ `p-docs`); đặt `SECURITIES_PRACTICE_DB` để chọn đường dẫn khác. `XDG_DATA_HOME` không còn ảnh hưởng đến vị trí database. File chứa câu trả lời và nhận xét cá nhân và đang được Git theo dõi; lưu ý trước khi chia sẻ hoặc commit, và sao lưu file SQLite nếu cần. Khi gọi chấm, bài làm và rubric được gửi tới model OpenCode đang sử dụng theo cấu hình provider của bạn.
 
 Lưu ý: đây là quy trình tương tác do AI thực hiện, không phải giao diện chấm độc lập; cần cho phép OpenCode chạy CLI và kiểm tra thông báo lỗi nếu thao tác lưu không thành công. Không ghi nhận hoàn thành chỉ vì đã trả lời đủ câu.
 
@@ -104,12 +104,12 @@ Lưu ý: đây là quy trình tương tác do AI thực hiện, không phải gi
 Chạy API cục bộ trong một terminal tại `p-docs`:
 
 ```bash
-python3 practice/server.py
+python3 ../practice/server.py
 ```
 
 Trong terminal khác chạy `npm run dev` (hoặc `npm run build` rồi `npm run preview`), mở website bằng địa chỉ `http://localhost:5173` hoặc địa chỉ localhost do Vite hiển thị, và chọn **Bài luyện tập**. API nghe trên `127.0.0.1:8765`; Vite chuyển tiếp yêu cầu chỉ từ máy cục bộ. Cần chạy cả API lẫn Vite và dùng cùng biến `SECURITIES_PRACTICE_DB` với OpenCode nếu đã tùy chỉnh đường dẫn SQLite. Khởi động lại API nếu đang chạy từ trước khi đổi đường dẫn.
 
-Trên website, chọn bài ngắn hoặc bài dài buổi 01, trả lời lần lượt, lưu hoặc sửa câu trả lời, rồi xác nhận nộp bài. Sau khi nộp không thể chỉnh sửa. Sao chép lệnh `/practice-grade ID` trên web và chạy trong phiên OpenCode tại `p-docs`; làm mới trang để xem kết quả. Có thể tiếp tục bài đang làm bằng web hoặc `/practice-resume ID` trong OpenCode. Đáp án tham khảo, rubric và các câu chưa mở không được gửi tới trình duyệt khi làm bài.
+Trên website, chọn bài luyện tập, trả lời lần lượt, lưu hoặc sửa câu trả lời, rồi xác nhận nộp bài. Sau khi nộp không thể chỉnh sửa. Sao chép lệnh `/practice-grade ID` trên web và chạy trong phiên OpenCode tại `p-docs`; làm mới trang để xem kết quả. Có thể tiếp tục bài đang làm bằng web hoặc `/practice-resume ID` trong OpenCode. Đáp án tham khảo, rubric và các câu chưa mở không được gửi tới trình duyệt khi làm bài.
 
 Không dùng `--host` để chia sẻ trang luyện tập qua mạng; website tĩnh không kết nối được API này nếu không có máy chủ cục bộ. API có quyền ghi dữ liệu luyện tập, vì vậy chỉ chạy trên máy tin cậy và không công khai cổng API.
 
