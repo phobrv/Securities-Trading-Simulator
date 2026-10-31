@@ -57,8 +57,11 @@ const copied = ref("");
 const busy = ref(false);
 const drafts = ref<Record<string, string>>({});
 const editing = ref<string | null>(null);
+const startedAttempts = computed(() =>
+  attempts.value.filter((item) => item.answered > 0),
+);
 const filtered = computed(() =>
-  attempts.value.filter(
+  startedAttempts.value.filter(
     (item) =>
       (status.value === "all" || item.status === status.value) &&
       String(item.id).includes(search.value.trim()),
@@ -338,10 +341,10 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
             >
           </div>
           <div
-            v-if="!loading && !error && !attempts.length"
+            v-if="!loading && !error && !startedAttempts.length"
             class="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500"
           >
-            Chưa có lượt luyện tập. Bắt đầu bài luyện tập buổi 01 để làm bài.
+            Chưa có lượt nào có câu trả lời. Hãy bắt đầu một bài luyện tập.
           </div>
           <p
             v-else-if="!loading && !error && !filtered.length"
