@@ -84,14 +84,15 @@ flowchart LR
 
 Mở OpenCode tại thư mục `p-docs`, sau đó dùng các custom command trong phiên tương tác:
 
-| Lệnh                  | Mục đích                                            |
-| --------------------- | --------------------------------------------------- |
-| `/practice 01`        | Tạo lượt mới, hỏi từng câu; xác nhận trước khi nộp. |
-| `/practice 01-long`   | Tạo lượt mới cho bài dài buổi 1 (10 câu).           |
-| `/practice 02`        | Tạo lượt mới cho bài buổi 2 (5 tình huống).         |
-| `/practice-resume ID` | Tiếp tục lượt chưa nộp sau khi gián đoạn.           |
-| `/practice-grade ID`  | Chấm bài đã nộp theo rubric và lưu kết quả.         |
-| `/practice-result ID` | Xem kết quả và lịch sử chấm.                        |
+| Lệnh                  | Mục đích                                                            |
+| --------------------- | ------------------------------------------------------------------- |
+| `/practice 01`        | Tạo lượt mới, hỏi từng câu; xác nhận trước khi nộp.                 |
+| `/practice 01-long`   | Tạo lượt mới cho bài dài buổi 1 (10 câu).                           |
+| `/practice 02`        | Tạo lượt mới cho bài buổi 2 (5 tình huống).                         |
+| `/practice 03`        | Tạo lượt mới cho bài buổi 3 (6 câu về bảng giá và đồng bộ dữ liệu). |
+| `/practice-resume ID` | Tiếp tục lượt chưa nộp sau khi gián đoạn.                           |
+| `/practice-grade ID`  | Chấm bài đã nộp theo rubric và lưu kết quả.                         |
+| `/practice-result ID` | Xem kết quả và lịch sử chấm.                                        |
 
 Thay `ID` bằng mã số OpenCode hiển thị khi bắt đầu. Bài thi gồm câu hỏi, đáp án tham khảo và tiêu chí chấm có phiên bản; đáp án không hiển thị trong lúc làm bài. Mỗi tiêu chí chấm 0–2; chỉ khi tất cả đạt 2 mới ghi nhận đạt. AI hỗ trợ đánh giá có thể sai; bạn có thể yêu cầu chấm lại, kết quả cũ vẫn được giữ. Muốn làm lại sau khi nộp, bắt đầu lượt mới.
 

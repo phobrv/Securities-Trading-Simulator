@@ -73,7 +73,7 @@ class PracticeCLITest(unittest.TestCase):
         self.assertEqual(self.call("result", attempt)["completion"], "chưa được chấm")
 
     def test_unknown_attempt_and_test(self):
-        self.call("start", "03", ok=False)
+        self.call("start", "99", ok=False)
         self.call("start", "../01", ok=False)
         self.call("next", 999, ok=False)
 
@@ -84,9 +84,53 @@ class PracticeCLITest(unittest.TestCase):
         self.assertEqual(progress["next_question"]["id"], "classification")
         self.assertNotIn("reference", json.dumps(progress))
 
+    def test_session_three_complete_lifecycle_and_grading_history(self):
+        progress = self.call("start", "03")
+        attempt = progress["attempt_id"]
+        question_ids = ["volume-meaning", "turnover-units", "quote-not-guarantee",
+                        "delta-before-snapshot", "duplicate-and-gap", "resync-policy"]
+        self.assertEqual(progress["test_id"], "03")
+        self.assertEqual(progress["version"], 2)
+        self.assertEqual(progress["total"], 6)
+        self.assertIn("VND/cổ phiếu", progress["scenario"])
+        self.assertIn("snapshot", progress["title"].lower() + progress["scenario"].lower())
+        for number, qid in enumerate(question_ids, 1):
+            self.assertEqual(progress["answered"], number - 1)
+            self.assertEqual(progress["next_question"]["id"], qid)
+            self.assertEqual(progress["next_question"]["number"], number)
+            self.assertNotIn("reference", json.dumps(progress))
+            self.assertNotIn("criterion", json.dumps(progress))
+            self.assertEqual(self.call("next", attempt), progress)
+            progress = self.answer(attempt, qid, f"Trả lời câu {number}\nGiữ nguyên văn: `AAA`.")
+        self.assertEqual(progress["answered"], 6)
+        self.assertIsNone(progress["next_question"])
+        self.assertEqual(self.call("result", attempt)["completion"], "chưa được chấm")
+        self.call("grade-input", attempt, ok=False)
+        self.call("submit", attempt)
+        payload = self.call("grade-input", attempt)
+        self.assertEqual([q["id"] for q in payload["questions"]], question_ids)
+        for number, question in enumerate(payload["questions"], 1):
+            self.assertTrue(question["reference"])
+            self.assertTrue(question["criterion"])
+            self.assertEqual(question["answer"], f"Trả lời câu {number}\nGiữ nguyên văn: `AAA`.")
+        grade = {"grader": "test", "summary": "**Cần củng cố**\n\n- Ôn `resync`.", "criteria": [
+            {"question_id": qid, "score": 2, "evidence": "Trích bài làm", "feedback": "**Đúng** lập luận."}
+            for qid in question_ids
+        ]}
+        grade["criteria"][-1]["score"] = 1
+        self.assertFalse(self.call("save-grade", attempt, data=grade)["passed"])
+        grade["criteria"][-1]["score"] = 2
+        self.assertTrue(self.call("save-grade", attempt, data=grade)["passed"])
+        result = self.call("result", attempt)
+        self.assertEqual(result["completion"], "đạt")
+        self.assertEqual(len(result["evaluations"]), 2)
+        self.assertEqual([sum(c["score"] for c in e["result"]["criteria"])
+                          for e in result["evaluations"]], [11, 12])
+        self.call("answer", attempt, data={"question_id": question_ids[0], "answer": "Sửa"}, ok=False)
+
     def test_markdown_versions_and_legacy_snapshots(self):
         tests = CLI.parent / "tests"
-        for test_id in ("01", "01-long", "02"):
+        for test_id in ("01", "01-long", "02", "03"):
             new = json.loads((tests / f"{test_id}-v2.json").read_text(encoding="utf-8"))
             self.assertEqual(new["version"], 2)
             for question in new["questions"]:

@@ -309,6 +309,25 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
                     </button>
                   </td>
                 </tr>
+                <tr>
+                  <th
+                    scope="row"
+                    class="px-4 py-3 font-semibold text-slate-900"
+                  >
+                    Bài luyện tập buổi 03
+                  </th>
+                  <td class="px-4 py-3">6</td>
+                  <td class="px-4 py-3">
+                    <button
+                      class="whitespace-nowrap rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                      :disabled="busy"
+                      @click="start('03')"
+                      aria-label="Bắt đầu bài luyện tập buổi 03"
+                    >
+                      Bắt đầu
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -442,9 +461,10 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           {{ formatDate(detail.created_at) }} · Cập nhật
           {{ formatDate(detail.updated_at) }}
         </p>
-        <p class="mt-4 whitespace-pre-wrap text-sm leading-6">
-          {{ detail.scenario }}
-        </p>
+        <div
+          class="practice-question mt-4 text-sm leading-6"
+          v-html="renderPracticeMarkdown(detail.scenario)"
+        ></div>
         <div class="mt-4 flex flex-wrap gap-2">
           <button
             v-if="detail.status === 'ready'"
@@ -586,16 +606,20 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
             {{ evaluation.grader }}</span
           >
         </div>
-        <p class="mt-3 whitespace-pre-wrap text-sm">
-          {{ evaluation.result.summary }}
-        </p>
+        <div
+          class="practice-question mt-3 text-sm"
+          v-html="renderPracticeMarkdown(evaluation.result.summary)"
+        ></div>
         <div
           v-for="criterion in evaluation.result.criteria"
           :key="criterion.question_id"
           class="mt-4 border-t border-slate-100 pt-3 text-sm"
         >
           <strong>{{ criterion.question_id }} · {{ criterion.score }}/2</strong>
-          <p class="mt-1 whitespace-pre-wrap">{{ criterion.feedback }}</p>
+          <div
+            class="practice-question mt-1"
+            v-html="renderPracticeMarkdown(criterion.feedback)"
+          ></div>
           <p class="mt-1 whitespace-pre-wrap text-slate-500">
             Bằng chứng: {{ criterion.evidence }}
           </p>

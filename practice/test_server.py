@@ -111,3 +111,45 @@ class PracticeServerTest(PracticeCLITest):
         self.assertEqual(self.post(path, {'test_id': '01'}, {'X-Practice-Client': 'p-docs', 'Content-Type': 'application/json', 'Origin': 'https://evil.example'})[0], 403)
         self.assertEqual(self.post(path, {'test_id': '01'}, {'X-Practice-Client': 'p-docs', 'Content-Type': 'text/plain'})[0], 415)
         self.assertFalse(self.db.exists())
+
+    def test_session_three_web_lifecycle_and_markdown_grade(self):
+        code, progress = self.post('/api/practice/attempts', {'test_id': '03'})
+        self.assertEqual(code, 200)
+        self.assertEqual(progress['total'], 6)
+        self.assertEqual(progress['next_question']['id'], 'volume-meaning')
+        self.assertNotIn('reference', json.dumps(progress))
+        self.assertNotIn('criterion', json.dumps(progress))
+        attempt = progress['attempt_id']
+        path = f'/api/practice/attempts/{attempt}'
+        code, detail = self.get(path)
+        self.assertEqual(code, 200)
+        self.assertEqual(detail['test_id'], '03')
+        self.assertEqual(detail['max_score'], 12)
+        self.assertIn('**AAA**', detail['scenario'])
+        self.assertIsNotNone(detail['questions'][0]['prompt'])
+        self.assertTrue(all(q['prompt'] is None for q in detail['questions'][1:]))
+        self.assertEqual(self.post(path + '/submit', {})[0], 400)
+        question_ids = [q['id'] for q in detail['questions']]
+        for number, qid in enumerate(question_ids, 1):
+            code, progress = self.post(path + '/answer', {'question_id': qid, 'answer': 'Trả lời'})
+            self.assertEqual(code, 200)
+            self.assertEqual(progress['answered'], number)
+            code, detail = self.get(path)
+            self.assertEqual(code, 200)
+            self.assertNotIn('reference', json.dumps(detail))
+            self.assertNotIn('criterion', json.dumps(detail))
+            self.assertTrue(all(q['prompt'] is None for q in detail['questions'][number + 1:]))
+        self.assertEqual(detail['status'], 'ready')
+        self.assertEqual(self.post(path + '/submit', {})[0], 200)
+        self.assertEqual(self.get(path)[1]['status'], 'awaiting_grade')
+        grade = {'grader': 'test', 'summary': '**Đạt**\n\n- Hiểu `snapshot` và *delta*.', 'criteria': [
+            {'question_id': qid, 'score': 2, 'evidence': 'Trả lời', 'feedback': '**Đúng.**\nGiải thích rõ.'}
+            for qid in question_ids
+        ]}
+        self.call('save-grade', attempt, data=grade)
+        detail = self.get(path)[1]
+        self.assertEqual(detail['status'], 'passed')
+        self.assertEqual(detail['score'], 12)
+        self.assertEqual(detail['max_score'], 12)
+        self.assertEqual(detail['evaluations'][0]['result'], grade)
+        self.assertEqual(self.post(path + '/answer', {'question_id': question_ids[0], 'answer': 'Sửa'})[0], 400)
