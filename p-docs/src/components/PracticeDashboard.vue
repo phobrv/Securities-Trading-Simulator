@@ -69,6 +69,14 @@ const filtered = computed(() =>
       String(item.id).includes(search.value.trim()),
   ),
 );
+const latestCriteria = computed(() =>
+  new Map(
+    (detail.value?.evaluations[0]?.result.criteria ?? []).map((criterion) => [
+      criterion.question_id,
+      criterion,
+    ]),
+  ),
+);
 
 async function request<T>(path: string, body?: object): Promise<T> {
   const response = await fetch(path, {
@@ -511,18 +519,15 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           >, sau đó làm mới trang để xem kết quả.
         </p>
       </div>
-      <div
-        class="mt-8 grid gap-8"
-        :class="detail.evaluations.length ? 'lg:grid-cols-2' : ''"
-      >
-      <section class="min-w-0">
-      <h3 class="mb-3 text-lg font-bold">Câu hỏi và câu trả lời</h3>
+      <h3 class="mb-3 mt-8 text-lg font-bold">Câu hỏi và câu trả lời</h3>
       <div class="grid gap-3">
         <article
           v-for="question in detail.questions"
           :key="question.id"
           class="rounded-xl border border-slate-200 p-5"
         >
+          <div class="grid gap-5" :class="latestCriteria.has(question.id) ? 'lg:grid-cols-2' : ''">
+          <div class="min-w-0">
           <p class="text-xs font-bold text-slate-500">
             CÂU {{ question.number }}
           </p>
@@ -599,11 +604,25 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           <p v-if="question.updated_at" class="mt-2 text-xs text-slate-400">
             Đã lưu {{ formatDate(question.updated_at) }}
           </p>
+          </div>
+          <section
+            v-if="latestCriteria.get(question.id)"
+            class="min-w-0 rounded-lg bg-slate-50 p-4 text-sm"
+            :aria-label="`Kết quả chấm câu ${question.number}`"
+          >
+            <strong>Kết quả chấm · {{ latestCriteria.get(question.id)!.score }}/2</strong>
+            <div
+              class="practice-question mt-1"
+              v-html="renderPracticeMarkdown(latestCriteria.get(question.id)!.feedback)"
+            ></div>
+            <p class="mt-1 whitespace-pre-wrap text-slate-500">
+              Bằng chứng: {{ latestCriteria.get(question.id)!.evidence }}
+            </p>
+          </section>
+          </div>
         </article>
       </div>
-      </section>
-      <section class="min-w-0">
-      <h3 class="mb-3 text-lg font-bold">Lịch sử chấm</h3>
+      <h3 class="mb-3 mt-8 text-lg font-bold">Lịch sử chấm</h3>
       <p
         v-if="!detail.evaluations.length"
         class="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-500"
@@ -648,8 +667,6 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           </p>
         </div>
       </article>
-      </section>
-      </div>
     </template>
   </section>
 </template>
