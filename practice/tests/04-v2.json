@@ -1,0 +1,56 @@
+{
+  "test_id": "04",
+  "version": 2,
+  "title": "Buổi 4 — Phiên giao dịch và loại lệnh",
+  "scenario": "Bạn đang xây dựng ứng dụng đặt lệnh chứng khoán. Hãy trả lời theo các dữ kiện được cung cấp và **chính sách giao dịch đáng tin cậy**; không tự giả định lịch, giờ cắt hoặc quy tắc chung cho mọi thị trường. Thời gian tham khảo: *25–30 phút*.",
+  "questions": [
+    {
+      "id": "sessions",
+      "prompt": "**Câu 1 — Các phiên giao dịch**\n\n- Phiên định kỳ và phiên liên tục khác nhau thế nào ở mức khái niệm?\n- Phiên định kỳ mở cửa và đóng cửa nhằm xác định giá nào?\n- Ngoài giờ hoặc khi đóng cửa, có nên mặc định nhận lệnh thông thường không?",
+      "reference": "- Trong **phiên định kỳ**, lệnh được gom để xác định giá theo quy tắc; phiên mở cửa nhằm xác định giá mở cửa, phiên đóng cửa nhằm xác định giá đóng cửa.\n- Trong **phiên liên tục**, lệnh đến có thể khớp với lệnh chờ phù hợp.\n- Ngoài giờ/đóng cửa không nhận loại lệnh thông thường theo mô tả của bài; các trường hợp và chính sách cụ thể cần đối chiếu nguồn đáng tin cậy.",
+      "criterion": "2 điểm: phân biệt đúng định kỳ và liên tục, nêu đúng mục đích hai phiên định kỳ và không mặc định nhận lệnh thông thường ngoài giờ. 1 điểm: đúng một phần nhưng thiếu một ý chính. 0 điểm: không phân biệt được các phiên hoặc không có lập luận đúng phù hợp."
+    },
+    {
+      "id": "limit-order",
+      "prompt": "**Câu 2 — Lệnh LO**\n\nNgười dùng nói: *Lệnh LO có giá xác định nên chắc chắn khớp, và chắc chắn khớp đúng giá đang hiển thị.*\n\nBạn có đồng ý không? Giải thích ý nghĩa của LO và điều gì không thể suy ra từ giá hiển thị.",
+      "reference": "**LO là lệnh giới hạn có mức giá xác định**, nhưng không bảo đảm có đối ứng phù hợp để khớp. Giá trên giao diện không phải cam kết về kết quả hoặc giá khớp; dữ liệu và điều kiện thị trường có thể thay đổi. Không tự khẳng định LO chắc chắn khớp hoặc khớp đúng giá hiển thị.",
+      "criterion": "2 điểm: nêu LO có giá giới hạn và bác bỏ cả việc chắc chắn khớp lẫn chắc chắn khớp đúng giá hiển thị với lý do hợp lý. 1 điểm: đúng một phần nhưng thiếu một ý chính. 0 điểm: coi LO hoặc giá hiển thị là bảo đảm khớp."
+    },
+    {
+      "id": "ato-atc",
+      "prompt": "**Câu 3 — ATO và ATC**\n\nATO và ATC gắn với giai đoạn xác định giá nào? Vì sao không nên mặc định ATC được gửi bất cứ lúc nào hoặc điều kiện áp dụng ATO giống nhau ở mọi thị trường?",
+      "reference": "**ATO** dùng trong giai đoạn xác định giá mở cửa; **ATC** dùng trong giai đoạn xác định giá đóng cửa. Không mặc định ATC hợp lệ mọi lúc hoặc điều kiện ATO và giá cụ thể giống nhau trên mọi thị trường. Cần đối chiếu phiên, sản phẩm và chính sách được cấu hình từ nguồn đáng tin cậy.",
+      "criterion": "2 điểm: gắn đúng ATO với mở cửa, ATC với đóng cửa và giải thích cần đối chiếu điều kiện theo phiên/thị trường thay vì mặc định. 1 điểm: nhận diện đúng một phần nhưng thiếu hoặc nhầm một ý. 0 điểm: không nhận diện đúng hoặc khẳng định ATC hợp lệ bất cứ lúc nào."
+    },
+    {
+      "id": "account-permission",
+      "prompt": "**Câu 4 — Quyền sử dụng tiểu khoản**\n\nMột người đã đăng nhập nhưng gửi lệnh bằng tiểu khoản không được cấp quyền sử dụng. Backend cần kiểm tra gì và nên xử lý yêu cầu này thế nào? Đăng nhập thành công có đủ để tiếp nhận lệnh không?",
+      "reference": "Backend cần kiểm tra người dùng có **quyền sử dụng tài khoản/tiểu khoản được chọn** theo chính sách hay không. Nếu không có quyền thì không tiếp nhận yêu cầu, trả lý do phù hợp. Đăng nhập xác định người dùng nhưng không tự chứng minh người đó được phép dùng mọi tiểu khoản; có quyền cũng chưa thay thế các kiểm tra khác.",
+      "criterion": "2 điểm: phân biệt đăng nhập với quyền đối với tiểu khoản, kiểm tra theo chính sách và từ chối tiếp nhận khi không có quyền. 1 điểm: nhận ra cần kiểm tra quyền nhưng thiếu xử lý hoặc giải thích. 0 điểm: coi đăng nhập là đủ quyền với mọi tiểu khoản hoặc chấp nhận lệnh dù biết không có quyền."
+    },
+    {
+      "id": "instrument-and-session",
+      "prompt": "**Câu 5 — Chứng khoán và loại lệnh trong phiên**\n\nXét hai yêu cầu riêng:\n\n1. Người dùng chọn **ATO** trong phiên định kỳ đóng cửa.\n2. Người dùng đặt lệnh cho mã đang bị tạm ngừng giao dịch.\n\nBackend cần đối chiếu những điều kiện nào, dựa vào nguồn nào, và xử lý ra sao nếu chính sách không cho phép?",
+      "reference": "Backend phải đối chiếu **trạng thái được phép giao dịch của mã**, loại lệnh, phiên hiện tại, sản phẩm và các hạn chế áp dụng. Lịch giao dịch, ngày nghỉ, giờ cắt và quy tắc phải đến từ nguồn cấu hình/chính sách đáng tin cậy, với thời điểm đáng tin cậy thay vì chỉ giờ thiết bị. Nếu chính sách không cho phép ATO trong phiên đó hoặc mã đang bị ngừng không được đặt lệnh thì không tiếp nhận và thông báo lý do. Không mặc định một lịch hay quy tắc cụ thể cho mọi thị trường.",
+      "criterion": "2 điểm: kiểm tra cả trạng thái mã và tính hợp lệ loại lệnh theo phiên, dùng nguồn lịch/chính sách và thời gian đáng tin cậy, từ chối khi chính sách không cho phép. 1 điểm: đúng một phần nhưng thiếu một nhóm kiểm tra hoặc nguồn/xử lý. 0 điểm: cho rằng cả hai yêu cầu luôn hợp lệ mà không cần kiểm tra."
+    },
+    {
+      "id": "acceptance-checks",
+      "prompt": "**Câu 6 — Các lớp kiểm tra tiếp nhận**\n\nHãy liệt kê năm lớp kiểm tra trước khi tiếp nhận một yêu cầu đặt lệnh. Vì sao khối lượng và giá hợp lệ vẫn chưa đủ để kết luận yêu cầu được tiếp nhận?",
+      "reference": "Năm lớp gồm: **(1)** quyền dùng tài khoản/tiểu khoản; **(2)** chứng khoán và loại lệnh được phép trong phiên; **(3)** khối lượng, giá, bội số lô và giới hạn hợp lệ theo chính sách; **(4)** tài sản khả dụng đáp ứng; **(5)** kiểm tra yêu cầu gửi lại của cùng ý định trước đó. Giá và khối lượng đúng chỉ đáp ứng một phần; các lớp còn lại vẫn có thể không đạt hoặc cần xử lý gửi lại.",
+      "criterion": "2 điểm: nêu đủ năm nhóm, bao gồm lô/giới hạn và bản gửi lại, đồng thời giải thích giá và khối lượng không thay thế kiểm tra khác. 1 điểm: nêu đúng một số nhóm nhưng còn thiếu. 0 điểm: chỉ xét giá và khối lượng hoặc không nêu được nhóm kiểm tra phù hợp. Chấp nhận cách diễn đạt và thứ tự khác."
+    },
+    {
+      "id": "retry-and-acceptance",
+      "prompt": "**Câu 7 — Gửi lại và tiếp nhận**\n\nNgười dùng chưa thấy phản hồi nên gửi lại cùng một ý định đặt lệnh. Hệ thống cần kiểm tra điều gì để tránh xử lý nhầm thành một ý định mới? Nếu hệ thống thông báo **Đã tiếp nhận**, có thể kết luận lệnh đã khớp không?",
+      "reference": "Cần nhận diện và kiểm tra yêu cầu có phải **bản gửi lại của cùng ý định trước đó** theo cơ chế/chính sách của hệ thống, đối chiếu kết quả hoặc trạng thái đã ghi nhận để không tạo tác động trùng; không tự giả định mọi yêu cầu giống nhau đều là cùng ý định. **Đã tiếp nhận không đồng nghĩa đã khớp**: cần chờ trạng thái/kết quả khớp riêng.",
+      "criterion": "2 điểm: nhận diện bản gửi lại cùng ý định và tránh tác động trùng, đồng thời phân biệt tiếp nhận với khớp. 1 điểm: đúng một trong hai ý hoặc thiếu giải thích chính. 0 điểm: xem mọi lần gửi như lệnh mới không kiểm tra hoặc coi tiếp nhận chắc chắn là đã khớp, mà không có lập luận phù hợp. Không bắt buộc tên kỹ thuật hay cách triển khai cụ thể."
+    },
+    {
+      "id": "closing-time",
+      "prompt": "**Câu 8 — Sát giờ đóng cửa**\n\nỨng dụng hiển thị `14:29:59`, nhưng backend đánh giá lệnh lúc `14:30:01` và phiên đã đóng. Người dùng nói: *Tôi đã bấm trước giờ.*\n\n- Cần xem những dữ liệu thời gian và chính sách nào?\n- UI nên hiển thị gì khi đang chờ và sau khi có phản hồi?\n- Vì sao không thể kết luận kết quả chỉ từ timestamp trình duyệt?",
+      "reference": "Cần xem thời điểm bấm phía trình duyệt như thông tin tham khảo, thời điểm hệ thống nhận và đánh giá yêu cầu theo đồng hồ đáng tin cậy, cùng lịch, giờ cắt và chính sách xác định thời điểm áp dụng. Khi chờ, UI thể hiện **đang gửi/đang chờ kết quả**, không báo thành công hoặc khớp trước. Khi có phản hồi, hiển thị kết quả thực tế và lý do nếu bị từ chối. Timestamp trình duyệt có thể sai lệch và không tự quyết định quy tắc nghiệp vụ. Với dữ kiện backend đánh giá lúc phiên đóng, cần áp dụng chính sách thời điểm tiếp nhận cụ thể; không tự kết luận chỉ từ giờ bấm hay chỉ từ giờ đánh giá nếu chính sách chưa nêu rõ.",
+      "criterion": "2 điểm: nêu thời điểm trình duyệt và thời điểm hệ thống liên quan cùng lịch/giờ cắt/chính sách, trạng thái chờ và kết quả UI, giải thích không suy kết quả chỉ từ timestamp trình duyệt. 1 điểm: đúng một phần nhưng thiếu nhóm ý chính. 0 điểm: khẳng định kết quả chỉ theo giờ thiết bị hoặc báo đã khớp khi đang chờ. Chấp nhận kết luận từ chối nếu người học nêu rõ giả định chính sách dùng thời điểm đánh giá."
+    }
+  ]
+}

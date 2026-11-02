@@ -112,6 +112,32 @@ class PracticeServerTest(PracticeCLITest):
         self.assertEqual(self.post(path, {'test_id': '01'}, {'X-Practice-Client': 'p-docs', 'Content-Type': 'text/plain'})[0], 415)
         self.assertFalse(self.db.exists())
 
+    def test_session_four_web_lifecycle(self):
+        code, progress = self.post('/api/practice/attempts', {'test_id': '04'})
+        self.assertEqual(code, 200)
+        self.assertEqual(progress['total'], 8)
+        self.assertEqual(progress['next_question']['id'], 'sessions')
+        path = f"/api/practice/attempts/{progress['attempt_id']}"
+        code, detail = self.get(path)
+        self.assertEqual(code, 200)
+        self.assertEqual(detail['max_score'], 16)
+        ids = [q['id'] for q in detail['questions']]
+        for qid in ids:
+            self.assertNotIn('reference', json.dumps(detail))
+            self.assertNotIn('criterion', json.dumps(detail))
+            self.assertEqual(self.post(path + '/answer', {'question_id': qid, 'answer': 'Trả lời'})[0], 200)
+            detail = self.get(path)[1]
+        self.assertEqual(self.post(path + '/submit', {})[0], 200)
+        self.assertEqual(self.get(path)[1]['status'], 'awaiting_grade')
+        grade = {'grader': 'test', 'summary': '**Đạt**', 'criteria': [
+            {'question_id': qid, 'score': 2, 'evidence': 'Trả lời', 'feedback': '**Đúng**'}
+            for qid in ids
+        ]}
+        self.call('save-grade', progress['attempt_id'], data=grade)
+        detail = self.get(path)[1]
+        self.assertEqual((detail['status'], detail['score'], detail['max_score']), ('passed', 16, 16))
+        self.assertEqual(detail['evaluations'][0]['result'], grade)
+
     def test_session_three_web_lifecycle_and_markdown_grade(self):
         code, progress = self.post('/api/practice/attempts', {'test_id': '03'})
         self.assertEqual(code, 200)

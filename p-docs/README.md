@@ -90,6 +90,7 @@ Mở OpenCode tại thư mục `p-docs`, sau đó dùng các custom command tron
 | `/practice 01-long`   | Tạo lượt mới cho bài dài buổi 1 (10 câu).                           |
 | `/practice 02`        | Tạo lượt mới cho bài buổi 2 (5 tình huống).                         |
 | `/practice 03`        | Tạo lượt mới cho bài buổi 3 (6 câu về bảng giá và đồng bộ dữ liệu). |
+| `/practice 04`        | Tạo lượt mới cho bài buổi 4 (8 câu về phiên và loại lệnh).          |
 | `/practice-resume ID` | Tiếp tục lượt chưa nộp sau khi gián đoạn.                           |
 | `/practice-grade ID`  | Chấm bài đã nộp theo rubric và lưu kết quả.                         |
 | `/practice-result ID` | Xem kết quả và lịch sử chấm.                                        |

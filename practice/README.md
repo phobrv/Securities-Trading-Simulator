@@ -10,6 +10,7 @@ Thư mục này chứa đề luyện tập, công cụ lưu bài làm và API c�
 | `01-long` | Bài dài buổi 1                                      |
 | `02`      | Bài buổi 2                                          |
 | `03`      | Bài buổi 3 — Bảng giá và dữ liệu thị trường (6 câu) |
+| `04`      | Bài buổi 4 — Phiên giao dịch và loại lệnh (8 câu) |
 
 Đề và rubric nằm trong `tests/`. Mỗi lượt lưu một bản sao đề, câu trả lời và các lần chấm trong SQLite. Mặc định database là `practice/practice.sqlite3`; có thể đặt biến môi trường `SECURITIES_PRACTICE_DB` để dùng đường dẫn khác. Dùng cùng đường dẫn cho CLI và API nếu muốn truy cập cùng dữ liệu.
 
@@ -17,13 +18,15 @@ Thư mục này chứa đề luyện tập, công cụ lưu bài làm và API c�
 
 Mở OpenCode tại thư mục `p-docs`, sau đó:
 
-1. Chạy `/practice 01`, `/practice 01-long`, `/practice 02` hoặc `/practice 03` để bắt đầu; ghi lại ID lượt được cấp.
+1. Chạy `/practice 01`, `/practice 01-long`, `/practice 02`, `/practice 03` hoặc `/practice 04` để bắt đầu; ghi lại ID lượt được cấp.
 2. Trả lời lần lượt các câu hỏi và xác nhận nộp sau khi hoàn thành. Có thể tiếp tục lượt chưa nộp bằng `/practice-resume ID`.
 3. Chạy `/practice-grade ID` để chấm bài đã nộp, hoặc `/practice-result ID` để xem lại kết quả.
 
 Sau khi nộp, câu trả lời không thể chỉnh sửa; muốn làm lại hãy tạo lượt mới. Có thể chấm lại và các lần chấm được giữ trong lịch sử. Chi tiết quy trình dành cho OpenCode có trong [WORKFLOW.md](WORKFLOW.md).
 
 Bài `03` bám sát [Buổi 3 — Bảng giá và dữ liệu thị trường](../p-docs/docs/03-bang-gia-va-du-lieu-thi-truong.md), thời gian tham khảo 20–25 phút. Sáu câu kiểm tra cách đọc khối lượng, tính giá trị và đơn vị, phân biệt giá hiển thị với cam kết khớp, delta đến trước snapshot, bản tin trùng/thiếu và chính sách resync. Mỗi câu chấm 0–2 điểm, tối đa 12 điểm; chỉ ghi nhận đạt khi tất cả câu đạt 2. Không hiển thị đáp án tham khảo trong lúc làm bài.
+
+Bài `04` bám sát [Buổi 4 — Phiên giao dịch và loại lệnh](../p-docs/docs/04-phien-giao-dich-va-loai-lenh.md), thời gian tham khảo 25–30 phút. Tám câu về các phiên, LO/ATO/ATC, kiểm tra tiếp nhận, gửi lại và tình huống sát giờ đóng cửa. Mỗi câu 0–2 điểm, tối đa 16 điểm; chỉ đạt khi tất cả câu đạt 2. Không hiển thị đáp án trong lúc làm bài.
 
 ## Làm bài trên giao diện web
 
