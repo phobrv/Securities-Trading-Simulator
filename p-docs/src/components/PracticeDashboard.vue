@@ -511,7 +511,12 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           >, sau đó làm mới trang để xem kết quả.
         </p>
       </div>
-      <h3 class="mb-3 mt-8 text-lg font-bold">Câu hỏi và câu trả lời</h3>
+      <div
+        class="mt-8 grid gap-8"
+        :class="detail.evaluations.length ? 'lg:grid-cols-2' : ''"
+      >
+      <section class="min-w-0">
+      <h3 class="mb-3 text-lg font-bold">Câu hỏi và câu trả lời</h3>
       <div class="grid gap-3">
         <article
           v-for="question in detail.questions"
@@ -596,7 +601,9 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           </p>
         </article>
       </div>
-      <h3 class="mb-3 mt-8 text-lg font-bold">Lịch sử chấm</h3>
+      </section>
+      <section class="min-w-0">
+      <h3 class="mb-3 text-lg font-bold">Lịch sử chấm</h3>
       <p
         v-if="!detail.evaluations.length"
         class="rounded-xl border border-dashed border-slate-300 p-5 text-sm text-slate-500"
@@ -641,6 +648,8 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
           </p>
         </div>
       </article>
+      </section>
+      </div>
     </template>
   </section>
 </template>
