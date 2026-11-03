@@ -112,6 +112,19 @@ class PracticeServerTest(PracticeCLITest):
         self.assertEqual(self.post(path, {'test_id': '01'}, {'X-Practice-Client': 'p-docs', 'Content-Type': 'text/plain'})[0], 415)
         self.assertFalse(self.db.exists())
 
+    def test_session_five_web_start(self):
+        code, progress = self.post('/api/practice/attempts', {'test_id': '05'})
+        self.assertEqual(code, 200)
+        self.assertEqual(progress['total'], 7)
+        self.assertEqual(progress['next_question']['id'], 'book-and-executions')
+        path = f"/api/practice/attempts/{progress['attempt_id']}"
+        code, detail = self.get(path)
+        self.assertEqual(code, 200)
+        self.assertEqual(detail['max_score'], 14)
+        self.assertNotIn('reference', json.dumps(detail))
+        self.assertNotIn('criterion', json.dumps(detail))
+        self.assertTrue(all(q['prompt'] is None for q in detail['questions'][1:]))
+
     def test_session_four_web_lifecycle(self):
         code, progress = self.post('/api/practice/attempts', {'test_id': '04'})
         self.assertEqual(code, 200)

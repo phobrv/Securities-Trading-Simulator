@@ -352,6 +352,22 @@ onUnmounted(() => document.removeEventListener("visibilitychange", onVisible));
                     </button>
                   </td>
                 </tr>
+                <tr>
+                  <th scope="row" class="px-4 py-3 font-semibold text-slate-900">
+                    Bài luyện tập buổi 05
+                  </th>
+                  <td class="px-4 py-3">7</td>
+                  <td class="px-4 py-3">
+                    <button
+                      class="whitespace-nowrap rounded-lg bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                      :disabled="busy"
+                      @click="start('05')"
+                      aria-label="Bắt đầu bài luyện tập buổi 05"
+                    >
+                      Bắt đầu
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

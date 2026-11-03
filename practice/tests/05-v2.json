@@ -1,0 +1,50 @@
+{
+  "test_id": "05",
+  "version": 2,
+  "title": "Buổi 5 — Sổ lệnh và khớp lệnh",
+  "scenario": "Bạn đang xây dựng màn hình theo dõi lệnh cho mã giả định **AAA**. Giá tính bằng **VND/cổ phiếu**, khối lượng tính bằng **cổ phiếu**; bỏ qua phí và thuế. Thời gian tham khảo: *25–30 phút*.\n\nTrong các câu dùng sổ bán chung, các lệnh đang chờ là: **A** đến trước, bán 30 giá 24.900; **B** đến sau A, bán 50 giá 25.000; **C** đến sau B, bán 40 giá 25.000. Giả sử lệnh mua LO được tiếp nhận, khớp theo ưu tiên giá rồi thời gian, mỗi lần khớp tại giá của lệnh bán đang chờ; không có thay đổi khác trong lúc xử lý. Phần dư của lệnh LO được phép chờ. Đây là mô hình học tập, không mặc định áp dụng cho mọi thị trường hay loại phiên.",
+  "questions": [
+    {
+      "id": "book-and-executions",
+      "prompt": "**Câu 1 — Sổ lệnh và execution**\n\nSổ lệnh và các execution mô tả những dữ liệu gì khác nhau? Vì sao một lệnh có thể có nhiều execution và không nên coi khối lượng đang chờ là đã giao dịch?",
+      "reference": "**Sổ lệnh** ghi các lệnh hoặc khối lượng còn chờ; **execution** ghi từng lần đã khớp, gồm ít nhất giá và khối lượng. Một lệnh có thể gặp nhiều lệnh đối ứng, tạo nhiều lần khớp. Phần đang chờ chưa phải giao dịch đã xảy ra và không được cộng vào khối lượng đã khớp.",
+      "criterion": "2 điểm: phân biệt đúng lệnh chờ và từng lần đã khớp, giải thích được nhiều execution và không tính phần chờ thành đã giao dịch. 1 điểm: đúng một phần nhưng thiếu một ý chính. 0 điểm: không phân biệt được lệnh chờ và giao dịch đã khớp."
+    },
+    {
+      "id": "priority",
+      "prompt": "**Câu 2 — Ưu tiên giá và thời gian**\n\nTheo sổ bán chung, lệnh mua LO giá 25.000 sẽ gặp A, B, C theo thứ tự nào nếu khối lượng đủ? Giải thích cả hai cấp ưu tiên. Với các lệnh mua đang chờ, giá mua nào được ưu tiên và xử lý thế nào khi cùng giá?",
+      "reference": "Thứ tự là **A, B, C**: bên bán ưu tiên giá thấp hơn nên A trước B và C; B và C cùng giá nên B đến trước được ưu tiên. Bên mua ưu tiên **giá cao hơn**, cùng giá thì lệnh đến trước được ưu tiên, theo mô hình bài học.",
+      "criterion": "2 điểm: đúng thứ tự A–B–C, giải thích ưu tiên giá bán thấp và thời gian cùng giá, đồng thời nêu đúng giá mua cao và thời gian cùng giá. 1 điểm: đúng một phần nhưng thiếu hoặc nhầm một ý chính. 0 điểm: không thể hiện quy tắc ưu tiên đúng."
+    },
+    {
+      "id": "match-100",
+      "prompt": "**Câu 3 — Tính từng lần khớp**\n\nGửi lệnh mua LO **100** giá **25.000** vào sổ bán chung. Hãy liệt kê đối tác, giá, khối lượng và giá trị của từng lần khớp; tính tổng khối lượng, tổng giá trị và lượng còn lại của lệnh mua và từng lệnh bán.",
+      "reference": "- A: `30 × 24.900 = 747.000 VND`.\n- B: `50 × 25.000 = 1.250.000 VND`.\n- C: `20 × 25.000 = 500.000 VND`.\n\nTổng **100 cổ phiếu**, **2.497.000 VND**. Lệnh mua còn 0; A và B còn 0, C còn **20** cổ phiếu.",
+      "criterion": "2 điểm: đúng cả ba lần khớp, tổng 100 và 2.497.000 VND, cùng phần còn lại của các lệnh. 1 điểm: áp dụng đúng phần lớn phương pháp nhưng thiếu một ý hoặc sai số học. 0 điểm: không áp dụng được thứ tự khớp hoặc cách tính phù hợp."
+    },
+    {
+      "id": "match-120",
+      "prompt": "**Câu 4 — Khớp hết đối ứng**\n\nThay câu trước bằng lệnh mua LO **120** giá **25.000**, dùng lại sổ bán ban đầu. Lệnh mua khớp và còn lại bao nhiêu? Tính tổng giá trị và cho biết A, B, C còn bao nhiêu.",
+      "reference": "A, B, C khớp hết lần lượt **30, 50, 40**, tổng **120**; lệnh mua và cả ba lệnh bán còn **0**. Giá trị là `30 × 24.900 + 50 × 25.000 + 40 × 25.000 = 2.997.000 VND`.",
+      "criterion": "2 điểm: đúng các lượng khớp, phần còn lại của cả hai phía và tổng giá trị 2.997.000 VND. 1 điểm: phương pháp đúng một phần nhưng thiếu ý hoặc sai số học. 0 điểm: không xác định được lượng khớp theo dữ kiện."
+    },
+    {
+      "id": "partial-and-cancel",
+      "prompt": "**Câu 5 — Khớp một phần và hủy**\n\nTrong tình huống riêng, sổ chỉ có A và B như ban đầu; lệnh mua LO **100** giá **25.000** được xử lý theo các giả định chung. Lệnh đã khớp bao nhiêu, còn chờ bao nhiêu và có còn hoạt động không? Nếu sau đó yêu cầu hủy thành công toàn bộ phần còn chờ, phần nào bị hủy và phần đã khớp có bị đảo ngược không?",
+      "reference": "Lệnh mua khớp **80**, gồm A 30 và B 50, còn **20** chờ; lệnh vẫn hoạt động khi phần dư được phép chờ. Nếu hủy thành công toàn bộ phần chờ, **20** bị hủy; **80 đã khớp không bị hủy hay đảo ngược** bởi việc hủy phần dư. Kết luận này dựa trên giả định hủy thành công toàn bộ phần chờ.",
+      "criterion": "2 điểm: xác định đúng 80 đã khớp, 20 còn chờ và trạng thái hoạt động, hủy 20 khi thành công và giữ nguyên 80 đã khớp. 1 điểm: đúng một phần nhưng thiếu hoặc nhầm một ý chính. 0 điểm: không phân biệt được phần đã khớp với phần có thể hủy."
+    },
+    {
+      "id": "execution-value",
+      "prompt": "**Câu 6 — Dữ liệu và giá trị**\n\nMột đồng nghiệp muốn chỉ lưu giá khớp cuối cùng cho lệnh mua 100 ở Câu 3 và tính giá trị bằng `100 × 25.000`. Cách đó có giữ được thông tin và tính đúng giá trị không? Hãy giải thích dữ liệu cần lưu và phép tính phù hợp; tổng khối lượng execution của một lệnh bị giới hạn thế nào?",
+      "reference": "Không: giá cuối **25.000** không phản ánh lần A ở **24.900**, nên phép nhân cho **2.500.000 VND**, sai so với **2.497.000 VND**. Cần lưu lệnh và từng execution riêng, tối thiểu giá và khối lượng từng lần cùng liên kết với lệnh; tính tổng `Σ(giá × khối lượng)` của các execution. Tổng khối lượng execution của lệnh **không vượt khối lượng đặt**. Có thể lưu thêm giá bình quân chính xác nhưng không dùng nó để thay thế lịch sử từng lần khớp.",
+      "criterion": "2 điểm: bác bỏ việc chỉ lưu giá cuối, giải thích giá trị đúng bằng tổng từng execution, nêu dữ liệu execution riêng và ràng buộc tổng khớp không vượt lượng đặt. 1 điểm: đúng một phần nhưng thiếu một ý chính hoặc sai số học. 0 điểm: chấp nhận giá cuối là đủ để tính chính xác trong tình huống này mà không có lập luận đúng khác."
+    },
+    {
+      "id": "frontend-state",
+      "prompt": "**Câu 7 — Hiển thị trạng thái lệnh**\n\nVới lệnh mua 100 đã khớp 80 và còn chờ 20 ở Câu 5, hãy đề xuất thông tin và trạng thái giao diện cần hiển thị. Bảng giá người dùng nhìn trước khi đặt có bảo đảm kết quả khớp không? Vì sao?",
+      "reference": "Giao diện hiển thị **đặt 100, đã khớp 80, còn chờ 20**, trạng thái **khớp một phần/đang hoạt động** và có thể hiển thị chi tiết execution. Bảng giá trước khi đặt chỉ là dữ liệu tham khảo tại thời điểm hiển thị; lệnh chờ và điều kiện thị trường có thể thay đổi trước khi xử lý, nên không bảo đảm giá hay khối lượng khớp.",
+      "criterion": "2 điểm: hiển thị đúng ba lượng và trạng thái khớp một phần còn hoạt động, đồng thời giải thích bảng giá tham khảo không bảo đảm kết quả. 1 điểm: đúng một phần nhưng thiếu lượng, trạng thái hoặc giải thích chính. 0 điểm: coi lệnh đã hoàn tất dù còn chờ hoặc coi bảng giá là cam kết khớp mà không có lập luận đúng khác."
+    }
+  ]
+}

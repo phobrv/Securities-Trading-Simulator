@@ -155,9 +155,36 @@ class PracticeCLITest(unittest.TestCase):
         self.assertTrue(self.call("save-grade", attempt, data=grade)["passed"])
         self.assertEqual(len(self.call("result", attempt)["evaluations"]), 2)
 
+    def test_session_five_lifecycle(self):
+        progress = self.call("start", "05")
+        attempt = progress["attempt_id"]
+        ids = ["book-and-executions", "priority", "match-100", "match-120",
+               "partial-and-cancel", "execution-value", "frontend-state"]
+        self.assertEqual((progress["test_id"], progress["version"], progress["total"]), ("05", 2, 7))
+        self.call("grade-input", attempt, ok=False)
+        for qid in ids:
+            self.assertEqual(progress["next_question"]["id"], qid)
+            self.assertNotIn("reference", json.dumps(progress))
+            self.assertNotIn("criterion", json.dumps(progress))
+            progress = self.answer(attempt, qid, "Trả lời thử")
+        self.assertIsNone(progress["next_question"])
+        self.call("submit", attempt)
+        payload = self.call("grade-input", attempt)
+        self.assertEqual([q["id"] for q in payload["questions"]], ids)
+        self.assertTrue(all(q["reference"] and q["criterion"] for q in payload["questions"]))
+        grade = {"grader": "test", "summary": "Ôn tập", "criteria": [
+            {"question_id": qid, "score": 2, "evidence": "Trả lời thử", "feedback": "Nhận xét"}
+            for qid in ids
+        ]}
+        grade["criteria"][-1]["score"] = 1
+        self.assertFalse(self.call("save-grade", attempt, data=grade)["passed"])
+        grade["criteria"][-1]["score"] = 2
+        self.assertTrue(self.call("save-grade", attempt, data=grade)["passed"])
+        self.assertEqual(len(self.call("result", attempt)["evaluations"]), 2)
+
     def test_markdown_versions_and_legacy_snapshots(self):
         tests = CLI.parent / "tests"
-        for test_id in ("01", "01-long", "02", "03", "04"):
+        for test_id in ("01", "01-long", "02", "03", "04", "05"):
             new = json.loads((tests / f"{test_id}-v2.json").read_text(encoding="utf-8"))
             self.assertEqual(new["version"], 2)
             for question in new["questions"]:
